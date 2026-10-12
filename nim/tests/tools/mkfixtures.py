@@ -71,4 +71,47 @@ save("cmyk.tif", im.convert("CMYK"), "TIFF")
 save("rgb.webp", im, "WEBP", lossless=True)
 save("rgba_lossy.webp", im.convert("RGBA"), "WEBP", quality=90)
 save("rgb.ico", im.resize((32, 32)).convert("RGBA"), "ICO")
+
+try:
+    import OpenEXR, numpy as np
+except ImportError:
+    OpenEXR = None
+if OpenEXR is not None:
+    # Float fixtures: values outside [0, 1], a smooth ramp plus noise so every compressor has work.
+    rng = np.random.default_rng(7)
+    h, w = 37, 53
+    yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+    rgba = np.stack([xx / w * 4 - 1, yy / h * 2, np.sin(xx * 0.3) * 3, np.ones_like(xx) * 0.5], -1)
+    rgba[5:9, 5:40] += rng.normal(0, 1, (4, 35, 4)).astype(np.float32)
+    rgba = rgba.astype(np.float32)
+    comps = {"none": OpenEXR.NO_COMPRESSION, "rle": OpenEXR.RLE_COMPRESSION, "zips": OpenEXR.ZIPS_COMPRESSION,
+             "zip": OpenEXR.ZIP_COMPRESSION, "piz": OpenEXR.PIZ_COMPRESSION, "pxr24": OpenEXR.PXR24_COMPRESSION}
+    def exr(name, arr, comp, tiled=False):
+        hdr = {"compression": comp, "type": OpenEXR.tiledimage if tiled else OpenEXR.scanlineimage}
+        if tiled:
+            td = OpenEXR.TileDescription()
+            td.xSize, td.ySize = 16, 16
+            td.mode, td.roundingMode = OpenEXR.ONE_LEVEL, OpenEXR.ROUND_DOWN
+            hdr["tiles"] = td
+        with OpenEXR.File(hdr, {"RGBA": arr}) as f:
+            f.write(os.path.join(out, name))
+        back = OpenEXR.File(os.path.join(out, name)).channels()["RGBA"].pixels.astype(np.float32)
+        with open(os.path.join(out, name + ".f32"), "wb") as f:
+            f.write(b"%d %d %d\n" % (back.shape[1], back.shape[0], back.shape[2]))
+            f.write(back.tobytes())
+    for k, c in comps.items():
+        exr("half_%s.exr" % k, rgba.astype(np.float16), c)
+        exr("float_%s.exr" % k, rgba, c)
+    exr("tiled_zip.exr", rgba.astype(np.float16), OpenEXR.ZIP_COMPRESSION, tiled=True)
+    exr("tiled_piz.exr", rgba, OpenEXR.PIZ_COMPRESSION, tiled=True)
+    gray = rgba[..., 0].copy()
+    with OpenEXR.File({"compression": OpenEXR.ZIP_COMPRESSION, "type": OpenEXR.scanlineimage}, {"Y": gray.astype(np.float16)}) as f:
+        f.write(os.path.join(out, "gray_zip.exr"))
+    with open(os.path.join(out, "gray_zip.exr.f32"), "wb") as f:
+        f.write(b"%d %d 1\n" % (w, h))
+        f.write(gray.astype(np.float16).astype(np.float32).tobytes())
+    P0 = OpenEXR.Part({"compression": OpenEXR.ZIP_COMPRESSION, "type": OpenEXR.scanlineimage}, {"Z": gray}, name="depth")
+    P1 = OpenEXR.Part({"compression": OpenEXR.PIZ_COMPRESSION, "type": OpenEXR.scanlineimage}, {"RGBA": rgba.astype(np.float16)}, name="beauty")
+    with OpenEXR.File([P0, P1]) as f:
+        f.write(os.path.join(out, "multipart.exr"))
 print("ok")

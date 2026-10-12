@@ -131,3 +131,83 @@ suite "codecs":
       let (o, rc) = execCmdEx("python3 -I -c \"from PIL import Image; im=Image.open('" & path & "'); im.load(); print(im.size)\"")
       if rc != 0: echo ext, ": ", o
       check rc == 0
+
+  test "webp lossless and lossy decode like Pillow":
+    check maxDiff("rgb.webp", dec("rgb.webp")) == 0
+    let d = maxDiff("rgba_lossy.webp", dec("rgba_lossy.webp"))
+    if d > 3: echo "lossy webp max diff ", d
+    check d <= 3
+
+  test "webp encode round trips and pillow reads it":
+    let img = dec("rgba_grad.png")
+    var o = defaultEncodeOptions()
+    let lossless = encode(img, fmtWebP, o)
+    check decode(lossless).data == img.data
+    o.webpLossless = false
+    o.webpQuality = 90
+    let lossy = encode(img, fmtWebP, o)
+    let back = decode(lossy)
+    check back.width == img.width
+    for (bytes, name) in [(lossless, "ll"), (lossy, "ly")]:
+      let path = Dir / "out_nim_" & name & ".webp"
+      writeFile(path, bytes.toStr)
+      let (outp, rc) = execCmdEx("python3 -I -c \"from PIL import Image; import sys; im=Image.open('" & path & "'); im.load(); print(im.mode)\"")
+      if rc != 0: echo outp
+      check rc == 0
+
+proc readF32(name: string): (int, int, int, seq[float32]) =
+  let s = readFile(Dir / name & ".f32")
+  let nl = s.find('\n')
+  let parts = s[0 ..< nl].splitWhitespace
+  let raw = s[nl + 1 .. ^1]
+  var v = newSeq[float32](raw.len div 4)
+  if v.len > 0: copyMem(addr v[0], unsafeAddr raw[0], v.len * 4)
+  (parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2]), v)
+
+proc floats(img: Image): seq[float32] =
+  result = newSeq[float32](img.data.len div 4)
+  if result.len > 0: copyMem(addr result[0], unsafeAddr img.data[0], result.len * 4)
+
+suite "openexr":
+  let have = fileExists(Dir / "half_none.exr")
+
+  test "decodes what the OpenEXR library writes (every compression, scanline and tiled)":
+    if not have: skip()
+    else:
+      for n in ["half_none", "half_rle", "half_zips", "half_zip", "half_piz", "half_pxr24",
+                "float_none", "float_rle", "float_zips", "float_zip", "float_piz", "float_pxr24",
+                "tiled_zip", "tiled_piz", "gray_zip"]:
+        let (w, h, ch, want) = readF32(n & ".exr")
+        let img = dec(n & ".exr")
+        check img.width == w and img.height == h
+        let got = img.convert(if ch == 1: clGray else: clRgba, isF32).floats
+        var worst = 0.0'f32
+        for i in 0 ..< min(got.len, want.len): worst = max(worst, abs(got[i] - want[i]))
+        if worst > 0 or got.len != want.len: echo n, " worst ", worst, " len ", got.len, "/", want.len
+        check got.len == want.len and worst == 0
+
+  test "multipart opens the colour part and warns":
+    if not have: skip()
+    else:
+      let img = dec("multipart.exr")
+      check img.layout == clRgba
+      check img.warnings.len == 1 and img.warnings[0].kind == dwMoreParts
+      let (_, _, _, want) = readF32("half_none.exr")
+      check img.convert(clRgba, isF32).floats == want
+
+  test "encode round trips and the OpenEXR library reads it":
+    let src = dec("rgba_grad.png").convert(clRgba, isF32)
+    for c in [ecNone, ecRle, ecZip1, ecZip16, ecPiz]:
+      for s in [isF16, isF32]:
+        var o = defaultEncodeOptions()
+        o.exrCompression = c
+        let bytes = encode(src.convert(clRgba, s), fmtOpenExr, o)
+        let back = decode(bytes)
+        check back.sample == s
+        check back.data == src.convert(clRgba, s).data
+        if have:
+          let path = Dir / "out_nim.exr"
+          writeFile(path, bytes.toStr)
+          let (outp, rc) = execCmdEx("python3 -I -c \"import OpenEXR; f=OpenEXR.File('" & path & "'); print(f.channels()['RGBA'].pixels.shape)\"")
+          if rc != 0: echo outp
+          check rc == 0
