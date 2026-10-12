@@ -1,0 +1,4 @@
+.nimcache/
+bin/
+tests/out/
+*.out
