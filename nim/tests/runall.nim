@@ -7,3 +7,4 @@ import t_codecs
 import t_psd
 import t_doc
 import t_vector
+import t_compose
