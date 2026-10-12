@@ -8,3 +8,4 @@ import t_psd
 import t_doc
 import t_vector
 import t_compose
+import t_algo_base
