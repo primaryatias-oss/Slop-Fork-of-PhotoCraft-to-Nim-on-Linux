@@ -2,3 +2,5 @@
 import t_geom
 import t_cms
 import t_color_raster
+import t_zlib
+import t_codecs
