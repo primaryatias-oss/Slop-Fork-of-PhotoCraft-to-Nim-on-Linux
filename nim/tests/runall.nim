@@ -5,3 +5,4 @@ import t_color_raster
 import t_zlib
 import t_codecs
 import t_psd
+import t_doc
