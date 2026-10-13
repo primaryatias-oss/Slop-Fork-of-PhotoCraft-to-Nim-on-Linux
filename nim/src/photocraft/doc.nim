@@ -65,6 +65,26 @@ proc fromJ*(n: JsonNode; x: var SharedF32) =
     fromJ(n, d)
     x = SharedF32(data: d)
 
+# ---------------------------------------------------------------- variant equality
+# The enum-like types are flat objects holding every variant's fields; equality compares only
+# the active variant (Rust's derived `PartialEq` on the enum), through its serde form.
+proc `==`*(a, b: Adjustment): bool {.noSideEffect.}
+proc `==`*(a, b: Contour): bool {.noSideEffect.}
+proc `==`*(a, b: FxPaint): bool {.noSideEffect.}
+proc `==`*(a, b: Effect): bool {.noSideEffect.}
+proc `==`*(a, b: LiveShape): bool {.noSideEffect.}
+proc `==`*(a, b: Fill): bool {.noSideEffect.}
+proc `==`*(a, b: TextShape): bool {.noSideEffect.}
+proc `==`*(a, b: VideoSource): bool {.noSideEffect.}
+proc `==`*(a, b: ArtboardBackground): bool {.noSideEffect.}
+proc `==`*(a, b: VarKind): bool {.noSideEffect.}
+proc `==`*(a, b: DataValue): bool {.noSideEffect.}
+proc `==`*(a, b: SmartSource): bool {.noSideEffect.} =
+  if a.kind != b.kind: return false
+  case a.kind
+  of ssEmbedded: a.fileName == b.fileName and a.bytes == b.bytes
+  of ssLinked: a.path == b.path
+
 # ---------------------------------------------------------------- small types
 
 proc union*(a, b: Locks): Locks =
@@ -1243,6 +1263,10 @@ proc setGuideColor*(g: var Guides; vertical: bool; position: float64; rgb: Optio
 proc pruneColors*(g: var Guides) =
   let (h, v) = (g.horizontal, g.vertical)
   g.colors.keepItIf(if it.vertical: it.position in v else: it.position in h)
+proc toJ*(g: Guides): JsonNode =
+  ## `colors` is left out when empty (serde `skip_serializing_if`).
+  result = %*{"horizontal": toJ(g.horizontal), "vertical": toJ(g.vertical)}
+  if g.colors.len > 0: result["colors"] = toJ(g.colors)
 
 const AlphaDefaultColor* = Color(mode: cmRgb, c: [1.0'f32, 0, 0, 0], alpha: 1.0)
 proc newAlphaChannel*(name: string; surface: Surface): AlphaChannel =
@@ -1525,3 +1549,37 @@ proc resolveSlices*(d: Document): seq[ResolvedSlice] =
     result.add ResolvedSlice(number: number, id: id, rect: rect, name: name,
       origin: (if idx >= 0: d.slices.list[idx].origin else: soAuto),
       kind: (if idx >= 0: d.slices.list[idx].kind else: skImage))
+
+proc `==`*(a, b: Adjustment): bool {.noSideEffect.} =
+  {.cast(noSideEffect).}:
+    result = a.kind == b.kind and toJ(a) == toJ(b)
+proc `==`*(a, b: Contour): bool {.noSideEffect.} =
+  {.cast(noSideEffect).}:
+    result = a.kind == b.kind and toJ(a) == toJ(b)
+proc `==`*(a, b: FxPaint): bool {.noSideEffect.} =
+  {.cast(noSideEffect).}:
+    result = a.kind == b.kind and toJ(a) == toJ(b)
+proc `==`*(a, b: Effect): bool {.noSideEffect.} =
+  {.cast(noSideEffect).}:
+    result = a.kind == b.kind and toJ(a) == toJ(b)
+proc `==`*(a, b: LiveShape): bool {.noSideEffect.} =
+  {.cast(noSideEffect).}:
+    result = a.kind == b.kind and toJ(a) == toJ(b)
+proc `==`*(a, b: Fill): bool {.noSideEffect.} =
+  {.cast(noSideEffect).}:
+    result = a.kind == b.kind and toJ(a) == toJ(b)
+proc `==`*(a, b: TextShape): bool {.noSideEffect.} =
+  {.cast(noSideEffect).}:
+    result = a.kind == b.kind and toJ(a) == toJ(b)
+proc `==`*(a, b: VideoSource): bool {.noSideEffect.} =
+  {.cast(noSideEffect).}:
+    result = a.kind == b.kind and toJ(a) == toJ(b)
+proc `==`*(a, b: ArtboardBackground): bool {.noSideEffect.} =
+  {.cast(noSideEffect).}:
+    result = a.kind == b.kind and toJ(a) == toJ(b)
+proc `==`*(a, b: VarKind): bool {.noSideEffect.} =
+  {.cast(noSideEffect).}:
+    result = a.kind == b.kind and toJ(a) == toJ(b)
+proc `==`*(a, b: DataValue): bool {.noSideEffect.} =
+  {.cast(noSideEffect).}:
+    result = a.kind == b.kind and toJ(a) == toJ(b)

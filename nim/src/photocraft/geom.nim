@@ -39,6 +39,17 @@ proc satAdd*(a, b: int): int {.inline.} =
   ## Saturating add in the i32 range (the Rust crate's coordinate type).
   clampI32(a + b)
 proc satSub*(a, b: int): int {.inline.} = clampI32(a - b)
+proc asI32*(v: float64): int {.inline.} =
+  ## Rust `v as i32`: truncates toward zero, saturates at the i32 range, NaN → 0.
+  if v != v: 0
+  elif v >= float64(I32Max): I32Max
+  elif v <= float64(I32Min): I32Min
+  else: int(v)
+proc asUsize*(v: float64): int {.inline.} =
+  ## Rust `v as usize` (on 64-bit, capped at `high(int)`): NaN and negatives → 0.
+  if v != v or v <= 0: 0
+  elif v >= 9.2e18: high(int)
+  else: int(v)
 
 # ---- Size ----
 

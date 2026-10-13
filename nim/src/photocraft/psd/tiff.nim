@@ -3,19 +3,18 @@
 ## tagged blocks, `Layr`/`Lr16`/`Lr32` holding the layer info and `LMsk` the global mask) and tag
 ## 34377 (image resources).
 ##
-## Port status: big-endian (Motorola-order) data is read and written. Intel-order data needs the
-## field-by-field transcoder of the Rust crate, which is not ported yet; such data raises
-## `PsdError` (unsupported), and callers fall back to the TIFF's flat pixels.
+## Either byte order is read and written: Intel-order (little-endian, `MIB8`) data goes through
+## the field-by-field transcoder (`transcode`); blocks of unknown layout are kept as stored.
 
 import std/options
-import ./io, ./compression, ./model
+import ./io, ./compression, ./model, ./transcode
+export transcode.ByteOrder, transcode.isLittle
 
 const
   TiffSignature* = "Adobe Photoshop Document Data Block\0"
   TiffSignaturePsb* = "Adobe Photoshop Document Data V0002\0"
 
 type
-  ByteOrder* = enum boBig, boLittle
   ImageSourceData* = object
     version*: Version
     byteOrder*: ByteOrder
@@ -55,9 +54,13 @@ proc parseImageSourceData*(data: openArray[byte]): (ImageSourceData, seq[string]
   else: raise invalid("not Photoshop image source data (missing \"Adobe Photoshop Document Data Block\")")
   template rest: untyped = data.toOpenArray(36, data.len - 1)
   isd.byteOrder = blockOrder(rest)
+  var warnings: seq[string]
+  var big: seq[byte]
   if isd.byteOrder == boLittle:
-    raise unsupported("Intel-order (little-endian) Photoshop layer data in TIFF")
-  var r = newReader(rest)
+    (big, warnings) = transcodeBlocks(rest, isd.version, boLittle, boBig)
+  else:
+    big = @rest
+  var r = newReader(big)
   var (blocks, trailing) = readBlocks(r, isd.version)
   for b in blocks.mitems:
     if b.padding.isSome and b.padding.get.len <= 3:
@@ -78,13 +81,12 @@ proc parseImageSourceData*(data: openArray[byte]): (ImageSourceData, seq[string]
       break
   isd.globalBlocks = blocks
   isd.trailing = trailing
-  (isd, newSeq[string]())
+  (isd, warnings)
 
 proc paddedBlock(key: string; data: seq[byte]): TaggedBlock =
   TaggedBlock(signature: "8BIM", key: key, data: data, padding: some(newSeq[byte]((4 - data.len mod 4) mod 4)))
 
 proc toBytes*(isd: ImageSourceData; order = boBig): (seq[byte], seq[string]) =
-  if order == boLittle: raise unsupported("writing Intel-order Photoshop layer data")
   var blocks: seq[TaggedBlock]
   var warnings: seq[string]
   if isd.layerInfo.isSome:
@@ -95,16 +97,17 @@ proc toBytes*(isd: ImageSourceData; order = boBig): (seq[byte], seq[string]) =
     blocks.add paddedBlock(isd.layerInfoKey, data)
   if isd.globalLayerMask.isSome: blocks.add paddedBlock("LMsk", isd.globalLayerMask.get.data)
   for b0 in isd.globalBlocks:
-    if b0.isForeignOrder:
-      warnings.add "block " & b0.key & " kept in little-endian layout was dropped from a big-endian file"
-      continue
     var b = b0
+    # Padded to 4 like the others; the signature stays (a foreign-order marker included).
     if b.padding.isNone: b.padding = some(newSeq[byte]((4 - b.data.len mod 4) mod 4))
     blocks.add b
+  var body: seq[byte]
+  writeBlocks(body, blocks, isd.version, 2)
+  body.put(isd.trailing)
+  if order == boLittle: (body, warnings) = transcodeBlocks(body, isd.version, boBig, boLittle)
   var o: seq[byte]
   o.put(if isd.version.isPsb: TiffSignaturePsb else: TiffSignature)
-  writeBlocks(o, blocks, isd.version, 2)
-  o.put(isd.trailing)
+  o.put(body)
   (o, warnings)
 
 proc fromPsd*(f: PsdFile): ImageSourceData =
@@ -125,8 +128,11 @@ proc intoPsd*(isd: ImageSourceData; header: Header; resources: seq[ImageResource
   result.layerMaskTrailing = isd.trailing
   result.imageData = imageData
 
-proc resourcesFromBytes*(data: openArray[byte]): (seq[ImageResource], seq[string]) =
-  if blockOrder(data) == boLittle: raise unsupported("Intel-order Photoshop image resources")
+proc resourcesFromBytes*(data0: openArray[byte]): (seq[ImageResource], seq[string]) =
+  var warnings: seq[string]
+  var data: seq[byte]
+  if blockOrder(data0) == boLittle: (data, warnings) = transcodeResources(data0, boLittle, boBig)
+  else: data = @data0
   var r = newReader(data)
   var res: seq[ImageResource]
   while not r.isEmpty:
@@ -150,7 +156,7 @@ proc resourcesFromBytes*(data: openArray[byte]): (seq[ImageResource], seq[string
     one.add ImageResource(signature: sig, id: id, name: name, data: d)
     res.add one
     r.pos += s.pos
-  (res, newSeq[string]())
+  (res, warnings)
 
 proc resourcesToBytes*(resources: openArray[ImageResource]): seq[byte] =
   for x in resources: x.write(result)

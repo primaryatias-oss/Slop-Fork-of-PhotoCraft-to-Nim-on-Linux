@@ -430,10 +430,19 @@ proc encodePng*(src: Image; layout: ChannelLayout; sample: ImgSample; opts: Enco
     p += n
   result.chunk("IEND", [])
 
-proc encodePngIndexed*(width, height: int; indices: openArray[uint8]; palette: openArray[array[3, uint8]]; alpha: openArray[uint8]): seq[byte] =
-  ## An 8-bit palette PNG (`indices` row-major, `palette` ≤ 256 entries, optional tRNS alphas).
-  if indices.len != width * height or palette.len == 0 or palette.len > 256:
-    raise encodeErr(fmtPng, "bad indexed image")
+proc encodePngIndexed*(width, height: int; indices: openArray[uint8]; palette: openArray[array[3, uint8]];
+                       transparent: Option[uint8]; dpi: Option[(float32, float32)]): seq[byte] =
+  ## An 8-bit palette PNG (`indices` row-major, `palette` 1–256 entries covering every index); the
+  ## `transparent` index gets a tRNS entry, `dpi` a pHYs chunk.
+  if width <= 0 or height <= 0 or indices.len != width * height:
+    raise invalidImage("index data does not match the size")
+  var covered = palette.len > 0 and palette.len <= 256
+  if covered:
+    for i in indices:
+      if int(i) >= palette.len:
+        covered = false
+        break
+  if not covered: raise invalidImage("palette must have 1..=256 entries covering every index")
   result = @Signature
   var ihdr: seq[byte]
   for v in [width, height]:
@@ -443,7 +452,19 @@ proc encodePngIndexed*(width, height: int; indices: openArray[uint8]; palette: o
   var pl: seq[byte]
   for c in palette: pl.add c
   result.chunk("PLTE", pl)
-  if alpha.len > 0: result.chunk("tRNS", alpha)
+  if transparent.isSome and int(transparent.get) < palette.len:
+    var trns = newSeq[byte](int(transparent.get) + 1)
+    for v in trns.mitems: v = 255
+    trns[int(transparent.get)] = 0
+    result.chunk("tRNS", trns)
+  if dpi.isSome:
+    let (x, y) = dpi.get
+    if x == x and y == y and x > 0 and y > 0 and x < Inf and y < Inf:
+      var d: seq[byte]
+      for v in [int(round(x / MetersPerInch)), int(round(y / MetersPerInch))]:
+        d.add [byte((v shr 24) and 0xFF), byte((v shr 16) and 0xFF), byte((v shr 8) and 0xFF), byte(v and 0xFF)]
+      d.add 1
+      result.chunk("pHYs", d)
   var filtered: seq[byte]
   for y in 0 ..< height:
     filtered.add 0

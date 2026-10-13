@@ -326,6 +326,24 @@ proc toRgbaF32*(i: Image): seq[float32] = convertLayout(i.toNormalized, i.layout
 const AllFormats* = [fmtPng, fmtJpeg, fmtTiff, fmtWebP, fmtGif, fmtBmp, fmtTga, fmtIco, fmtPnm, fmtQoi, fmtOpenExr, fmtHdr, fmtAvif, fmtHeif, fmtFits]
 
 proc name*(f: Format): string = $f
+proc debugName*(f: Format): string =
+  ## The Rust variant name (`{:?}`), used in messages shared with the Rust build.
+  case f
+  of fmtPng: "Png"
+  of fmtJpeg: "Jpeg"
+  of fmtTiff: "Tiff"
+  of fmtWebP: "WebP"
+  of fmtGif: "Gif"
+  of fmtBmp: "Bmp"
+  of fmtTga: "Tga"
+  of fmtIco: "Ico"
+  of fmtPnm: "Pnm"
+  of fmtQoi: "Qoi"
+  of fmtOpenExr: "OpenExr"
+  of fmtHdr: "Hdr"
+  of fmtAvif: "Avif"
+  of fmtHeif: "Heif"
+  of fmtFits: "Fits"
 
 proc extensions*(f: Format): seq[string] =
   case f

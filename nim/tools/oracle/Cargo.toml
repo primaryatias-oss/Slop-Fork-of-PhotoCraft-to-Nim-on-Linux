@@ -1,0 +1,19 @@
+[package]
+name = "photocraft-oracle"
+version = "0.1.0"
+edition = "2024"
+
+# Standalone (not a member of the PhotoCraft workspace): a dev tool that runs the Rust crates
+# as the reference the Nim port is checked against. See nim/PORTING.md.
+[workspace]
+
+[dependencies]
+photocraft-format = { path = "../../../crates/format" }
+photocraft-doc = { path = "../../../crates/doc" }
+photocraft-color = { path = "../../../crates/color" }
+photocraft-geom = { path = "../../../crates/geom" }
+photocraft-raster = { path = "../../../crates/raster" }
+photocraft-compose = { path = "../../../crates/compose" }
+photocraft-io = { path = "../../../crates/io" }
+photocraft-algo = { path = "../../../crates/algo" }
+serde_json = "1"

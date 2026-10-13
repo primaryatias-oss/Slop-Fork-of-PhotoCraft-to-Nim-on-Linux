@@ -453,7 +453,7 @@ proc disabled*(m: LayerMask): bool = (m.flags and mfDisabled) != 0
 proc maskParameterBytes*(pf: uint8): int =
   int((pf and 1) != 0) + 8 * int((pf and 2) != 0) + int((pf and 4) != 0) + 8 * int((pf and 8) != 0)
 
-proc realBeforeParameters(d: openArray[byte]): bool =
+proc realBeforeParameters*(d: openArray[byte]): bool =
   ## Whether a mask record with parameters stores the real-mask fields first (Photoshop's order).
   template fits(pfAt: int): bool =
     pfAt < d.len and (let mb = maskParameterBytes(d[pfAt]); d.len >= pfAt + 1 + mb and d.len <= pfAt + 4 + mb)

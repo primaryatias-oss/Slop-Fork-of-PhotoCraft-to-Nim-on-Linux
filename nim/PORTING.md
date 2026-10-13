@@ -82,9 +82,39 @@ See the bottom of this file (updated as crates land) and `git log`.
 |---|---|
 | geom, color, cms, raster, zlib | ported, tested |
 | codecs (PNG, JPEG, TIFF, WebP, EXR, BMP, TGA, GIF, …) | ported, tested against Pillow/OpenEXR fixtures |
-| psd | ported; byte-stable on the psd-tools corpus (125 files); little-endian layered TIFF transcoder not ported |
+| psd | ported; byte-stable on the psd-tools corpus (125 files), including the little-endian (Intel-order) layered-TIFF transcoder |
 | doc, ops, vector | ported, tested |
 | compose | ported, tested (GPU compositor intentionally not ported: SDL3 textures display the CPU result) |
-| algo | in progress |
-| paint, text, format, io, raw, affinity, engine, UI, CLI | in progress |
+| format (.pcraft, zstd, BLAKE3, autosave/recovery) | ported, tested; files interchange with the Rust build both ways |
+| algo | in progress (foundation, resample, transform, warp ported) |
+| io (PSD/PSB ↔ document, layered TIFF, multi-part EXR, flat formats, facade) | ported, tested; see "io notes" below |
+| io: OpenRaster, PDN, SVG, camera raw, Affinity | pending (the facade reports "unsupported" until they land) |
+| paint, text, raw, affinity, engine, UI, CLI | in progress |
 | heif (HEVC decoding), plugins (WebAssembly runtime) | not ported: they need a video decoder / wasm interpreter; the commands report "unsupported" |
+
+## Checking against Rust
+
+`tools/oracle` is a small standalone Cargo project that runs the Rust crates as the reference:
+`cargo build --release --manifest-path tools/oracle/Cargo.toml`, then
+`oracle write|read|render|import|export|conv|filter …` (see `src/main.rs`). The port is compared
+by document JSON + tile hashes (`.pcraft`), raw float renders, or output bytes.
+
+## io notes
+
+Checked against the Rust build on the psd-tools corpus with a Rust oracle (`import`, `conv`):
+
+* PSD → document: identical documents (manifest JSON and tile hashes) on 291 of 309 imports; the
+  rest are text layers, which wait for the type engine (`TySh` is read for its plain text and
+  transform only).
+* document → PSD: byte-identical on 72 of 89 files; the others are text layers (same reason) or
+  16/32-bit files whose ZIP streams differ because Rust uses miniz_oxide's deflate and the port
+  its own; decoded content is identical. The 1036 JPEG preview differs for the same reason
+  (different JPEG encoder); its pixels are close but not equal.
+* Flat exports: PNG and TIFF decode to identical pixels; JPEG and WebP (lossy) differ (encoders are
+  independent implementations).
+* Layered TIFF: identical layer data (tag 37724) and resources (34377) except text and ZIP cases.
+* Rust's serde_json reads floats from `.pcraft` JSON up to 1 ULP off; the port reads them exactly,
+  so a vector mask that Rust regenerates after a `.pcraft` round trip is kept verbatim here.
+* Flat enum types (`Effect`, `Fill`, `Adjustment`, …) compare only their active variant (as Rust's
+  derived `PartialEq` does), through their serde form.
+

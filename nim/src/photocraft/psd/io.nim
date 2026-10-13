@@ -21,8 +21,8 @@ type
 
 proc psdError*(kind: PsdErrorKind; msg: string): ref PsdError =
   let prefix = case kind
-    of peUnexpectedEof: "unexpected end of data: "
-    of peInvalidSignature: "invalid signature: "
+    of peUnexpectedEof: "unexpected end of data "
+    of peInvalidSignature: "invalid signature "
     of peUnsupportedVersion: "unsupported file version "
     of peLimitExceeded: "limit exceeded: "
     of peInvalid: "invalid data: "
@@ -38,7 +38,12 @@ proc decompressErr*(msg: string): ref PsdError = psdError(peDecompress, msg)
 proc eof*(offset, needed: int): ref PsdError =
   psdError(peUnexpectedEof, "at offset " & $offset & " (needed " & $needed & " more bytes)")
 proc badSignature*(expected: string; found: string): ref PsdError =
-  psdError(peInvalidSignature, escape(found) & ", expected " & expected)
+  ## Message as Rust's `{found:?}` prints the four bytes: `[56, 66, 80, 83]`.
+  var bytes = "["
+  for i, c in found:
+    if i > 0: bytes.add ", "
+    bytes.add $ord(c)
+  psdError(peInvalidSignature, bytes & "], expected " & expected)
 
 proc newReader*(b: openArray[byte]; little = false): Reader =
   Reader(data: if b.len > 0: cast[ptr UncheckedArray[byte]](unsafeAddr b[0]) else: nil, len: b.len, little: little)

@@ -542,6 +542,16 @@ proc tiffOrientation*(b: openArray[byte]): int =
     if v >= 1 and v <= 8: int(v) else: 1
   except CatchableError: 1
 
+proc tiffPageOrientation*(b: openArray[byte]; page: int): int =
+  ## The Orientation (1–8) of page `page`; 1 when absent, malformed or the page does not exist.
+  try:
+    let (f, first) = parseHeader(b)
+    let ifds = collectIfds(f, b, first)
+    if page < 0 or page >= ifds.len: return 1
+    let v = value(f, b, ifds[page][0], TagOrientation, 1)
+    if v >= 1 and v <= 8: int(v) else: 1
+  except CatchableError: 1
+
 proc photoshopTags*(b: openArray[byte]): (Option[seq[byte]], Option[seq[byte]]) =
   ## The first IFD's Photoshop image resources (34377) and layer data (37724).
   try:

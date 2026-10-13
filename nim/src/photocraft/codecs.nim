@@ -13,6 +13,7 @@
 import std/[options, strutils]
 import codecs/[image, meta, png, jpeg, simple, tiff, webp, exr]
 export image, meta
+export tiff.tiffOrientation, tiff.tiffPageOrientation, tiff.tiffInfo, tiff.writesLittleEndian, png.encodePngIndexed
 
 type
   FidelityWarningKind* = enum
@@ -149,6 +150,11 @@ proc decodeAs*(format: Format; bytes: openArray[byte]; opts = defaultDecodeOptio
     of fmtTiff: tiffOrientation(bytes)
     else: (if img.meta.exif.isSome: exifOrientation(img.meta.exif.get) else: 1)
   finishDecode(img, o, opts)
+
+proc decodeTiffPage*(bytes: openArray[byte]; page: int; opts: DecodeOptions): Image =
+  ## Decode page `page` (an index into `tiffInfo(bytes).pages`) of a TIFF. Raises `CodecError`.
+  var img = decodeTiffPage(bytes, page, opts.limits)
+  finishDecode(img, tiffPageOrientation(bytes, page), opts)
 
 proc decode*(bytes: openArray[byte]; opts = defaultDecodeOptions()): Image =
   ## Detect the format and decode. Raises `CodecError`.

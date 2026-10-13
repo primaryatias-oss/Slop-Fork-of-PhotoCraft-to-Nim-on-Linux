@@ -26,6 +26,7 @@ type
     lineOrder: int
     chunkCount: int
     offsets: seq[int64]
+    attributes*: seq[(string, string)]  ## string-typed header attributes other than name/view/type
 
 proc err(msg: string): ref CodecError = malformed(fmtOpenExr, msg)
 
@@ -120,7 +121,11 @@ proc readHeaders(b: openArray[byte]): seq[ExrPart] =
         part.tiled = n.startsWith("tiled")
         part.deep = n.startsWith("deep")
       of "chunkCount": part.chunkCount = rdI32(b, s)
-      else: discard ty
+      else:
+        if ty == "string":
+          var v = newString(size)
+          for k in 0 ..< size: v[k] = char(b[s + k])
+          part.attributes.add (name, v)
       p += size
     if not any: break
     result.add part
