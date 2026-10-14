@@ -67,6 +67,73 @@ fn main() {
                 Err(e) => println!("ERR {e}"),
             }
         }
+        "font-info" => {
+            use skrifa::MetadataProvider;
+            let data = std::fs::read(&args[2]).unwrap();
+            let fr = skrifa::FontRef::from_index(&data, args.get(3).map_or(0, |s| s.parse().unwrap())).unwrap();
+            let m = fr.metrics(skrifa::instance::Size::unscaled(), skrifa::instance::LocationRef::default());
+            let name = |id| fr.localized_strings(id).english_or_first().map(|s| s.to_string()).unwrap_or_default();
+            println!("family={} style={} ps={} upem={} ascent={} descent={} leading={} glyphs={} xh={:?} cap={:?} ul={:?} st={:?}",
+                name(skrifa::string::StringId::FAMILY_NAME), name(skrifa::string::StringId::SUBFAMILY_NAME), name(skrifa::string::StringId::POSTSCRIPT_NAME),
+                m.units_per_em, m.ascent, m.descent, m.leading, m.glyph_count, m.x_height, m.cap_height, m.underline.map(|d| (d.offset, d.thickness)), m.strikeout.map(|d| (d.offset, d.thickness)));
+        }
+        "outline" => {
+            use skrifa::MetadataProvider;
+            let data = std::fs::read(&args[2]).unwrap();
+            let fr = skrifa::FontRef::new(&data).unwrap();
+            struct P(String);
+            impl skrifa::outline::OutlinePen for P {
+                fn move_to(&mut self, x: f32, y: f32) { self.0 += &format!("M {x} {y}\n"); }
+                fn line_to(&mut self, x: f32, y: f32) { self.0 += &format!("L {x} {y}\n"); }
+                fn quad_to(&mut self, a: f32, b: f32, x: f32, y: f32) { self.0 += &format!("Q {a} {b} {x} {y}\n"); }
+                fn curve_to(&mut self, a: f32, b: f32, c: f32, d: f32, x: f32, y: f32) { self.0 += &format!("C {a} {b} {c} {d} {x} {y}\n"); }
+                fn close(&mut self) { self.0 += "Z\n"; }
+            }
+            let gm = fr.glyph_metrics(skrifa::instance::Size::unscaled(), skrifa::instance::LocationRef::default());
+            for g in args[3].split(',') {
+                let gid: u32 = g.parse().unwrap();
+                let mut p = P(String::new());
+                if let Some(o) = fr.outline_glyphs().get(skrifa::GlyphId::new(gid)) {
+                    let _ = o.draw(skrifa::outline::DrawSettings::unhinted(skrifa::instance::Size::unscaled(), skrifa::instance::LocationRef::default()), &mut p);
+                }
+                println!("G {gid} adv={:?}", gm.advance_width(skrifa::GlyphId::new(gid)));
+                print!("{}", p.0);
+            }
+        }
+        "cmap" => {
+            use skrifa::MetadataProvider;
+            let data = std::fs::read(&args[2]).unwrap();
+            let fr = skrifa::FontRef::new(&data).unwrap();
+            let n = fr.charmap().mappings().count();
+            let sum: u64 = fr.charmap().mappings().map(|(c, g)| c as u64 * 31 + g.to_u32() as u64).sum();
+            println!("mappings={n} sum={sum}");
+        }
+        "shape" => {
+            // shape <font> <text> [features "kern=0,liga=0"] [script Latn] [lang en] [rtl]
+            let data = std::fs::read(&args[2]).unwrap();
+            let font = harfrust::FontRef::from_index(&data, 0).unwrap();
+            let sd = harfrust::ShaperData::new(&font);
+            let inst = harfrust::ShaperInstance::from_variations(&font, std::iter::empty::<harfrust::Variation>());
+            let shaper = sd.shaper(&font).instance(Some(&inst)).build();
+            let text = &args[3];
+            let feats: Vec<harfrust::Feature> = args.get(4).map(|s| s.split(',').filter(|x| !x.is_empty()).map(|f| {
+                let (t, v) = f.split_once('=').unwrap();
+                harfrust::Feature::new(harfrust::Tag::new_checked(t.as_bytes()).unwrap(), v.parse().unwrap(), ..)
+            }).collect()).unwrap_or_default();
+            let script = harfrust::Script::from_iso15924_tag(harfrust::Tag::new_checked(args.get(5).map_or("Latn", |s| s.as_str()).as_bytes()).unwrap()).unwrap();
+            let lang: Option<harfrust::Language> = args.get(6).filter(|s| !s.is_empty() && s.as_str() != "-").and_then(|s| s.parse().ok());
+            let dir = if args.get(7).map_or(false, |s| s == "rtl") { harfrust::Direction::RightToLeft } else { harfrust::Direction::LeftToRight };
+            let plan = harfrust::ShapePlan::new(&shaper, dir, Some(script), lang.as_ref(), &feats);
+            let mut buf = harfrust::UnicodeBuffer::new();
+            for (i, ch) in text.chars().enumerate() { buf.add(ch, i as u32); }
+            buf.set_direction(dir);
+            buf.set_script(script);
+            if let Some(l) = lang { buf.set_language(l); }
+            let out = shaper.shape(buf, harfrust::ShapeOptions::new().plan(Some(&plan)).features(&feats));
+            for (i, p) in out.glyph_infos().iter().zip(out.glyph_positions()) {
+                println!("{} {} {} {} {} {}", i.glyph_id, i.cluster, p.x_advance, p.y_advance, p.x_offset, p.y_offset);
+            }
+        }
         "filter" => {
             let mut d = photocraft_format::load_from_bytes(&std::fs::read(&args[2]).unwrap()).unwrap();
             let p: photocraft_algo::FilterParams = serde_json::from_str(&args[3]).unwrap();

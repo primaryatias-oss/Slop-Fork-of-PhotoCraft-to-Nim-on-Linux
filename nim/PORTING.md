@@ -90,7 +90,10 @@ See the bottom of this file (updated as crates land) and `git log`.
 | io (PSD/PSB ↔ document, layered TIFF, multi-part EXR, flat formats, facade) | ported, tested; see "io notes" below |
 | io: OpenRaster, Paint.NET | ported, tested |
 | io: SVG, camera raw, Affinity | pending (the facade reports "unsupported" until they land; SVG needs a usvg-style normalizer) |
-| paint, text, raw, affinity, engine, UI, CLI | in progress |
+| text: font reading (`font/sfnt`: TrueType/CFF outlines, cmap, metrics, names) | ported; outlines, metrics and charmaps identical to skrifa on the bundled and system fonts |
+| text: shaping (`font/otl`, `font/shape`: HarfBuzz default, Hebrew, Arabic, Thai/Lao, Hangul shapers) | ported; glyphs, clusters and positions identical to HarfRust on 324 test strings across 17 fonts. Indic, USE, Khmer and Myanmar shapers pending (those scripts shape with the default shaper) |
+| text: Unicode data (`text/ucd_data` from Perl's UCD 15.0 via `tools/ucdgen.nim`), line breaking (UAX #14), grapheme clusters (UAX #29) | ported (no dictionary breaking for Thai/Lao/Khmer/Burmese) |
+| paint, text layout/rendering, raw, affinity, engine, UI, CLI | in progress |
 | heif (HEVC decoding), plugins (WebAssembly runtime) | not ported: they need a video decoder / wasm interpreter; the commands report "unsupported" |
 
 ## Checking against Rust
@@ -99,6 +102,17 @@ See the bottom of this file (updated as crates land) and `git log`.
 `cargo build --release --manifest-path tools/oracle/Cargo.toml`, then
 `oracle write|read|render|import|export|conv|filter …` (see `src/main.rs`). The port is compared
 by document JSON + tile hashes (`.pcraft`), raw float renders, or output bytes.
+
+## Text notes
+
+* `tools/oracle shape <font> <text> [features] [script] [lang] [rtl]` shapes with HarfRust; the
+  port's `font/shape.nim` reproduces it glyph for glyph (ids, clusters, advances, offsets) for the
+  shapers listed above, including normalization against the cmap, ligature ids and mark
+  attachment, cursive attachment, space fallbacks, default-ignorable hiding and fallback mark
+  positioning for fonts without GPOS.
+* Unicode character data comes from the Unicode 15.0 UCD as packaged with Perl
+  (`/usr/share/perl/*/unicore`); regenerate `src/photocraft/text/ucd_data.nim` with
+  `nim r tools/ucdgen.nim`.
 
 ## io notes
 
