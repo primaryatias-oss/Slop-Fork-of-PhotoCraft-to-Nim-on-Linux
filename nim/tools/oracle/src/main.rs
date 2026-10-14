@@ -3,6 +3,13 @@
 use photocraft_color::{BlendMode, Color, ColorMode, SampleType};
 use photocraft_doc::*;
 use photocraft_geom::*;
+mod ax_blur;
+mod ax_fx;
+mod ax_geometry;
+mod ax_retouch;
+mod ax_selection;
+mod ax_tone;
+
 fn write_f32(path: &str, px: &[[f32; 4]]) {
     let mut out = Vec::with_capacity(px.len() * 16);
     for p in px { for v in p { out.extend_from_slice(&v.to_le_bytes()); } }
@@ -239,6 +246,8 @@ fn main() {
             *d.layers[idx].surface_mut().unwrap() = out;
             std::fs::write(&args[4], photocraft_format::save_to_bytes(&d, &Default::default()).unwrap()).unwrap();
         }
-        _ => {}
+        _ => {
+            let _ = ax_blur::run(&args) || ax_fx::run(&args) || ax_geometry::run(&args) || ax_retouch::run(&args) || ax_selection::run(&args) || ax_tone::run(&args);
+        }
     }
 }
