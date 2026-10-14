@@ -789,7 +789,9 @@ proc defaultOf*(_: typedesc[TextStyles]): TextStyles = defaultTextStyles()
 
 proc attrsObject[T](s: T): JsonNode =
   result = toJ(s)
-  if result.kind == JObject: result.delete("style_sheet") else: result = newJObject()
+  if result.kind == JObject:
+    if result.hasKey("style_sheet"): result.delete("style_sheet")
+  else: result = newJObject()
 
 proc applyAttrs*[T](base: T; attrs: JsonNode): T =
   ## `base` with `attrs` (a JSON object of field overrides) applied. Raises `SerdeError` on an

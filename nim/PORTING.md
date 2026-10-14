@@ -95,7 +95,8 @@ See the bottom of this file (updated as crates land) and `git log`.
 | text: Unicode data (`text/ucd_data` from Perl's UCD 15.0 via `tools/ucdgen.nim`), line breaking (UAX #14), grapheme clusters (UAX #29) | ported (no dictionary breaking for Thai/Lao/Khmer/Burmese) |
 | text: font database (`text/fonts`: bundled + system fonts, fontique-style matching and synthesis, PostScript names), bidi (UAX #9), paragraph layout (`text/para`, the parley port), type layout (`text/layout`: paragraphs, box text, tabs, small caps, optical kerning, decorations, vertical type) | ported; layouts identical to the Rust text engine on 29 layers (bundled and system fonts: Latin, Hebrew/Arabic RTL, mixed bidi, CJK, Thai, vertical Japanese) |
 | text: rendering (`text/raster`, `text/render`, `text/warp`; skrifa-exact 26.6/16.16 outline scaling in `font/sfnt`), `TextEngine` (`text.nim`) | ported; rasterized text bit-identical to the Rust engine on 31 layers (warps, transforms, faux bold/italic, colours, aliasing, vertical, Arabic) |
-| paint, PSD type (TySh/EngineData), raw, affinity, engine, UI, CLI | in progress |
+| text: PSD type (`text/engine_data`: EngineData parse/write; `text/psd_text`: `TySh` ⇄ `TextLayer`, Photoshop's kerning pair fields, `Txt2` auto-kern modes; `text/psd_styles`: named style sheets), io wiring (`io/text_import`, `io/text_styles_map`, `TySh`/`Txt2` regeneration on PSD export) | ported; models, rebuilt `TySh`, EngineData and `Txt2` bytes identical to Rust on every type layer of the corpus at 0/72/96.5/300 dpi, and on generated layers (kerning, Optical, box, vertical, warp, named styles) |
+| paint, raw, affinity, engine, UI, CLI | in progress |
 | heif (HEVC decoding), plugins (WebAssembly runtime) | not ported: they need a video decoder / wasm interpreter; the commands report "unsupported" |
 
 ## Checking against Rust
@@ -115,6 +116,9 @@ by document JSON + tile hashes (`.pcraft`), raw float renders, or output bytes.
 * `tools/oracle layout <layer.json> [dpi]` (set `SYSTEM_FONTS=1` to include installed fonts) dumps
   the Rust engine's layout (faces, glyphs, lines, clusters, decorations) for comparison with the
   port's `text/layout.nim`.
+* `tools/oracle tysh <file.psd> <dpi> <outdir>` prints each type layer's model as read from
+  `TySh` (+ `Txt2`) and writes the rebuilt `TySh` (fresh and patched), its EngineData, a moved
+  and a renumbered copy, and the regenerated `Txt2` blocks, for byte comparison with the port.
 * `tools/oracle text-render <layer.json> <out.f32> [dpi]` writes the Rust engine's rendered RGBA
   floats; `font/sfnt.scaledOutline` reproduces skrifa's FreeType-compatible fixed-point scaling, so
   coverage matches bit for bit.
@@ -128,13 +132,16 @@ by document JSON + tile hashes (`.pcraft`), raw float renders, or output bytes.
 
 Checked against the Rust build on the psd-tools corpus with a Rust oracle (`import`, `conv`):
 
-* PSD → document: identical documents (manifest JSON and tile hashes) on 291 of 309 imports; the
-  rest are text layers, which wait for the type engine (`TySh` is read for its plain text and
-  transform only).
-* document → PSD: byte-identical on 72 of 89 files; the others are text layers (same reason) or
-  16/32-bit files whose ZIP streams differ because Rust uses miniz_oxide's deflate and the port
-  its own; decoded content is identical. The 1036 JPEG preview differs for the same reason
-  (different JPEG encoder); its pixels are close but not equal.
+* PSD → document: identical documents (manifest JSON and tile hashes) on 308 of 309 imports,
+  type layers included (typed model, `Txt2` kerning modes, named styles, layers rendered from
+  their model when the file has no pixels). The other one differs by 2e-6 in a perceptual
+  gradient-map stop.
+* PSD → PSD: every layer record, tagged block (`TySh`, `Txt2` and the rest), global block and
+  resource identical on all 308 files Rust converts, except the 1036 JPEG preview (independent JPEG
+  encoder; close but not equal pixels). The merged image is identical on 301; on 7 (CMYK and
+  hue/saturation adjustments, CMYK blend modes, layer effects) 1 to 27 samples differ by 1–2
+  levels (compositor float rounding). 16/32-bit ZIP streams can differ in bytes (the port's own
+  deflate vs miniz_oxide) with identical decoded content.
 * Flat exports: PNG and TIFF decode to identical pixels; JPEG and WebP (lossy) differ (encoders are
   independent implementations).
 * Layered TIFF: identical layer data (tag 37724) and resources (34377) except text and ZIP cases.

@@ -64,6 +64,11 @@ suite "doc":
     let ov = ts.charOverrides(run, none(uint32), "Arial")
     check ov.len == 1 and ov["underline"].getBool
     expect SerdeError: discard applyAttrs(defaultCharStyle(), %*{"nope": 1})
+    # Styles without a sheet reference (no `style_sheet` key) diff without raising.
+    var big = defaultCharStyle()
+    big.sizePt = 30
+    check diffAttrs(big, defaultCharStyle()) == %*{"size_pt": 30.0}
+    check diffAttrs(defaultParagraphStyle(), defaultParagraphStyle()).len == 0
 
   test "auto slices cover the canvas":
     let s = autoSlices(rect(0, 0, 100, 100), [rect(10, 10, 50, 50)])

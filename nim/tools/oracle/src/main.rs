@@ -182,6 +182,52 @@ fn main() {
             let bytes: Vec<u8> = data.iter().flat_map(|f| f.to_le_bytes()).collect();
             std::fs::write(&args[3], bytes).unwrap();
         }
+        "tysh" => {
+            // TySh/Txt2 ⇄ TextLayer: model JSON per type layer plus rebuilt blocks in `out`.
+            use photocraft_text::psd as tp;
+            let b = std::fs::read(&args[2]).unwrap();
+            let dpi: f32 = args[3].parse().unwrap();
+            let out = &args[4];
+            let f = photocraft_psd::PsdFile::from_bytes(&b).unwrap();
+            let txt2 = f.global_blocks.iter().find(|b| &b.key == b"Txt2").map(|b| b.data.clone());
+            let txt2v = txt2.as_deref().and_then(tp::parse_txt2);
+            let mut objects: Vec<(i32, TextLayer)> = Vec::new();
+            for (i, l) in f.layer_info.iter().flat_map(|li| li.layers.iter()).enumerate() {
+                for blk in &l.blocks {
+                    if &blk.key != b"TySh" { continue; }
+                    let d = &blk.data;
+                    println!("LAYER {i} blank={} index={:?}", tp::engine_text_is_blank(d), tp::text_index(d));
+                    let Some(mut layer) = tp::text_layer_from_tysh(d, dpi) else { println!("NONE"); continue };
+                    if let Some(t) = txt2v.as_ref() { tp::apply_txt2(&mut layer, d, t); }
+                    println!("{}", serde_json::json!({"text": layer.text, "font_family": layer.font_family, "size_pt": layer.size_pt,
+                        "color": layer.color, "transform": layer.transform.m, "runs": layer.runs, "paragraphs": layer.paragraphs,
+                        "shape": layer.shape, "orientation": layer.orientation, "antialias": layer.antialias, "warp": layer.warp}));
+                    if let Some(t) = tp::parse_tysh(d) {
+                        if let Some(e) = tp::engine_data(&t.text) { std::fs::write(format!("{out}/{i}.ed"), photocraft_text::engine_data::write(&e)).unwrap(); }
+                    }
+                    std::fs::write(format!("{out}/{i}.fresh"), tp::build_tysh(&layer, dpi, Some([1.5, -2.0, 30.25, 40.0]))).unwrap();
+                    layer.psd_raw = Some(std::sync::Arc::new(d.clone()));
+                    std::fs::write(format!("{out}/{i}.tysh"), tp::build_tysh(&layer, dpi, None)).unwrap();
+                    std::fs::write(format!("{out}/{i}.moved"), tp::translate_tysh(d, 3.5, -7.0).unwrap_or_default()).unwrap();
+                    std::fs::write(format!("{out}/{i}.index"), tp::set_text_index(d, 7).unwrap_or_default()).unwrap();
+                    if let Some(s) = photocraft_text::psd_styles::read_style_sheets(d, dpi) { println!("SHEETS {}", serde_json::json!({
+                        "normal_char": s.normal_char, "normal_para": s.normal_para, "char_sheets": s.char_sheets, "para_sheets": s.para_sheets,
+                        "run_char": s.run_char, "run_char_lens": s.run_char_lens, "run_para": s.run_para})); }
+                    println!("NAMED {}", photocraft_text::psd_styles::has_named_sheets(d));
+                    objects.push((tp::text_index(d).unwrap_or(i as i32), layer));
+                }
+            }
+            let objs: Vec<(i32, &TextLayer)> = objects.iter().map(|(i, l)| (*i, l)).collect();
+            println!("NEEDS {}", tp::needs_txt2(&objs));
+            std::fs::write(format!("{out}/txt2"), tp::build_txt2(&objs, txt2.as_deref())).unwrap();
+            let mut edited: Vec<(i32, TextLayer)> = objects.clone();
+            for (_, l) in edited.iter_mut() {
+                for r in l.runs.iter_mut() { r.style.kerning = photocraft_doc::text::Kerning::Optical; }
+            }
+            let objs: Vec<(i32, &TextLayer)> = edited.iter().map(|(i, l)| (*i, l)).collect();
+            std::fs::write(format!("{out}/txt2.optical"), tp::build_txt2(&objs, txt2.as_deref())).unwrap();
+            std::fs::write(format!("{out}/txt2.fresh"), tp::build_txt2(&objs, None)).unwrap();
+        }
         "filter" => {
             let mut d = photocraft_format::load_from_bytes(&std::fs::read(&args[2]).unwrap()).unwrap();
             let p: photocraft_algo::FilterParams = serde_json::from_str(&args[3]).unwrap();

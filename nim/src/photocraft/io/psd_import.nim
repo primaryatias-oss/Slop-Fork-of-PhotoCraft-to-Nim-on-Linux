@@ -2,14 +2,16 @@
 ##
 ## Layers, groups, masks, adjustments, fills, shapes, smart objects and type map to document
 ## content; everything PhotoCraft does not interpret (unknown tagged blocks, resources, global
-## blocks) is kept verbatim so a PSD save can write it back. Text layers are read from the `TySh`
-## block's plain text and transform until the type engine is ported (see PORTING.md).
+## blocks) is kept verbatim so a PSD save can write it back. Type layers get their typed model from
+## `TySh`/EngineData (and the document's `Txt2` auto-kern modes); Photoshop's pixels stay the cache.
 
 import std/[options, tables, strutils, sequtils]
 import ../geom, ../color, ../raster, ../doc, ../psd
 import common, pixels, blocks, adjust_map, effects_map, channel_map, vector_map, smart_map,
        comps_map, pattern_map, slices_map, text_styles_map, annotations_map, multichannel_map
 from ../vector import renderShape
+import ../text/psd_text except parseTysh
+import ../text/engine_data
 
 const
   MappedResources* = [ridGlobalAngle, ridGlobalAltitude, ridResolutionInfo, ridIccProfile, ridXmp, ridExif,
@@ -31,6 +33,7 @@ type
     cmyk: bool
     warnings: seq[string]
     dpi: float32
+    txt2: Option[EdValue]
     filterEffects: seq[FilterEffectsItem]
     smartContents: Table[string, SmartContentsId]
     ctl: Interrupt
@@ -244,8 +247,6 @@ proc applyVectorMask(cx: var Ctx; l: var Layer; rec: LayerRecord) =
       l.mask = none(doc.LayerMask)
   l.vectorMask = vm
 
-proc engineTextIsBlank(text: string): bool = text.strip.len == 0
-
 proc layerFromRecord(cx: var Ctx; rec: LayerRecord): Layer =
   let name = rec.name
   let fillKey = rec.firstKey(["SoCo", "GdFl", "PtFl"])
@@ -277,13 +278,21 @@ proc layerFromRecord(cx: var Ctx; rec: LayerRecord): Layer =
               "; the layer is kept as saved but has no effect")
     content = adjustmentContent(adj)
   elif rec.hasBlock("TySh"):
+    # Typed model from TySh/EngineData; Photoshop's pixels stay the cache.
     let data = rec.blockData("TySh").get(@[])
+    let typed = textLayerFromTysh(data, cx.dpi)
     var t = defaultTextLayer()
-    let parsed = parseTysh(data)
-    if parsed.isSome: (t.text, t.transform) = parsed.get
-    t.syncSummary()
+    if typed.isSome: t = typed.get
+    else:
+      let parsed = parseTysh(data)
+      if parsed.isSome: (t.text, t.transform) = parsed.get
+    if cx.txt2.isSome: applyTxt2(t, data, cx.txt2.get)
+    # Photoshop's pixels are the cache only when the file has some: ag-psd, GIMP and other
+    # writers leave type layers without image data, and the import renders such a layer from its
+    # model instead (`text_import.prepare`). When the engine text itself is blank, Photoshop draws
+    # nothing either: keep the empty pixels.
     let cache = cx.recordSurface(rec, name)
-    let drawn = not cache.contentBounds.isEmpty or engineTextIsBlank(t.text)
+    let drawn = not cache.contentBounds.isEmpty or engineTextIsBlank(data)
     t.cache = (if drawn: some(cache) else: none(Surface))
     t.psdRaw = principal("TySh")
     content = textContent(t)
@@ -516,6 +525,10 @@ proc psdToDocumentWith*(file: PsdFile; ctl: Interrupt): Option[(Document, seq[st
   var cx = Ctx(file: filePtr, fmt: fmt, maskFmt: pixelFormat(cmGrayscale, depth, false), cc: cc,
                cmyk: fmt.mode == cmCmyk, warnings: warnings, dpi: d.resolutionDpi, ctl: ctl,
                total: file.layerCount)
+  for b in file.globalBlocks:
+    if b.key == "Txt2":
+      cx.txt2 = parseTxt2(b.data)
+      break
   for b in file.globalBlocks:
     if b.key notin ["FEid", "FXid"]: continue
     if ctl.cancelled: return none((Document, seq[string]))

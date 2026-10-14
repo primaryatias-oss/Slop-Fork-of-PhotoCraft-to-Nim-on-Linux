@@ -4,10 +4,9 @@
 ## Every layer becomes a record with its pixels (or rendered content for fills, text, shapes and
 ## smart objects), masks, blending options and the tagged blocks that describe its live content;
 ## blocks imported from a PSD and not regenerated are written back verbatim. The merged image is
-## the CPU compositor's result. Smart-object sources are embedded as linked-file entries.
-##
-## Deviation until the type engine is ported: text layers write their imported `TySh` verbatim
-## (new or edited text without one is written as pixels) and `Txt2` is kept as imported.
+## the CPU compositor's result. Smart-object sources are embedded as linked-file entries. Type
+## layers write their `TySh` (generated for layers created here, style sheets regenerated from the
+## document's styles) and the document's `Txt2` is regenerated from the type layers.
 
 import std/[options, tables, sets, math, algorithm, unicode, strutils, sequtils]
 import ../geom, ../color, ../raster, ../doc, ../psd, ../compose, ../format, ../blake3
@@ -18,6 +17,7 @@ import ../algo/[transform, warp]
 import common, pixels, blocks, adjust_map, effects_map, channel_map, vector_map, smart_map, comps_map,
        pattern_map, slices_map, text_styles_map, annotations_map, linked
 import psd_import
+import ../text/psd_text
 
 const
   PsdMaxFileSize = 2'u64 * 1024 * 1024 * 1024
@@ -124,12 +124,6 @@ proc withSpan*(ctl: Interrupt; lo, hi: float32): Interrupt =
   ## An interrupt reporting progress inside `[lo, hi]` of `ctl`'s range.
   newInterrupt(proc(): bool = ctl.cancelled,
                proc(p: float32) = ctl.progress(lo + (hi - lo) * clamp(p, 0'f32, 1'f32)))
-
-# ---------------------------------------------------------------- text stubs
-
-proc textIndexOf(data: openArray[byte]): Option[int32] =
-  ## The `TextIndex` of a `TySh` (the type engine is not ported: unknown).
-  none(int32)
 
 # ---------------------------------------------------------------- names and resources
 
@@ -877,11 +871,28 @@ proc contentBlocks(ex: var Ex; l: Layer): seq[TaggedBlock] =
     shapeBlocks(sh, raw, ex.canvas.width, ex.canvas.height, ex.dpi)
   of lkText:
     let t = l.content.text
-    var src = t.psdRaw
+    # Text layers without PSD data (created here) get a generated TySh.
+    let generated = if t.psdRaw.isNil: shared(buildTysh(t, ex.dpi, none(array[4, float32]))) else: nil
+    let src = if t.psdRaw.isNil: generated else: t.psdRaw
+    # Character/paragraph style sheets from the document's styles.
+    var styled: SharedBytes = nil
     if not src.isNil:
-      let styled = exportTysh(src.data, t, ex.textStyles, ex.dpi)
-      if styled.isSome: src = shared(styled.get)
-    setPrincipal(raw, ["TySh"], src)
+      let s2 = exportTysh(src.data, t, ex.textStyles, ex.dpi)
+      if s2.isSome: styled = shared(s2.get)
+    # `TextIndex` names the layer's object in the document's `Txt2` (where the auto-kern mode
+    # lives); left at 0, every type layer would claim object 0 (#1348). An unchanged preserved
+    # TySh stays byte-for-byte, but duplicate or out-of-range file numbers are renumbered.
+    let idx = ex.textIndex.getOrDefault(l.id, 0'i32)
+    let rewrite =
+      if not styled.isNil: styled
+      elif not generated.isNil: generated
+      elif not src.isNil and textIndex(src.data) != some(idx): src
+      else: nil
+    var fresh: SharedBytes = nil
+    if not rewrite.isNil:
+      let f2 = setTextIndex(rewrite.data, idx)
+      if f2.isSome: fresh = shared(f2.get)
+    setPrincipal(raw, ["TySh"], if not fresh.isNil: fresh elif not styled.isNil: styled else: src)
     if not raw.rawHas("TySh"):
       ex.warnings.add "layer \"" & l.name & "\": text layer written as pixels (no TySh data)"
   of lkSmart:
@@ -1091,7 +1102,7 @@ proc documentToPsdNested(d: Document; opts: PsdExportOptions; depth: int; ctl: I
     var nextTxt = 0'i32
     for (_, _, l) in walk:
       if l.content.kind != lkText: continue
-      let kept = if l.content.text.psdRaw.isNil: none(int32) else: textIndexOf(l.content.text.psdRaw.data)
+      let kept = if l.content.text.psdRaw.isNil: none(int32) else: textIndex(l.content.text.psdRaw.data)
       var index: int32
       if kept.isSome and not usedTxt.containsOrIncl(kept.get): index = kept.get
       else:
@@ -1196,12 +1207,34 @@ proc documentToPsdNested(d: Document; opts: PsdExportOptions; depth: int; ctl: I
     resources.add newResource(ridExif, exportExif(d.metadata.exif.data, ppi))
   var globalBlocks: seq[TaggedBlock]
   let preserved = ex.smart.finish(annotations_map.exportBlocks(d, exportGlobalBlocks(d)))
+  # The type layers' `Txt2` is regenerated (the auto-kern modes live there, and a preserved block
+  # goes stale as text is edited): one object per `TextIndex`. The block it replaces is handed
+  # over so a kept object keeps everything the file held beyond its text and style runs. A fresh
+  # document of ordinary (Metrics) text writes none: readers reject the empty stub (#3514).
+  var textLayers: seq[(int32, TextLayer)]
+  for (_, _, l) in d.walk:
+    if l.content.kind == lkText: textLayers.add (ex.textIndex.getOrDefault(l.id, 0'i32), l.content.text)
+  var previous = none(seq[byte])
+  if textLayers.len > 0:
+    for b in preserved:
+      if b.key == "Txt2":
+        previous = some(if b.data.isNil: newSeq[byte]() else: b.data.data)
+        break
+  let txt2 =
+    if previous.isSome or needsTxt2(textLayers): some(buildTxt2(textLayers, previous))
+    else: none(seq[byte])
   for b in preserved:
+    if txt2.isSome and b.key == "Txt2": continue
     if ex.records.len > 0 and b.key in ["Lr16", "Lr32", "Layr"]: continue
     let data = if b.data.isNil: newSeq[byte]() else: b.data.data
     var tb = newBlock(b.key, data)
     tb.signature = b.signature
     tb.padding = some(newSeq[byte]((4 - data.len mod 4) mod 4))
+    globalBlocks.add tb
+  if txt2.isSome:
+    var tb = newBlock("Txt2", txt2.get)
+    tb.signature = "8BIM"
+    tb.padding = some(newSeq[byte]((4 - txt2.get.len mod 4) mod 4))
     globalBlocks.add tb
   let compsResource = if ex.hasComps: some(writeCompsResource(d)) else: none(Option[seq[byte]])
   let (slicesResource, slicesWarning) = slices_map.exportResource(d, ex.layerIds)

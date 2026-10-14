@@ -5,7 +5,7 @@
 
 import std/[options, strutils]
 import geom, color, raster, doc, psd, compose, format, codecs
-import io/[common, pixels, psd_import, psd_export, psd_thumbnail, flat, tiff_layers, ora, pdn]
+import io/[common, pixels, psd_import, psd_export, psd_thumbnail, flat, tiff_layers, ora, pdn, text_import]
 export common, psd_import, psd_export, flat, tiff_layers
 
 const
@@ -44,6 +44,7 @@ proc importStages(name: string; bytes: openArray[byte]; ctl: Interrupt; maxGroup
     if r.isNone: raise ioError(ieCancelled)
     var (d, warnings) = r.get
     d.name = name
+    text_import.prepare(d)
     return ImportResult(document: d, warnings: warnings)
   if isOra(bytes) or hasExtension(name, "ora"): return importOra(name, bytes, ctl)
   if hasExtension(name, "pdn") or (bytes.len >= 4 and bytes[0] == byte('P') and bytes[1] == byte('D') and
