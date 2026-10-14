@@ -78,9 +78,11 @@ fn main() {
                 m.units_per_em, m.ascent, m.descent, m.leading, m.glyph_count, m.x_height, m.cap_height, m.underline.map(|d| (d.offset, d.thickness)), m.strikeout.map(|d| (d.offset, d.thickness)));
         }
         "outline" => {
+            // outline <font> <gids> [ppem]
             use skrifa::MetadataProvider;
             let data = std::fs::read(&args[2]).unwrap();
             let fr = skrifa::FontRef::new(&data).unwrap();
+            let size = args.get(4).map_or(skrifa::instance::Size::unscaled(), |s| skrifa::instance::Size::new(s.parse().unwrap()));
             struct P(String);
             impl skrifa::outline::OutlinePen for P {
                 fn move_to(&mut self, x: f32, y: f32) { self.0 += &format!("M {x} {y}\n"); }
@@ -94,7 +96,7 @@ fn main() {
                 let gid: u32 = g.parse().unwrap();
                 let mut p = P(String::new());
                 if let Some(o) = fr.outline_glyphs().get(skrifa::GlyphId::new(gid)) {
-                    let _ = o.draw(skrifa::outline::DrawSettings::unhinted(skrifa::instance::Size::unscaled(), skrifa::instance::LocationRef::default()), &mut p);
+                    let _ = o.draw(skrifa::outline::DrawSettings::unhinted(size, skrifa::instance::LocationRef::default()), &mut p);
                 }
                 println!("G {gid} adv={:?}", gm.advance_width(skrifa::GlyphId::new(gid)));
                 print!("{}", p.0);
@@ -153,6 +155,32 @@ fn main() {
             for ln in &l.lines { println!("L {} {} {} {} {} {} {} {}", ln.range.start, ln.range.end, ln.baseline, ln.x0, ln.x1, ln.ascent, ln.descent, ln.paragraph); }
             for c in &l.clusters { println!("C {} {} {} {} {} {}", c.range.start, c.range.end, c.x, c.advance, c.line, c.rtl); }
             for d in &l.decorations { println!("D {} {} {} {} {}", d.x0, d.y0, d.x1, d.y1, d.style); }
+        }
+        "text-render" => {
+            // text-render <layer.json> <out.f32> [dpi]: rasterizes like TextEngine::render (RGBA f32)
+            let v: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&args[2]).unwrap()).unwrap();
+            let mut layer = photocraft_doc::TextLayer::default();
+            layer.text = v["text"].as_str().unwrap_or("").to_string();
+            if let Some(f) = v.get("font_family").and_then(|x| x.as_str()) { layer.font_family = f.to_string(); }
+            if let Some(s) = v.get("size_pt").and_then(|x| x.as_f64()) { layer.size_pt = s as f32; }
+            if let Some(r) = v.get("runs") { layer.runs = serde_json::from_value(r.clone()).unwrap(); }
+            if let Some(r) = v.get("paragraphs") { layer.paragraphs = serde_json::from_value(r.clone()).unwrap(); }
+            if let Some(r) = v.get("shape") { layer.shape = serde_json::from_value(r.clone()).unwrap(); }
+            if let Some(r) = v.get("orientation") { layer.orientation = serde_json::from_value(r.clone()).unwrap(); }
+            if let Some(r) = v.get("antialias") { layer.antialias = serde_json::from_value(r.clone()).unwrap(); }
+            if let Some(r) = v.get("warp") { layer.warp = serde_json::from_value(r.clone()).unwrap(); }
+            if let Some(m) = v.get("transform").and_then(|x| x.as_array()) {
+                let m: Vec<f64> = m.iter().map(|x| x.as_f64().unwrap()).collect();
+                layer.transform = photocraft_geom::Affine { m: [m[0], m[1], m[2], m[3], m[4], m[5]] };
+            }
+            let dpi: f32 = args.get(4).map_or(72.0, |s| s.parse().unwrap());
+            let mut eng = if std::env::var_os("SYSTEM_FONTS").is_some() { photocraft_text::TextEngine::with_system_fonts() } else { photocraft_text::TextEngine::new() };
+            let fmt = photocraft_color::PixelFormat { mode: photocraft_color::ColorMode::Rgb, sample: photocraft_color::SampleType::F32, alpha: true };
+            let (_, r) = eng.render(&layer, dpi, fmt);
+            println!("{} {} {} {}", r.rect.x0, r.rect.y0, r.rect.x1, r.rect.y1);
+            let data = r.surface.read_region(r.rect);
+            let bytes: Vec<u8> = data.iter().flat_map(|f| f.to_le_bytes()).collect();
+            std::fs::write(&args[3], bytes).unwrap();
         }
         "filter" => {
             let mut d = photocraft_format::load_from_bytes(&std::fs::read(&args[2]).unwrap()).unwrap();

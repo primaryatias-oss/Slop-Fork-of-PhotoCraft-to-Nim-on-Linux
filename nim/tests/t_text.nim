@@ -2,8 +2,8 @@
 ## fonts only).
 
 import std/[unittest, options, math]
-import photocraft/doc
-import photocraft/text/[fonts, layout, bidi]
+import photocraft/[doc, color, geom, raster, text]
+import photocraft/text/bidi
 
 proc near(a, b: float32): bool = abs(a - b) <= 1e-3'f32 * max(1'f32, abs(b))
 
@@ -75,6 +75,32 @@ suite "text layout":
     check near(x, l.lines[0].x1)
     check wordBoundary("hello world", 2, true) == 5
     check charIndex("héllo", 3) == 2
+
+suite "text rendering":
+  test "point text renders like the Rust engine":
+    let e = newTextEngine()
+    let (_, r) = e.render(layer("Hello, World! AVA Te office", inter(24)), 72,
+                          PixelFormat(mode: cmRgb, sample: stF32, alpha: true))
+    check r.rect == rect(1, -20, 304, 6)
+    let px = r.surface.readRegion(r.rect)
+    var sum = 0.0
+    var covered = 0
+    var i = 3
+    while i < px.len:
+      sum += float64(px[i])
+      if px[i] > 0: inc covered
+      i += 4
+    check covered == 6854
+    check abs(sum - 1466.6622434924109) < 1e-3
+
+  test "empty and offscreen layers render nothing":
+    let e = newTextEngine()
+    var t = defaultTextLayer()
+    var c = t
+    check e.renderLayer(c, 72, PixelFormat(mode: cmRgb, sample: stU8, alpha: true)).isEmpty
+    t.text = "x"
+    t.transform.m = [1e300, 0, 0, 1e300, 0, 0]
+    discard e.render(t, 72, PixelFormat(mode: cmGrayscale, sample: stU16, alpha: true))
 
 suite "bidi":
   test "levels for mixed text":

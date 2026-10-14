@@ -1146,3 +1146,242 @@ proc glyphBounds*(f: Face; gid: int): Option[array[4, float32]] =
       b[0] = min(b[0], p[0]); b[1] = min(b[1], p[1]); b[2] = max(b[2], p[0]); b[3] = max(b[3], p[1])
   if b[0] > b[2]: return
   some(b)
+
+# ---------------------------------------------------------------- scaled outlines (skrifa-exact)
+
+proc fixedMul(a, b: int64): int64 {.inline.} =
+  ## 16.16 multiply with FreeType's rounding (font-types `Fixed * Fixed`).
+  let ab = a * b
+  (ab + 0x8000 - (if ab < 0: 1 else: 0)) shr 16
+
+proc fixedDiv(a, b: int64): int64 =
+  let neg = (a < 0) xor (b < 0)
+  let au = abs(a)
+  let bu = abs(b)
+  let q = if bu == 0: 0x7FFFFFFF'i64 else: ((au shl 16) + (bu shr 1)) div bu
+  int64(int32(if neg: -q else: q))
+
+proc scaleBits(ppem: float32; upem: int): int64 =
+  ## skrifa's 16.16 scale from font units to 26.6 (FreeType's `FT_Set_Pixel_Sizes` arithmetic).
+  fixedDiv(int64(int32(ppem * 64)), int64(upem))
+
+type ScaledGlyf = object
+  xs, ys: seq[int64]          ## 26.6
+  onCurve: seq[bool]
+  ends: seq[int]
+  phantom: array[4, (int64, int64)]
+
+proc loadScaledGlyf(f: Face; gid: int; scale: int64; depth: int; g: var ScaledGlyf) =
+  if depth > 8: raise fontError("glyf: composite glyphs nested too deeply")
+  let (at, len) = f.glyfRange(gid)
+  var bounds = [0, 0, 0, 0]
+  if len >= 10: bounds = [f.i16(at + 2), f.i16(at + 6), f.i16(at + 4), f.i16(at + 8)]  # xmin xmax ymin ymax
+  let lsb = int(f.leftSideBearing(gid))
+  let adv = int(f.advance(gid))
+  var phantom: array[4, (int64, int64)]
+  phantom[0] = (int64(bounds[0] - lsb), 0'i64)
+  phantom[1] = (phantom[0][0] + int64(adv), 0'i64)
+  if len < 10:
+    for i in 0 ..< 4: g.phantom[i] = (fixedMul(phantom[i][0], scale), fixedMul(phantom[i][1], scale))
+    return
+  let nContours = f.i16(at)
+  if nContours >= 0:
+    var p = at + 10
+    var ends = newSeq[int](nContours)
+    for i in 0 ..< nContours: ends[i] = f.u16(p + 2 * i)
+    p += 2 * nContours
+    let nPts = if nContours > 0: ends[^1] + 1 else: 0
+    if nPts > 65536: raise fontError("glyf: too many points")
+    for i in 1 ..< nContours:
+      if ends[i] < ends[i - 1]: raise fontError("glyf: unordered contour end points")
+    let insLen = f.u16(p)
+    p += 2 + insLen
+    var flags = newSeq[int](nPts)
+    var i = 0
+    while i < nPts:
+      let fl = f.u8(p)
+      inc p
+      flags[i] = fl
+      inc i
+      if (fl and 8) != 0:
+        var r = f.u8(p)
+        inc p
+        while r > 0 and i < nPts:
+          flags[i] = fl
+          inc i
+          dec r
+    var xs = newSeq[int](nPts)
+    var ys = newSeq[int](nPts)
+    var v = 0
+    for k in 0 ..< nPts:
+      let fl = flags[k]
+      if (fl and 2) != 0:
+        let d = f.u8(p)
+        inc p
+        v += (if (fl and 16) != 0: d else: -d)
+      elif (fl and 16) == 0:
+        v += f.i16(p)
+        p += 2
+      xs[k] = v
+    v = 0
+    for k in 0 ..< nPts:
+      let fl = flags[k]
+      if (fl and 4) != 0:
+        let d = f.u8(p)
+        inc p
+        v += (if (fl and 32) != 0: d else: -d)
+      elif (fl and 32) == 0:
+        v += f.i16(p)
+        p += 2
+      ys[k] = v
+    let base = g.xs.len
+    for k in 0 ..< nPts:
+      g.xs.add fixedMul(int64(xs[k]), scale)
+      g.ys.add fixedMul(int64(ys[k]), scale)
+      g.onCurve.add (flags[k] and 1) != 0
+    for e in ends: g.ends.add base + e
+    for i in 0 ..< 4: g.phantom[i] = (fixedMul(phantom[i][0], scale), fixedMul(phantom[i][1], scale))
+  else:
+    var own: array[4, (int64, int64)]
+    for i in 0 ..< 4: own[i] = (fixedMul(phantom[i][0], scale), fixedMul(phantom[i][1], scale))
+    g.phantom = own
+    let pointBase = g.xs.len
+    var p = at + 10
+    var more = true
+    var guard = 0
+    while more:
+      inc guard
+      if guard > 1024: raise fontError("glyf: too many components")
+      let flags = f.u16(p)
+      let glyph = f.u16(p + 2)
+      p += 4
+      var a1, a2: int
+      let signedArgs = (flags and 2) != 0
+      if (flags and 1) != 0:
+        a1 = (if signedArgs: f.i16(p) else: f.u16(p))
+        a2 = (if signedArgs: f.i16(p + 2) else: f.u16(p + 2))
+        p += 4
+      else:
+        let x = f.u8(p)
+        let y = f.u8(p + 1)
+        a1 = (if signedArgs and x >= 128: x - 256 else: x)
+        a2 = (if signedArgs and y >= 128: y - 256 else: y)
+        p += 2
+      var xx, yx, xy, yy = 0x10000'i64
+      yx = 0
+      xy = 0
+      var haveXform = false
+      if (flags and 8) != 0:
+        xx = int64(f.i16(p)) * 4
+        yy = xx
+        p += 2
+        haveXform = true
+      elif (flags and 0x40) != 0:
+        xx = int64(f.i16(p)) * 4
+        yy = int64(f.i16(p + 2)) * 4
+        p += 4
+        haveXform = true
+      elif (flags and 0x80) != 0:
+        xx = int64(f.i16(p)) * 4
+        yx = int64(f.i16(p + 2)) * 4
+        xy = int64(f.i16(p + 4)) * 4
+        yy = int64(f.i16(p + 6)) * 4
+        p += 8
+        haveXform = true
+      let saved = g.phantom
+      let startPoint = g.xs.len
+      f.loadScaledGlyf(glyph, scale, depth + 1, g)
+      let endPoint = g.xs.len
+      if (flags and 0x200) == 0: g.phantom = saved
+      if haveXform:
+        for k in startPoint ..< endPoint:
+          let (px, py) = (g.xs[k], g.ys[k])
+          g.xs[k] = fixedMul(px, xx) + fixedMul(py, xy)
+          g.ys[k] = fixedMul(px, yx) + fixedMul(py, yy)
+      var ox, oy: int64
+      if signedArgs:
+        var x = int64(a1)
+        var y = int64(a2)
+        if haveXform and (flags and (0x800 or 0x1000)) == 0x800:
+          proc hypot(a, b: int64): int64 =
+            let (a, b) = (abs(a), abs(b))
+            if a > b: a + ((3 * b) shr 3) else: b + ((3 * a) shr 3)
+          x = fixedMul(x, hypot(xx, xy))
+          y = fixedMul(y, hypot(yy, yx))
+        ox = fixedMul(x, scale)
+        oy = fixedMul(y, scale)
+      else:
+        let bp = pointBase + a1
+        let cp = startPoint + a2
+        if bp >= g.xs.len or cp >= g.xs.len: raise fontError("glyf: invalid anchor point")
+        ox = g.xs[bp] - g.xs[cp]
+        oy = g.ys[bp] - g.ys[cp]
+      if ox != 0 or oy != 0:
+        for k in startPoint ..< endPoint:
+          g.xs[k] += ox
+          g.ys[k] += oy
+      more = (flags and 0x20) != 0
+
+proc scaledGlyfOutline(f: Face; gid: int; ppem: float32): Outline =
+  var g: ScaledGlyf
+  f.loadScaledGlyf(gid, scaleBits(ppem, f.unitsPerEm), 0, g)
+  let shift = g.phantom[0][0]
+  if shift != 0:
+    for k in 0 ..< g.xs.len: g.xs[k] -= shift
+  proc fp(x, y: int64): (float32, float32) = (float32(x) / 64, float32(y) / 64)
+  var start = 0
+  for e in g.ends:
+    if e < start or e >= g.xs.len:
+      start = e + 1
+      continue
+    let n = e - start + 1
+    var pts: seq[((int64, int64), bool)]
+    template P(k: int): ((int64, int64), bool) = ((g.xs[start + k], g.ys[start + k]), g.onCurve[start + k])
+    if P(0)[1]:
+      for k in 0 ..< n: pts.add P(k)
+    elif P(n - 1)[1]:
+      pts.add P(n - 1)
+      for k in 0 ..< n - 1: pts.add P(k)
+    else:
+      let (a, b) = (P(n - 1)[0], P(0)[0])
+      pts.add (((a[0] + b[0]) div 2, (a[1] + b[1]) div 2), true)
+      for k in 0 ..< n: pts.add P(k)
+    let s0 = pts[0][0]
+    result.add PathCmd(verb: pvMove, pts: [(0'f32, 0'f32), (0'f32, 0'f32), fp(s0[0], s0[1])])
+    var ctrl = none((int64, int64))
+    for k in 1 .. pts.len:
+      let (q, isOn) = if k < pts.len: pts[k] else: (s0, true)
+      if isOn:
+        if ctrl.isSome:
+          result.add PathCmd(verb: pvQuad, pts: [fp(ctrl.get[0], ctrl.get[1]), (0'f32, 0'f32), fp(q[0], q[1])])
+        elif k < pts.len:
+          result.add PathCmd(verb: pvLine, pts: [(0'f32, 0'f32), (0'f32, 0'f32), fp(q[0], q[1])])
+        ctrl = none((int64, int64))
+      else:
+        if ctrl.isSome:
+          let mid = ((ctrl.get[0] + q[0]) div 2, (ctrl.get[1] + q[1]) div 2)
+          result.add PathCmd(verb: pvQuad, pts: [fp(ctrl.get[0], ctrl.get[1]), (0'f32, 0'f32), fp(mid[0], mid[1])])
+        ctrl = some(q)
+    result.add PathCmd(verb: pvClose)
+    start = e + 1
+
+proc scaleCffCoord(v: float32; scale: int64): float32 =
+  let x = int64(round(float64(v) * 65536))
+  let ax = fixedMul(x, 1024)
+  let bx = int64(int32(ax)) shr 10
+  let dx = fixedMul(bx, scale)
+  float32(int64(int32(dx shl 10))) / 65536
+
+proc scaledOutline*(f: Face; gid: int; ppem: float32): Outline =
+  ## The glyph's outline at `ppem` pixels per em (y up), with skrifa's FreeType-compatible
+  ## fixed-point scaling (26.6 TrueType points, integer midpoints; 16.16 CFF path).
+  if ppem.classify notin {fcNormal, fcSubnormal} or ppem <= 0: return
+  try:
+    if f.cff.present:
+      let scale = scaleBits(ppem, f.unitsPerEm)
+      for c in f.outline(gid):
+        var d = c
+        for k in 0 ..< 3: d.pts[k] = (scaleCffCoord(c.pts[k][0], scale), scaleCffCoord(c.pts[k][1], scale))
+        result.add d
+    elif f.hasTable("glyf"): result = f.scaledGlyfOutline(gid, ppem)
+  except FontError: result = @[]
