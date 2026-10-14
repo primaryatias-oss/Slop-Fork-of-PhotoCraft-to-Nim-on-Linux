@@ -88,7 +88,8 @@ See the bottom of this file (updated as crates land) and `git log`.
 | format (.pcraft, zstd, BLAKE3, autosave/recovery) | ported, tested; files interchange with the Rust build both ways |
 | algo | in progress (foundation, resample, transform, warp ported) |
 | io (PSD/PSB ↔ document, layered TIFF, multi-part EXR, flat formats, facade) | ported, tested; see "io notes" below |
-| io: OpenRaster, PDN, SVG, camera raw, Affinity | pending (the facade reports "unsupported" until they land) |
+| io: OpenRaster, Paint.NET | ported, tested |
+| io: SVG, camera raw, Affinity | pending (the facade reports "unsupported" until they land; SVG needs a usvg-style normalizer) |
 | paint, text, raw, affinity, engine, UI, CLI | in progress |
 | heif (HEVC decoding), plugins (WebAssembly runtime) | not ported: they need a video decoder / wasm interpreter; the commands report "unsupported" |
 

@@ -1,7 +1,7 @@
 ## Document import/export tests (ported from crates/io/tests: roundtrip.rs, modes.rs, the shared
 ## generators in common/mod.rs, and pieces of flat.rs / psd_structure.rs).
 import std/[unittest, options, strutils, sets, tables, math]
-import photocraft/[geom, color, raster, doc, psd, io, codecs]
+import photocraft/[geom, color, raster, doc, psd, io, codecs, compose]
 import photocraft/io/[effects_map, vector_map, linked, common]
 
 # ---------------------------------------------------------------- generators (common/mod.rs)
@@ -613,3 +613,186 @@ suite "io: flat formats and facade":
     d.layers.add newLayer("adj", adjustmentContent(newAdjustment(akColorLookup)))
     for ext in ["psd", "psb", "png", "tif", "jpg", "pcraft", "bmp", "tga", "webp", "exr", "qoi"]:
       discard exportDoc(d, ext)
+
+# ---------------------------------------------------------------- pdn/tests.rs, ora
+
+import photocraft/zlib
+import photocraft/io/[pdn, ora]
+
+type
+  PFieldKind = enum pfInt, pfLong, pfByte, pfBool, pfRef
+  PField = object
+    kind: PFieldKind
+    v: int64
+
+proc pf(k: PFieldKind; v: int64): PField = PField(kind: k, v: v)
+
+proc pint(w: var seq[byte]; n: int32) =
+  for i in 0 ..< 4: w.add byte((cast[uint32](n) shr (8 * i)) and 0xff)
+
+proc pstring(w: var seq[byte]; s: string) =
+  var len = s.len
+  while len >= 128:
+    w.add byte((len and 127) or 128)
+    len = len shr 7
+  w.add byte(len)
+  for c in s: w.add byte(c)
+
+proc pobject(w: var seq[byte]; id: int32; class: string; fields: openArray[(string, PField)]) =
+  w.add 5
+  w.pint(id)
+  w.pstring(class)
+  w.pint(int32(fields.len))
+  for (name, _) in fields: w.pstring(name)
+  for (_, f) in fields: w.add (if f.kind == pfRef: 2'u8 else: 0'u8)
+  for (_, f) in fields:
+    case f.kind
+    of pfInt: w.add 8
+    of pfLong: w.add 9
+    of pfByte: w.add 2
+    of pfBool: w.add 1
+    of pfRef: discard
+  w.pint(1)
+  for (_, f) in fields:
+    case f.kind
+    of pfInt: w.pint(int32(f.v))
+    of pfLong:
+      for i in 0 ..< 8: w.add byte((cast[uint64](f.v) shr (8 * i)) and 0xff)
+    of pfByte: w.add byte(f.v)
+    of pfBool: w.add byte(f.v)
+    of pfRef:
+      w.add 9
+      w.pint(int32(f.v))
+
+const PdnOldModes = ["Normal", "Multiply", "Additive", "ColorBurn", "ColorDodge", "Reflect", "Glow", "Overlay",
+                     "Difference", "Negation", "Lighten", "Darken", "Screen", "Xor"]
+const PdnModes = [bmNormal, bmMultiply, bmLinearDodge, bmPaintNetColorBurn, bmPaintNetColorDodge, bmReflect, bmGlow,
+                  bmOverlay, bmDifference, bmNegation, bmLighten, bmDarken, bmScreen, bmXor]
+
+proc pdnFixture(modes: openArray[int]; legacy, compressed: bool): seq[byte] =
+  var w = cast[seq[byte]]("PDN3\0\0\0\0\x01")
+  w.add 0
+  for n in [1'i32, -1, 1, 0]: w.pint(n)
+  w.add 12
+  w.pint(1)
+  w.pstring("PaintDotNet.Data")
+  w.pobject(1, "PaintDotNet.Document", [("width", pf(pfInt, 2)), ("height", pf(pfInt, 2)), ("layers", pf(pfRef, 2))])
+  w.pobject(2, "PaintDotNet.LayerList", [("parent", pf(pfRef, 1)), ("ArrayList+_size", pf(pfInt, modes.len)),
+                                         ("ArrayList+_items", pf(pfRef, 3))])
+  w.add 16
+  w.pint(3)
+  w.pint(int32(modes.len + 2))
+  for i in 0 ..< modes.len:
+    w.add 9
+    w.pint(int32(16 + i * 10))
+  w.add [13'u8, 2]
+  for i, mode in modes:
+    let id = int64(16 + i * 10)
+    w.pobject(int32(id), "PaintDotNet.BitmapLayer", [("Layer+width", pf(pfInt, 2)), ("Layer+height", pf(pfInt, 2)),
+              ("surface", pf(pfRef, id + 1)), ("Layer+properties", pf(pfRef, id + 2)), ("properties", pf(pfRef, id + 3))])
+    w.pobject(int32(id + 1), "PaintDotNet.Surface", [("width", pf(pfInt, 2)), ("height", pf(pfInt, 2)),
+              ("stride", pf(pfInt, 12)), ("scan0", pf(pfRef, id + 7))])
+    var fields = @[("name", pf(pfRef, id + 4)), ("opacity", pf(pfByte, (if i == 0: 255 else: 128))),
+                   ("visible", pf(pfBool, int64(ord(i != 1)))), ("isBackground", pf(pfBool, int64(ord(i == 0))))]
+    if not legacy: fields.add ("blendMode", pf(pfRef, id + 5))
+    w.pobject(int32(id + 2), "PaintDotNet.Layer+LayerProperties", fields)
+    w.pobject(int32(id + 3), "PaintDotNet.BitmapLayer+BitmapLayerProperties", [("blendOp", pf(pfRef, id + 6))])
+    w.add 6
+    w.pint(int32(id + 4))
+    w.pstring("Läyer " & $i)
+    w.pobject(int32(id + 5), "PaintDotNet.LayerBlendMode", [("value__", pf(pfInt, mode))])
+    let opName = if mode >= 0 and mode < PdnOldModes.len: PdnOldModes[mode] else: "Unknown"
+    w.pobject(int32(id + 6), "PaintDotNet.UserBlendOps+" & opName & "BlendOp", [])
+    w.pobject(int32(id + 7), "PaintDotNet.MemoryBlock", [("length64", pf(pfLong, 24)), ("hasParent", pf(pfBool, 0)),
+              ("deferred", pf(pfBool, 1))])
+  w.add 11
+  for _ in modes:
+    w.add (if compressed: 0'u8 else: 1'u8)
+    w.add [0'u8, 0, 0, 12]
+    for index in [1'u32, 0]:
+      let raw = if index == 0: @[30'u8, 20, 10, 255, 60, 50, 40, 128, 99, 99, 99, 99]
+                else: @[90'u8, 80, 70, 64, 120, 110, 100, 0, 99, 99, 99, 99]
+      let data = if compressed: gzipCompress(raw) else: raw
+      w.add [byte(index shr 24), byte(index shr 16), byte(index shr 8), byte(index)]
+      let n = uint32(data.len)
+      w.add [byte(n shr 24), byte(n shr 16), byte(n shr 8), byte(n)]
+      w.add data
+  w
+
+suite "io: Paint.NET and OpenRaster":
+  test "all pdn blend modes and layer properties import and save natively":
+    var modes: seq[int]
+    for i in 0 ..< 14: modes.add i
+    for legacy in [false, true]:
+      for compressed in [false, true]:
+        let imported = importDoc("sample", pdnFixture(modes, legacy, compressed))
+        check imported.sourceReadOnly
+        check not imported.previewOnly
+        let d = imported.document
+        check d.layers.len == 14
+        check d.size == size(2, 2)
+        for i, layer in d.layers:
+          check layer.name == "Läyer " & $i
+          check layer.blend == PdnModes[i]
+          check layer.visible == (i != 1)
+          check layer.opacity == (if i == 0: 1'f32 else: 128'f32 / 255)
+          for (x, y, expected) in [(0, 0, [10, 20, 30, 255]), (1, 0, [40, 50, 60, 128]), (0, 1, [70, 80, 90, 64]),
+                                   (1, 1, [100, 110, 120, 0])]:
+            let px = layer.surface.pixel(x, y)
+            var got: array[4, int]
+            for c in 0 ..< 4: got[c] = int(round(px[c] * 255))
+            check got == expected
+        let saved = exportDoc(d, "sample.pcraft")
+        check saved.warnings.len == 0
+        let back = importDoc("sample.pcraft", saved.bytes).document
+        check back.layers == d.layers
+        check flatten(back).px == flatten(d).px
+
+  test "pdn truncation, unknown modes and corrupt chunks fail cleanly":
+    let raw = pdnFixture([0], false, false)
+    for n in 0 ..< raw.len:
+      expect IoFailure:
+        discard importDoc("truncated.pdn", raw[0 ..< n])
+    expect IoFailure:
+      discard importDoc("unknown.pdn", pdnFixture([999], false, false))
+    var corrupt = raw
+    let blk = corrupt.len - 45
+    for i in blk + 1 ..< blk + 5: corrupt[i] = 0
+    expect IoFailure:
+      discard importDoc("corrupt.pdn", corrupt)
+    var duplicate = raw
+    duplicate[blk + 25 ..< blk + 29] = @[0'u8, 0, 0, 1]
+    expect IoFailure:
+      discard importDoc("duplicate.pdn", duplicate)
+    var zipped = pdnFixture([0], false, true)
+    zipped[^1] = zipped[^1] xor 1
+    expect IoFailure:
+      discard importDoc("checksum.pdn", zipped)
+
+  test "openraster round trip":
+    # Clipping, knockout and masks have no OpenRaster equivalent; keep to what the format holds.
+    var d = newDocument("o", size(24, 16), cmRgb, stU8)
+    let fmt = d.pixelFormat
+    var bg = rasterOf("Background", fmt, d.bounds, 1, false)
+    d.layers.add bg
+    var a = rasterOf("a", fmt, rect(-3, 2, 10, 12), 2, true)
+    a.blend = bmMultiply
+    a.opacity = g(200)
+    d.layers.add a
+    var inner = rasterOf("inner", fmt, rect(5, 1, 20, 9), 3, true)
+    inner.blend = bmScreen
+    var grp = groupLayer("g", @[inner])
+    grp.opacity = g(180)
+    grp.blend = bmNormal
+    d.layers.add grp
+    let r = exportDoc(d, "x.ora")
+    check isOra(r.bytes)
+    let back = importDoc("x.ora", r.bytes).document
+    check back.size == d.size
+    check back.layers.len > 0
+    check back.layers[0].name == "Background"
+    let (fa, fb) = (flatten(d).px, flatten(back).px)
+    var maxd = 0'f32
+    for i in 0 ..< min(fa.len, fb.len):
+      for c in 0 ..< 4: maxd = max(maxd, abs(fa[i][c] * fa[i][3] - fb[i][c] * fb[i][3]))
+    check maxd < 0.02

@@ -1,6 +1,6 @@
 ## Shared io types: errors, import/export results and options (Rust `photocraft_io` lib.rs).
 
-import std/[options, strutils]
+import std/[options, strutils, math]
 import ../doc, ../codecs/image
 
 type
@@ -102,3 +102,38 @@ proc extension*(nameOrExt: string): string =
   let cut = max(nameOrExt.rfind('.'), max(nameOrExt.rfind('/'), nameOrExt.rfind('\\')))
   (if cut >= 0: nameOrExt[cut + 1 .. ^1] else: nameOrExt).toLowerAscii
 
+
+proc plainDecimal(s: string): string =
+  ## `1.5e-07` → `0.00000015`, `1e+20` → `100000000000000000000` (Rust prints floats this way).
+  let e = s.find({'e', 'E'})
+  if e < 0: return s
+  var mant = s[0 ..< e]
+  let exp = parseInt(s[e + 1 .. ^1])
+  var neg = false
+  if mant.startsWith("-"):
+    neg = true
+    mant = mant[1 .. ^1]
+  let dot = mant.find('.')
+  var digits = mant.replace(".", "")
+  var point = (if dot < 0: mant.len else: dot) + exp
+  while digits.len > 1 and digits[^1] == '0' and digits.len > point: digits.setLen(digits.len - 1)
+  if point <= 0: result = "0." & repeat('0', -point) & digits
+  elif point >= digits.len: result = digits & repeat('0', point - digits.len)
+  else: result = digits[0 ..< point] & "." & digits[point .. ^1]
+  if neg: result = "-" & result
+
+proc rustFloat*(v: float32): string =
+  ## Rust's `Display` for `f32`: shortest round-trip digits, no exponent, no `.0` on integers.
+  if v != v: return "NaN"
+  if v == Inf: return "inf"
+  if v == NegInf: return "-inf"
+  result = plainDecimal($v)
+  if result.endsWith(".0"): result.setLen(result.len - 2)
+
+proc rustFloat*(v: float64): string =
+  ## Rust's `Display` for `f64`.
+  if v != v: return "NaN"
+  if v == Inf: return "inf"
+  if v == NegInf: return "-inf"
+  result = plainDecimal($v)
+  if result.endsWith(".0"): result.setLen(result.len - 2)

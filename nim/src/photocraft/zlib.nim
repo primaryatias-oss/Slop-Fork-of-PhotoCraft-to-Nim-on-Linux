@@ -287,6 +287,34 @@ proc gzipDecompress*(data: openArray[byte]; maxOut = DefaultMaxOutput): seq[byte
   var b = bitIn(data, p)
   inflateInto(b, result, maxOut)
 
+proc gzipDecompressExact*(data: openArray[byte]; expected: int): seq[byte] =
+  ## One gzip member that must inflate to exactly `expected` bytes, with a valid CRC-32 and size
+  ## trailer and nothing after it. Raises `ZlibError`.
+  if data.len < 18 or data[0] != 0x1F or data[1] != 0x8B or data[2] != 8: raise zerr("not a gzip stream")
+  let flg = int(data[3])
+  var p = 10
+  if (flg and 4) != 0:
+    if p + 2 > data.len: raise zerr("truncated gzip header")
+    p += 2 + (int(data[p]) or (int(data[p + 1]) shl 8))
+  if (flg and 8) != 0:
+    while p < data.len and data[p] != 0: inc p
+    inc p
+  if (flg and 16) != 0:
+    while p < data.len and data[p] != 0: inc p
+    inc p
+  if (flg and 2) != 0: p += 2
+  if p >= data.len: raise zerr("truncated gzip header")
+  var b = bitIn(data, p)
+  inflateInto(b, result, expected + 1)
+  if result.len != expected: raise zerr("gzip data has " & $result.len & " bytes, expected " & $expected)
+  let q = b.pos - b.bitCnt div 8
+  if q + 8 > data.len: raise zerr("truncated gzip trailer")
+  let crc = uint32(data[q]) or (uint32(data[q + 1]) shl 8) or (uint32(data[q + 2]) shl 16) or (uint32(data[q + 3]) shl 24)
+  let size = uint32(data[q + 4]) or (uint32(data[q + 5]) shl 8) or (uint32(data[q + 6]) shl 16) or (uint32(data[q + 7]) shl 24)
+  if crc != crc32(result): raise zerr("gzip checksum mismatch")
+  if size != uint32(result.len and 0xFFFFFFFF): raise zerr("gzip size mismatch")
+  if q + 8 != data.len: raise zerr("excess data after the gzip member")
+
 # ---------------------------------------------------------------- deflate
 
 type
