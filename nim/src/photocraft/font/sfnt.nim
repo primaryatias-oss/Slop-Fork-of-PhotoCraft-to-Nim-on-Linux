@@ -54,6 +54,7 @@ type
     underlinePosition*, underlineThickness*: int
     strikeoutPosition*, strikeoutSize*: int
     weightClass*, widthClass*: int
+    os2Version*: int        ## -1 without an OS/2 table
     fsSelection*, macStyle*: int
     italicAngle*: float32
     isFixedPitch*: bool
@@ -858,6 +859,7 @@ proc loadFace*(blob: FontBlob; index = 0): Face =
     f.hheaLineGap = f.i16(hhea.get[0] + 8)
     f.numHMetrics = f.u16(hhea.get[0] + 34)
   let os2 = f.table("OS/2")
+  f.os2Version = if os2.isSome and os2.get[1] >= 2: f.u16(os2.get[0]) else: -1
   if os2.isSome and os2.get[1] >= 78:
     let b = os2.get[0]
     f.weightClass = f.u16(b + 4)
@@ -904,6 +906,9 @@ proc loadFaces*(data: seq[byte]): seq[Face] =
     except FontError: discard
 
 # ---------------------------------------------------------------- queries
+
+proc hasCharmap*(f: Face): bool = f.cmapOffset != 0
+  ## Whether the face has a usable Unicode `cmap` subtable.
 
 proc italic*(f: Face): bool = (f.fsSelection and 1) != 0 or (f.macStyle and 2) != 0
 proc bold*(f: Face): bool = (f.fsSelection and 32) != 0 or (f.macStyle and 1) != 0

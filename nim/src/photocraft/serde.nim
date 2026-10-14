@@ -185,7 +185,7 @@ proc fromJ*[T: tuple](n: JsonNode; x: var T) =
     inc i
 
 proc fromJ*[T: object](n: JsonNode; x: var T) =
-  mixin fromJ
+  mixin fromJ, defaultOf
   if n.kind != JObject: raise serdeError("expected an object for " & $T)
   for name, v in x.fieldPairs:
     when v.hasCustomPragma(skipJson): discard
@@ -193,6 +193,10 @@ proc fromJ*[T: object](n: JsonNode; x: var T) =
       let key = when v.hasCustomPragma(jsonName): v.getCustomPragmaVal(jsonName) else: fieldKey(T, name)
       let e = n.getOrDefault(key)
       if not e.isNil:
+        # A nested struct read from JSON starts from its own defaults (serde's `#[serde(default)]`),
+        # not from a zeroed value.
+        when v is object and compiles(defaultOf(typeof(v))):
+          if e.kind == JObject: v = defaultOf(typeof(v))
         try: fromJ(e, v)
         except SerdeError as err: raise serdeError(key & ": " & err.msg)
 

@@ -93,7 +93,8 @@ See the bottom of this file (updated as crates land) and `git log`.
 | text: font reading (`font/sfnt`: TrueType/CFF outlines, cmap, metrics, names) | ported; outlines, metrics and charmaps identical to skrifa on the bundled and system fonts |
 | text: shaping (`font/otl`, `font/shape`: HarfBuzz default, Hebrew, Arabic, Thai/Lao, Hangul shapers) | ported; glyphs, clusters and positions identical to HarfRust on 324 test strings across 17 fonts. Indic, USE, Khmer and Myanmar shapers pending (those scripts shape with the default shaper) |
 | text: Unicode data (`text/ucd_data` from Perl's UCD 15.0 via `tools/ucdgen.nim`), line breaking (UAX #14), grapheme clusters (UAX #29) | ported (no dictionary breaking for Thai/Lao/Khmer/Burmese) |
-| paint, text layout/rendering, raw, affinity, engine, UI, CLI | in progress |
+| text: font database (`text/fonts`: bundled + system fonts, fontique-style matching and synthesis, PostScript names), bidi (UAX #9), paragraph layout (`text/para`, the parley port), type layout (`text/layout`: paragraphs, box text, tabs, small caps, optical kerning, decorations, vertical type) | ported; layouts identical to the Rust text engine on 29 layers (bundled and system fonts: Latin, Hebrew/Arabic RTL, mixed bidi, CJK, Thai, vertical Japanese) |
+| paint, text rendering and PSD type, raw, affinity, engine, UI, CLI | in progress |
 | heif (HEVC decoding), plugins (WebAssembly runtime) | not ported: they need a video decoder / wasm interpreter; the commands report "unsupported" |
 
 ## Checking against Rust
@@ -110,6 +111,11 @@ by document JSON + tile hashes (`.pcraft`), raw float renders, or output bytes.
   shapers listed above, including normalization against the cmap, ligature ids and mark
   attachment, cursive attachment, space fallbacks, default-ignorable hiding and fallback mark
   positioning for fonts without GPOS.
+* `tools/oracle layout <layer.json> [dpi]` (set `SYSTEM_FONTS=1` to include installed fonts) dumps
+  the Rust engine's layout (faces, glyphs, lines, clusters, decorations) for comparison with the
+  port's `text/layout.nim`.
+* Variable fonts: shaping, advances and outlines use the default instance (no `gvar`/`HVAR`/`MVAR`);
+  normalized coordinates are still computed for face identity.
 * Unicode character data comes from the Unicode 15.0 UCD as packaged with Perl
   (`/usr/share/perl/*/unicore`); regenerate `src/photocraft/text/ucd_data.nim` with
   `nim r tools/ucdgen.nim`.

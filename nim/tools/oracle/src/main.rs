@@ -134,6 +134,26 @@ fn main() {
                 println!("{} {} {} {} {} {}", i.glyph_id, i.cluster, p.x_advance, p.y_advance, p.x_offset, p.y_offset);
             }
         }
+        "layout" => {
+            // layout <layer.json> [dpi]: {text, font_family, size_pt, runs, paragraphs, shape, orientation}
+            let v: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&args[2]).unwrap()).unwrap();
+            let mut layer = photocraft_doc::TextLayer::default();
+            layer.text = v["text"].as_str().unwrap_or("").to_string();
+            if let Some(f) = v.get("font_family").and_then(|x| x.as_str()) { layer.font_family = f.to_string(); }
+            if let Some(s) = v.get("size_pt").and_then(|x| x.as_f64()) { layer.size_pt = s as f32; }
+            if let Some(r) = v.get("runs") { layer.runs = serde_json::from_value(r.clone()).unwrap(); }
+            if let Some(r) = v.get("paragraphs") { layer.paragraphs = serde_json::from_value(r.clone()).unwrap(); }
+            if let Some(r) = v.get("shape") { layer.shape = serde_json::from_value(r.clone()).unwrap(); }
+            if let Some(r) = v.get("orientation") { layer.orientation = serde_json::from_value(r.clone()).unwrap(); }
+            let dpi: f32 = args.get(3).map_or(72.0, |s| s.parse().unwrap());
+            let mut eng = if std::env::var_os("SYSTEM_FONTS").is_some() { photocraft_text::TextEngine::with_system_fonts() } else { photocraft_text::TextEngine::new() };
+            let l = eng.layout(&layer, dpi);
+            for f in &l.faces { println!("F {} {} {} {}", f.size_px, f.embolden, f.skew_deg, f.coords.len()); }
+            for g in &l.glyphs { println!("G {} {} {} {} {} {:?}", g.face, g.id, g.x, g.y, g.style, g.orient); }
+            for ln in &l.lines { println!("L {} {} {} {} {} {} {} {}", ln.range.start, ln.range.end, ln.baseline, ln.x0, ln.x1, ln.ascent, ln.descent, ln.paragraph); }
+            for c in &l.clusters { println!("C {} {} {} {} {} {}", c.range.start, c.range.end, c.x, c.advance, c.line, c.rtl); }
+            for d in &l.decorations { println!("D {} {} {} {} {}", d.x0, d.y0, d.x1, d.y1, d.style); }
+        }
         "filter" => {
             let mut d = photocraft_format::load_from_bytes(&std::fs::read(&args[2]).unwrap()).unwrap();
             let p: photocraft_algo::FilterParams = serde_json::from_str(&args[3]).unwrap();

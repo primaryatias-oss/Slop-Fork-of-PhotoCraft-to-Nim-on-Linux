@@ -13,3 +13,4 @@ import t_zstd
 import t_format
 import t_io
 import t_font
+import t_text
