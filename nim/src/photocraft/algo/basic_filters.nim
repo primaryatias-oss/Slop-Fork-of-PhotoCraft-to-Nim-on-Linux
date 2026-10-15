@@ -29,7 +29,7 @@ registerKernel(fltExtrude, proc(p: FilterParams; src: Image; o: Rect; ctx: Ctx):
                                    solidFront: p.solidFront, maskIncomplete: p.maskIncomplete, seed: p.seed)))
 registerHalo(fltExtrude, proc(p: FilterParams; bounds: Rect): Halo =
   let v = extrudeReach(p.depth) + clamp(p.size, 2, 255) * 3 + 1
-  radiusHalo(int(ceil(max(v, 0))) + 1))
+  reachHalo(v))
 registerKernel(fltTiles, proc(p: FilterParams; src: Image; o: Rect; ctx: Ctx): seq[float32] =
   tiles(src, o, ctx, p.count, p.maxOffset, p.fill, (p.foreground, p.background), p.seed))
 registerKernel(fltTraceContour, proc(p: FilterParams; src: Image; o: Rect; ctx: Ctx): seq[float32] =
@@ -37,4 +37,4 @@ registerKernel(fltTraceContour, proc(p: FilterParams; src: Image; o: Rect; ctx: 
 registerKernel(fltWind, proc(p: FilterParams; src: Image; o: Rect; ctx: Ctx): seq[float32] =
   wind(src, o, ctx, p.windMethod, p.fromRight, p.seed))
 registerHalo(fltWind, proc(p: FilterParams; bounds: Rect): Halo =
-  radiusHalo(int(ceil(max(windReach(p.windMethod), 0))) + 1))
+  reachHalo(windReach(p.windMethod)))

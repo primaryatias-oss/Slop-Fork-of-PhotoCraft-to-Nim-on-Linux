@@ -60,23 +60,32 @@ proc ceilI(v: float32): int =
   elif c <= -2147483648'f32: low(int32).int
   else: int(c)
 
+proc wrapAddI32*(a, b: int): int =
+  ## `a + b` in i32 with wrapping, as the Rust release build computes halo radii.
+  int(cast[int32](uint32((a + b) and 0xFFFF_FFFF)))
+
+proc fmax0(v: float32): float32 = (if v.isNaN: 0'f32 else: max(v, 0))
+
+proc reachHalo*(v: float32): Halo =
+  ## `Halo::Radius(v.max(0.0).ceil() as i32 + 1)`.
+  radiusHalo(wrapAddI32(ceilI(fmax0(v)), 1))
+
 proc halo*(p: FilterParams): Halo =
   ## How far outside an output tile the filter reads.
-  proc g(sigma: float32): Halo = radiusHalo(ceilI(max(sigma, 0) * 3) + 1)
-  proc r(v: float32): Halo = radiusHalo(ceilI(max(v, 0)) + 1)
+  proc g(sigma: float32): Halo = radiusHalo(wrapAddI32(ceilI(fmax0(sigma) * 3), 1))
+  proc r(v: float32): Halo = reachHalo(v)
   case p.kind
   of fltGaussianBlur, fltHighPass, fltUnsharpMask, fltSmartSharpen: g(p.radius)
-  of fltBoxBlur, fltSurfaceBlur, fltMedian, fltDustAndScratches, fltMinimum, fltMaximum:
-    radiusHalo(ceilI(max(p.radius, 0)) + 1)
-  of fltMotionBlur: radiusHalo(ceilI(abs(p.distance) / 2) + 2)
-  of fltMosaic: radiusHalo(ceilI(max(p.cellSize, 1)) + 1)
-  of fltEmboss: radiusHalo(ceilI(abs(p.height)) + 2)
+  of fltBoxBlur, fltSurfaceBlur, fltMedian, fltDustAndScratches, fltMinimum, fltMaximum: r(p.radius)
+  of fltMotionBlur: radiusHalo(wrapAddI32(ceilI(abs(p.distance) / 2), 2))
+  of fltMosaic: radiusHalo(wrapAddI32(ceilI(if p.cellSize.isNaN: 1'f32 else: max(p.cellSize, 1)), 1))
+  of fltEmboss: radiusHalo(wrapAddI32(ceilI(abs(p.height)), 2))
   of fltFindEdges: radiusHalo(1)
   of fltAddNoise, fltSolarize, fltInvert, fltDesaturate: radiusHalo(0)
   of fltRadialBlur, fltOffset, fltTwirl, fltPinch, fltSpherize, fltWave, fltRipple, fltPolarCoordinates: BoundsHalo
   of fltColorHalftone: r(p.maxRadius * 3)
-  of fltCrystallize: r(max(p.cellSize, 1) * 3)
-  of fltPointillize: r(max(p.cellSize, 1) * 2)
+  of fltCrystallize: r((if p.cellSize.isNaN: 1'f32 else: max(p.cellSize, 1)) * 3)
+  of fltPointillize: r((if p.cellSize.isNaN: 1'f32 else: max(p.cellSize, 1)) * 2)
   of fltFacet: r(3)
   of fltFragment: r(4)
   of fltMezzotint, fltHsbHsl, fltColorToAlpha, fltNtscColors: radiusHalo(0)

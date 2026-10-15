@@ -1,0 +1,475 @@
+[
+{
+"filter": "addNoise",
+"amount": 30,
+"distribution": "gaussian",
+"monochromatic": false,
+"seed": 3
+},
+{
+"filter": "median",
+"radius": 3
+},
+{
+"filter": "dustAndScratches",
+"radius": 2,
+"threshold": 10
+},
+{
+"filter": "custom",
+"kernel": [
+0,
+-1,
+0,
+-1,
+5,
+-1,
+0,
+-1,
+0
+],
+"scale": 1,
+"offset": 0
+},
+{
+"filter": "hsbHsl",
+"input": "rgb",
+"output": "hsl"
+},
+{
+"filter": "colorToAlpha",
+"color": [
+1,
+1,
+1,
+1
+],
+"transparencyThreshold": 0,
+"opacityThreshold": 1
+},
+{
+"filter": "deInterlace",
+"eliminateEven": true,
+"interpolate": true
+},
+{
+"filter": "ntscColors"
+},
+{
+"filter": "diffuse",
+"mode": "anisotropic",
+"seed": 2
+},
+{
+"filter": "extrude",
+"kind": "pyramids",
+"size": 12,
+"depth": 20,
+"levelBased": true,
+"solidFront": false,
+"maskIncomplete": false,
+"seed": 1
+},
+{
+"filter": "tiles",
+"count": 6,
+"maxOffset": 20,
+"fill": "inverse",
+"foreground": [
+1,
+0,
+0,
+1
+],
+"background": [
+0,
+0,
+1,
+1
+],
+"seed": 4
+},
+{
+"filter": "traceContour",
+"level": 128,
+"upper": true
+},
+{
+"filter": "wind",
+"method": "stagger",
+"fromRight": true,
+"seed": 5
+},
+{
+"filter": "gaussianBlur",
+"radius": 0.5
+},
+{
+"filter": "gaussianBlur",
+"radius": 3
+},
+{
+"filter": "gaussianBlur",
+"radius": 12.5
+},
+{
+"filter": "gaussianBlur",
+"radius": 80
+},
+{
+"filter": "boxBlur",
+"radius": 2
+},
+{
+"filter": "boxBlur",
+"radius": 9
+},
+{
+"filter": "boxBlur",
+"radius": 150
+},
+{
+"filter": "motionBlur",
+"angle": 0,
+"distance": 10
+},
+{
+"filter": "motionBlur",
+"angle": 33,
+"distance": 45.5
+},
+{
+"filter": "motionBlur",
+"angle": -71,
+"distance": 0.3
+},
+{
+"filter": "motionBlur",
+"angle": 125,
+"distance": 900
+},
+{
+"filter": "radialBlur",
+"amount": 10,
+"method": "spin",
+"quality": "draft",
+"centerX": 0.5,
+"centerY": 0.5
+},
+{
+"filter": "radialBlur",
+"amount": 40,
+"method": "zoom",
+"quality": "good",
+"centerX": 0.2,
+"centerY": 0.7
+},
+{
+"filter": "radialBlur",
+"amount": 100,
+"method": "spin",
+"quality": "best",
+"centerX": -0.3,
+"centerY": 1.2
+},
+{
+"filter": "radialBlur",
+"amount": 75,
+"method": "zoom",
+"quality": "best",
+"centerX": 0.6,
+"centerY": 0.1
+},
+{
+"filter": "surfaceBlur",
+"radius": 3,
+"threshold": 15
+},
+{
+"filter": "surfaceBlur",
+"radius": 12,
+"threshold": 40
+},
+{
+"filter": "surfaceBlur",
+"radius": 20,
+"threshold": 5
+},
+{
+"filter": "unsharpMask",
+"amount": 150,
+"radius": 2,
+"threshold": 3
+},
+{
+"filter": "smartSharpen",
+"amount": 80,
+"radius": 1.5,
+"reduceNoise": 30
+},
+{
+"filter": "highPass",
+"radius": 6
+},
+{
+"filter": "smartBlur",
+"radius": 5,
+"threshold": 25,
+"quality": "high",
+"mode": "normal"
+},
+{
+"filter": "smartBlur",
+"radius": 3,
+"threshold": 10,
+"quality": "low",
+"mode": "edgeOnly"
+},
+{
+"filter": "smartBlur",
+"radius": 3,
+"threshold": 10,
+"quality": "medium",
+"mode": "overlayEdge"
+},
+{
+"radius": 12,
+"blades": 6,
+"curvature": 30,
+"rotation": 15,
+"focalDistance": 100,
+"invertDepth": false,
+"brightness": 40,
+"threshold": 200,
+"noise": 0,
+"distribution": "uniform",
+"monochromatic": false,
+"seed": 3,
+"filter": "lensBlur",
+"depth": "none"
+},
+{
+"filter": "lensBlur",
+"radius": 20,
+"blades": 3,
+"curvature": 0,
+"rotation": 0,
+"depth": "transparency",
+"focalDistance": 0,
+"invertDepth": true,
+"brightness": 0,
+"threshold": 255,
+"noise": 20,
+"distribution": "gaussian",
+"monochromatic": true,
+"seed": 9
+},
+{
+"filter": "shapeBlur",
+"radius": 8,
+"shape": "circle"
+},
+{
+"filter": "shapeBlur",
+"radius": 12,
+"shape": "ring"
+},
+{
+"filter": "shapeBlur",
+"radius": 5,
+"shape": "square"
+},
+{
+"filter": "shapeBlur",
+"radius": 9,
+"shape": "diamond"
+},
+{
+"filter": "shapeBlur",
+"radius": 9,
+"shape": "triangle"
+},
+{
+"filter": "shapeBlur",
+"radius": 10,
+"shape": "hexagon"
+},
+{
+"filter": "shapeBlur",
+"radius": 14,
+"shape": "star"
+},
+{
+"filter": "shapeBlur",
+"radius": 11,
+"shape": "heart"
+},
+{
+"filter": "shapeBlur",
+"radius": 7,
+"shape": "cross"
+},
+{
+"filter": "tiltShift",
+"blur": 15,
+"centerX": 0.5,
+"centerY": 0.45,
+"angle": 10,
+"focus": 0.1,
+"transition": 0.2
+},
+{
+"filter": "tiltShift",
+"blur": 60,
+"centerX": 0.3,
+"centerY": 0.6,
+"angle": -35,
+"focus": 0,
+"transition": 0.05
+},
+{
+"filter": "irisBlur",
+"pins": [
+{
+"x": 0.5,
+"y": 0.5,
+"radiusX": 0.3,
+"radiusY": 0.2,
+"angle": 20,
+"roundness": 0,
+"feather": 0.5,
+"blur": 12
+}
+]
+},
+{
+"filter": "irisBlur",
+"pins": [
+{
+"x": 0.3,
+"y": 0.4,
+"radiusX": 0.2,
+"radiusY": 0.25,
+"angle": 0,
+"roundness": 60,
+"feather": 0.2,
+"blur": 25
+},
+{
+"x": 0.8,
+"y": 0.7,
+"radiusX": 0.1,
+"radiusY": 0.1,
+"angle": 45,
+"roundness": 100,
+"feather": 0.9,
+"blur": 6
+}
+]
+},
+{
+"filter": "fieldBlur",
+"pins": [
+{
+"x": 0.2,
+"y": 0.2,
+"blur": 2
+},
+{
+"x": 0.8,
+"y": 0.8,
+"blur": 30
+}
+]
+},
+{
+"filter": "spinBlur",
+"pins": [
+{
+"x": 0.5,
+"y": 0.5,
+"radiusX": 0.4,
+"radiusY": 0.3,
+"angle": 15,
+"blurAngle": 30
+}
+]
+},
+{
+"filter": "spinBlur",
+"pins": [
+{
+"x": 0.3,
+"y": 0.3,
+"radiusX": 0.2,
+"radiusY": 0.2,
+"angle": 0,
+"blurAngle": 180
+},
+{
+"x": 0.7,
+"y": 0.6,
+"radiusX": 0.3,
+"radiusY": 0.15,
+"angle": -20,
+"blurAngle": 5
+}
+]
+},
+{
+"filter": "pathBlur",
+"paths": [
+{
+"points": [
+[
+0.1,
+0.5
+],
+[
+0.5,
+0.3
+],
+[
+0.9,
+0.6
+]
+],
+"speed": 20,
+"taper": 30
+}
+]
+},
+{
+"filter": "pathBlur",
+"paths": [
+{
+"points": [
+[
+0.2,
+0.2
+],
+[
+0.8,
+0.8
+]
+],
+"speed": -60,
+"taper": 0
+},
+{
+"points": [
+[
+0.9,
+0.1
+],
+[
+0.1,
+0.9
+]
+],
+"speed": 8,
+"taper": 100
+}
+]
+}
+]
