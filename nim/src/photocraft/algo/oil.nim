@@ -57,7 +57,7 @@ proc oilPaint*(src: Image; o: Rect; ctx: Ctx; spec: OilSpec): seq[float32] =
     let (tx, ty) = (l1 - e, -f)
     let m = sqrt(tx * tx + ty * ty)
     # Near-isotropic structure has no stable direction: gentle diagonal strokes.
-    tangent[i] = if m < 1e-6 or (l1 - (e + g - l1)) < 1e-6: (diag, diag) else: (tx / m, ty / m)
+    tangent[i] = if m < 1e-6'f32 or (l1 - (e + g - l1)) < 1e-6'f32: (diag, diag) else: (tx / m, ty / m)
   # 5. Line integral convolution over `o` grown by 1 (for the relief gradient).
   let r1 = o.inflate(1).intersect(win)
   let (rw, rh) = (r1.width, r1.height)

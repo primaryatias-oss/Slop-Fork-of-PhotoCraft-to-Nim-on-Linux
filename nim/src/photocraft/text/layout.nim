@@ -12,6 +12,7 @@ import std/[options, unicode, strutils, algorithm, math, sequtils]
 import ../doc
 import ../font/[sfnt, shape]
 import fonts, para, optical, cjk, craft_fonts, served, uprops
+import ../rmath
 
 const
   SyntheticSmallCapsScale = 0.7'f32
@@ -124,7 +125,7 @@ proc closestLine(l: TextLayout; y: float32): int =
 
 proc hitTestXOnLine(l: TextLayout; li: int; x: float32): int =
   if li < 0 or li >= l.lines.len: return 0
-  var bestD = high(float32)
+  var bestD = F32Max
   var bestOff = l.lines[li].range[1]
   for c in l.clusters:
     if c.line != li: continue
@@ -270,7 +271,7 @@ proc quoted(s: string): string = s.multiReplace(("\\", ""), ("\"", ""))
 
 proc nextTabStop(pos, interval: float32): float32 =
   if interval > 0 and pos.classify notin {fcInf, fcNegInf, fcNan}:
-    floor((pos + 1e-3) / interval) * interval + interval
+    floor((pos + 1e-3'f32) / interval) * interval + interval
   else: pos
 
 proc featureList(st: CharStyle; sc: SmallCapsMode): seq[ShapeFeature] =
@@ -348,8 +349,8 @@ proc squeezePunctuation*(text: string; clusters: var openArray[ClusterInfo]; gly
     let a = lastCp(prev)
     let b = firstCp(cur)
     if a < 0 or b < 0: continue
-    let cut = if isClosing(a) and (isOpening(b) or isClosing(b)): prev.advance * 0.5
-              elif isOpening(a) and isOpening(b): cur.advance * 0.5
+    let cut = if isClosing(a) and (isOpening(b) or isClosing(b)): prev.advance * 0.5'f32
+              elif isOpening(a) and isOpening(b): cur.advance * 0.5'f32
               else: 0'f32
     if cut.classify in {fcNormal, fcSubnormal} and cut > 0: total += cut
     shifts[i] = total
@@ -360,7 +361,7 @@ proc squeezePunctuation*(text: string; clusters: var openArray[ClusterInfo]; gly
   for g in glyphs.mitems:
     var idx = 0
     for k in countdown(starts.len - 1, 0):
-      if starts[k] <= g.x + 1e-3:
+      if starts[k] <= g.x + 1e-3'f32:
         idx = k
         break
     g.x -= shifts[idx]
@@ -382,7 +383,7 @@ proc newVMetrics(r: FaceRec; size: float32): VMetrics =
     result.scale = size / upem
     result.emOrigin = size * ratio
   else:
-    result.emOrigin = size * 0.88
+    result.emOrigin = size * 0.88'f32
 
 proc cmap(v: VMetrics; u: int): int =
   if v.face.isNone: return 0
@@ -633,7 +634,7 @@ proc layout*(ly: var Layouter; fonts: FontDb; t: TextLayer; dpi: float32): TextL
         for t2 in tabWidths(nxt, tabs, output.styles, indentStart, firstIndent, tabPx): got.add t2.width
         var same = true
         for ti in 0 ..< min(got.len, want.len):
-          if abs(got[ti] - want[ti]) >= 0.01: same = false
+          if abs(got[ti] - want[ti]) >= 0.01'f32: same = false
         if same:
           pl = nxt
           break
@@ -661,8 +662,8 @@ proc layout*(ly: var Layouter; fonts: FontDb; t: TextLayer; dpi: float32): TextL
         let st = output.styles[styleAt(prange[0])]
         leading = if st.leadingPt.isSome: st.leadingPt.get * k else: ps.autoLeading * st.sizePt * k
       var colHalf = 0'f32
-      for gr in gruns: colHalf = max(colHalf, pl.runs[gr.run].fontSize * 0.5)
-      if colHalf <= 0: colHalf = firstPx * 0.5
+      for gr in gruns: colHalf = max(colHalf, pl.runs[gr.run].fontSize * 0.5'f32)
+      if colHalf <= 0: colHalf = firstPx * 0.5'f32
       let (ascent, descent) = if vertical: (colHalf, colHalf)
                               elif m.ascent > 0 or m.descent > 0: (m.ascent, m.descent)
                               else: (firstPx * 0.8'f32, firstPx * 0.2'f32)
@@ -672,7 +673,7 @@ proc layout*(ly: var Layouter; fonts: FontDb; t: TextLayer; dpi: float32): TextL
           else: 0'f32
         else: prevBaseline.get + leading + pendingSpace
       pendingSpace = 0
-      let overflow = if vertical: baseline + descent > -boxRect[0] + 0.5 else: baseline + descent > boxRect[1] + boxRect[3] + 0.5
+      let overflow = if vertical: baseline + descent > -boxRect[0] + 0.5'f32 else: baseline + descent > boxRect[1] + boxRect[3] + 0.5'f32
       if isBox and overflow:
         stop = true
         break
@@ -707,7 +708,7 @@ proc layout*(ly: var Layouter; fonts: FontDb; t: TextLayer; dpi: float32): TextL
         var units = if st.kern.classify in {fcNormal, fcZero, fcSubnormal, fcNegZero}: st.kern else: 0'f32
         if st.kerning == kOptical and nx.kerning == kOptical and st.kern == 0 and nx.kern == 0 and
            not a.rtl and not b.rtl and not a.blank and not b.blank and not a.upright and not b.upright and
-           a.face == b.face and a.coords == b.coords and abs(a.size - b.size) < 1e-3 and a.last >= 0 and b.first >= 0:
+           a.face == b.face and a.coords == b.coords and abs(a.size - b.size) < 1e-3'f32 and a.last >= 0 and b.first >= 0:
           let f = a.face.tryLoad
           if f.isSome:
             let kk = ly.optical.pair(a.face.blobId, f.get, a.face.index, a.coords, a.last, b.first)
@@ -758,7 +759,7 @@ proc layout*(ly: var Layouter; fonts: FontDb; t: TextLayer; dpi: float32): TextL
           let slack = avail.get(0) - adv - lineKern
           base + (if lastLine:
             case ps.align
-            of taJustifyCenter: slack * 0.5 - m.offset
+            of taJustifyCenter: slack * 0.5'f32 - m.offset
             of taJustifyRight: slack - m.offset
             else: 0'f32
           else: 0'f32)
@@ -831,7 +832,7 @@ proc layout*(ly: var Layouter; fonts: FontDb; t: TextLayer; dpi: float32): TextL
             let upright = cls == 1 or (cls == 2 and g.id notin plain)
             vinfo.add VGlyph(upright: upright, advance: g.advance * hs,
                              origin: (if upright: vm.get.origin(g.id) else: 0'f32),
-                             centre: (rm.ascent - rm.descent) * 0.5)
+                             centre: (rm.ascent - rm.descent) * 0.5'f32)
           extra += g.advance * (hs - 1)
           pen += g.advance
         if cur >= 0 and cursors[cur].emitted >= cursors[cur].g2s.len:
@@ -847,13 +848,13 @@ proc layout*(ly: var Layouter; fonts: FontDb; t: TextLayer; dpi: float32): TextL
         let shift = st.baselineShiftPt * k
         let ust = pl.styles[gr.styleIndex]
         if vertical:
-          let half = rd.fontSize * 0.5
+          let half = rd.fontSize * 0.5'f32
           if ust.underline:
             let v1 = baseline - half
             output.decorations.add DecorationRect(x0: -v1, y0: runX0, x1: -(v1 - max(rm.underlineSize, 1)), y1: runX1, style: si)
           if ust.strikethrough:
             let sz = max(rm.strikethroughSize, 1)
-            output.decorations.add DecorationRect(x0: -(baseline + sz * 0.5), y0: runX0, x1: -(baseline - sz * 0.5), y1: runX1, style: si)
+            output.decorations.add DecorationRect(x0: -(baseline + sz * 0.5'f32), y0: runX0, x1: -(baseline - sz * 0.5'f32), y1: runX1, style: si)
         elif ust.underline:
           let y0 = baseline - rm.underlineOffset - shift
           output.decorations.add DecorationRect(x0: runX0, y0: y0, x1: runX1, y1: y0 + max(rm.underlineSize, 1), style: si)
@@ -874,7 +875,7 @@ proc layout*(ly: var Layouter; fonts: FontDb; t: TextLayer; dpi: float32): TextL
           for gi in g0 ..< output.glyphs.len:
             var idx = 0
             for s2 in countdown(starts.len - 1, 0):
-              if starts[s2] <= output.glyphs[gi].x + 1e-3:
+              if starts[s2] <= output.glyphs[gi].x + 1e-3'f32:
                 idx = s2
                 break
             output.glyphs[gi].x += step * float32(idx)
@@ -884,7 +885,7 @@ proc layout*(ly: var Layouter; fonts: FontDb; t: TextLayer; dpi: float32): TextL
           let v = vinfo[gi - g0]
           let (u, cross) = (output.glyphs[gi].x, output.glyphs[gi].y)
           if v.upright:
-            output.glyphs[gi].x = -baseline - v.advance * 0.5
+            output.glyphs[gi].x = -baseline - v.advance * 0.5'f32
             output.glyphs[gi].y = u + v.origin
             output.glyphs[gi].orient = goUpright
           else:

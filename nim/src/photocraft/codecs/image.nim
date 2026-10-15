@@ -238,7 +238,7 @@ proc convertLayout*(src: openArray[float32]; src0, to: ChannelLayout): seq[float
       of clRgb, clRgba: result.add rgb
       of clCmyk, clCmykA:
         let k = 1.0'f32 - max(rgb[0], max(rgb[1], rgb[2]))
-        if k >= 1.0: result.add [0.0'f32, 0, 0, 1]
+        if k >= 1.0'f32: result.add [0.0'f32, 0, 0, 1]
         else:
           let d = 1.0'f32 - k
           result.add [(1 - rgb[0] - k) / d, (1 - rgb[1] - k) / d, (1 - rgb[2] - k) / d, k]
@@ -283,14 +283,14 @@ proc hasTranslucency*(i: Image): bool =
   if not i.layout.hasAlpha: return false
   let ch = i.layout.channels
   for p in 0 ..< i.pixelCount:
-    if i.sampleNormalized(p * ch + ch - 1) < 1.0: return true
+    if i.sampleNormalized(p * ch + ch - 1) < 1.0'f32: return true
   false
 
 proc hasOutOfRange*(i: Image): bool =
   if not i.sample.isFloat: return false
   for k in 0 ..< i.sampleCount:
     let v = i.sampleNormalized(k)
-    if not (v >= 0.0 and v <= 1.0): return true
+    if not (v >= 0.0'f32 and v <= 1.0'f32): return true
   false
 
 proc convert*(i: Image; layout: ChannelLayout; sample: ImgSample): Image =

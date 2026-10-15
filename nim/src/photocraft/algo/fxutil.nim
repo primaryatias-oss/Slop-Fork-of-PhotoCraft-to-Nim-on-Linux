@@ -48,7 +48,7 @@ proc unpremulPx*(px: var openArray[float32]; alpha: bool) =
   if not alpha or px.len == 0: return
   let n = px.len
   let a = px[n - 1]
-  for i in 0 ..< n - 1: px[i] = (if a > 1e-7: px[i] / a else: 0)
+  for i in 0 ..< n - 1: px[i] = (if a > 1e-7'f32: px[i] / a else: 0)
 
 proc boxRowsN(buf: var openArray[float32]; w, n, r: int; scratch: var seq[float32]) =
   if r == 0 or w == 0 or n == 0: return
@@ -108,7 +108,7 @@ proc gaussBoxRadii*(sigma: float32): array[3, int] =
   if result == [0, 0, 0]: result[0] = 1
 
 proc gaussBlurN*(buf: var openArray[float32]; w, h, n: int; sigma: float32) =
-  if sigma < 0.3: return
+  if sigma < 0.3'f32: return
   var scratch: seq[float32]
   for r in gaussBoxRadii(sigma): boxRowsN(buf, w, n, r, scratch)
   for r in gaussBoxRadii(sigma): boxColsN(buf, w, h, n, r, scratch)

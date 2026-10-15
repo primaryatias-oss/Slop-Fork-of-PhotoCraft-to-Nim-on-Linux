@@ -63,7 +63,7 @@ proc contours*(values: openArray[float32]; rc: Rect; outside: float32): seq[seq[
       else: discard
   proc pointOn(a, b: (int, int)): P =
     let (va, vb) = (get(a[0], a[1]), get(b[0], b[1]))
-    let t = if abs(vb - va) > 1e-9: clamp(float64((lvl - va) / (vb - va)), 0.0, 1.0) else: 0.5
+    let t = if abs(vb - va) > 1e-9'f32: clamp(float64((lvl - va) / (vb - va)), 0.0'f32, 1.0'f32) else: 0.5'f32
     let (ax, ay) = (float64(a[0]) + 0.5, float64(a[1]) + 0.5)
     let (bx, by) = (float64(b[0]) + 0.5, float64(b[1]) + 0.5)
     (float64(rc.x0) + ax + (bx - ax) * t, float64(rc.y0) + ay + (by - ay) * t)

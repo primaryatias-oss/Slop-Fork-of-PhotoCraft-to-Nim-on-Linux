@@ -94,5 +94,5 @@ proc filter*(p: RadialPlan; src: Image; o: Rect; ctx: Ctx; ctl: Interrupt): Opti
       for ch in 0 ..< n: res[at + ch] *= recip
       if alpha:
         let a = res[at + n - 1]
-        for ch in 0 ..< n - 1: res[at + ch] = (if a > 1e-7: res[at + ch] / a else: 0)
+        for ch in 0 ..< n - 1: res[at + ch] = (if a > 1e-7'f32: res[at + ch] / a else: 0)
   some(res)

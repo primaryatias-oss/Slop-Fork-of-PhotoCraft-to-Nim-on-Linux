@@ -5,6 +5,7 @@
 
 import std/[json, options]
 import color/[blend, convert]
+import rmath
 export blend, convert
 
 type
@@ -83,10 +84,10 @@ proc readSample*(bytes: openArray[byte]; sample: SampleType; index: int): float3
 proc writeSample*(bytes: var openArray[byte]; sample: SampleType; index: int; v: float32) {.inline.} =
   ## Write a normalised f32 sample; integer types are clamped and rounded.
   case sample
-  of stU8: bytes[index] = uint8(clamp(v, 0.0'f32, 1.0'f32) * 255.0'f32 + 0.5'f32)
+  of stU8: bytes[index] = asU8(clamp(v, 0.0'f32, 1.0'f32) * 255.0'f32 + 0.5'f32)
   of stU16:
     let o = index * 2
-    cast[ptr uint16](addr bytes[o])[] = uint16(clamp(v, 0.0'f32, 1.0'f32) * 65535.0'f32 + 0.5'f32)
+    cast[ptr uint16](addr bytes[o])[] = asU16(clamp(v, 0.0'f32, 1.0'f32) * 65535.0'f32 + 0.5'f32)
   of stF32:
     let o = index * 4
     cast[ptr float32](addr bytes[o])[] = v
@@ -129,7 +130,7 @@ proc inMode*(c: Color; mode: ColorMode): Color =
     let l = srgbToLab(rgb)
     result.c = [l[0] / 100.0'f32, (l[1] + 128.0'f32) / 255.0'f32, (l[2] + 128.0'f32) / 255.0'f32, 0.0'f32]
 
-proc q8*(v: float32): uint8 {.inline.} = uint8(clamp(v, 0.0'f32, 1.0'f32) * 255.0'f32 + 0.5'f32)
+proc q8*(v: float32): uint8 {.inline.} = asU8(clamp(v, 0.0'f32, 1.0'f32) * 255.0'f32 + 0.5'f32)
 
 proc toRgba8*(c: Color): array[4, uint8] =
   let r = c.toRgb

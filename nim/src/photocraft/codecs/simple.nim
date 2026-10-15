@@ -952,7 +952,7 @@ proc encodeHdr*(src: Image): seq[byte] =
       var rgb: array[3, float32]
       for c in 0..2: rgb[c] = max(cast[ptr float32](unsafeAddr img.data[((y * w + x) * 3 + c) * 4])[], 0.0'f32)
       let m = max(rgb[0], max(rgb[1], rgb[2]))
-      if m < 1e-32:
+      if m < 1e-32'f32:
         result.add [0'u8, 0, 0, 0]
       else:
         var e: int

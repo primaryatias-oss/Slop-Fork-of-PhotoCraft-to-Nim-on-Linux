@@ -82,7 +82,7 @@ proc preview*(e: engine.TextEngine; style: CharStyle; c: int; px: int): (int, se
   let px = clamp(px, 4, 512)
   let text = Rune(c).toUTF8
   var st = style
-  st.sizePt = float32(px) * 0.72
+  st.sizePt = float32(px) * 0.72'f32
   st.underline = false
   st.strikethrough = false
   st.tracking = 0
@@ -95,7 +95,7 @@ proc preview*(e: engine.TextEngine; style: CharStyle; c: int; px: int): (int, se
   let w = if b.isSome: b.get[2] - b.get[0] else: 0'f32
   let x0 = if b.isSome: b.get[0] else: 0'f32
   let tx = (float32(px) - w) / 2 - x0
-  let r = rasterizeWarped(l, Affine(m: [1.0, 0, 0, 1, float64(tx), float64(float32(px) * 0.78)]),
+  let r = rasterizeWarped(l, Affine(m: [1.0, 0, 0, 1, float64(tx), float64(float32(px) * 0.78'f32)]),
                           pixelFormat(cmRgb, stU8, true), aaSmooth, none(TextWarper))
   var rgba = newSeq[array[4, uint8]](px * px)
   r.surface.readRgba8Into(rect(0, 0, px, px), rgba)

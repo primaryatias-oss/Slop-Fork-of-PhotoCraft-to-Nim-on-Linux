@@ -167,7 +167,7 @@ proc fixWhite(t: Transform; src, dst: ColorSpace) =
   for d in countdown(c.inputs - 1, 0):
     let n = c.grid[d]
     let pos = sw.get[d] * float32(n - 1)
-    if abs(pos - round(pos)) > 1e-6: return
+    if abs(pos - round(pos)) > 1e-6'f32: return
     off += int(round(pos)) * stride
     stride *= n
   for k in 0 ..< c.outputs: c.data[off + k] = dw.get[k]
@@ -376,7 +376,7 @@ proc convertU8*(t: Transform; src: openArray[uint8]; ss: int; dst: var openArray
       let k4 = t.grid8[3][src[sp + 3]]
       let base = a[0] + b[0] + cc[0] + k4[0]
       c.tetra(base, [s1, s2, s3], [b[1], cc[1], k4[1]], mid)
-      if a[1] > 0.0:
+      if a[1] > 0.0'f32:
         c.tetra(base + s0, [s1, s2, s3], [b[1], cc[1], k4[1]], hi)
         for k in 0 ..< c.outputs: mid[k] += (hi[k] - mid[k]) * a[1]
       t.finish(mid, outv)

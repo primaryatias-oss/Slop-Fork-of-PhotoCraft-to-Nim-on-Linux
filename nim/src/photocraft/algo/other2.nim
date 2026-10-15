@@ -1,7 +1,7 @@
 ## Other ▸ Custom (5×5 convolution), Other ▸ HSB/HSL, and the HSB/HSL conversions.
 
 import std/math
-import ../geom, ../color, ./params, ./fxutil
+import ../geom, ../color, ./params, ./fxutil, ./util
 
 proc custom*(src: Image; o: Rect; ctx: Ctx; kernel: openArray[float32]; scale, offset: float32): seq[float32] =
   let n = src.ch
@@ -22,27 +22,27 @@ proc custom*(src: Image; o: Rect; ctx: Ctx; kernel: openArray[float32]; scale, o
 
 proc hue(c: array[3, float32]; mx, d: float32): float32 =
   if d <= 0: return 0
-  let h = (if mx == c[0]: floorMod((c[1] - c[2]) / d, 6'f32)
+  let h = (if mx == c[0]: remEuclidF((c[1] - c[2]) / d, 6'f32)
            elif mx == c[1]: (c[2] - c[0]) / d + 2
            else: (c[0] - c[1]) / d + 4)
   h / 6
 
 proc rgbToHsb*(c: array[3, float32]): array[3, float32] =
-  let (mx, mn) = (max(max(c[0], c[1]), c[2]), min(min(c[0], c[1]), c[2]))
+  let (mx, mn) = (rmax(rmax(c[0], c[1]), c[2]), rmin(rmin(c[0], c[1]), c[2]))
   let d = mx - mn
   [hue(c, mx, d), (if mx > 0: d / mx else: 0'f32), mx]
 
 proc rgbToHsl*(c: array[3, float32]): array[3, float32] =
-  let (mx, mn) = (max(max(c[0], c[1]), c[2]), min(min(c[0], c[1]), c[2]))
+  let (mx, mn) = (rmax(rmax(c[0], c[1]), c[2]), rmin(rmin(c[0], c[1]), c[2]))
   let d = mx - mn
   let l = (mx + mn) / 2
-  let s = (if d <= 0: 0'f32 else: d / max(1 - abs(2 * l - 1), 1e-7'f32))
+  let s = (if d <= 0: 0'f32 else: d / rmax(1 - abs(2 * l - 1), 1e-7'f32))
   [hue(c, mx, d), clamp(s, 0'f32, 1'f32), l]
 
 proc fromHcm(h, chroma, m: float32): array[3, float32] =
-  let hp = floorMod(h, 1'f32) * 6
-  let x = chroma * (1 - abs(floorMod(hp, 2'f32) - 1))
-  let (r, g, b) = (case int(hp)
+  let hp = remEuclidF(h, 1'f32) * 6
+  let x = chroma * (1 - abs(remEuclidF(hp, 2'f32) - 1))
+  let (r, g, b) = (case asI32(float64(hp))
     of 0: (chroma, x, 0'f32)
     of 1: (x, chroma, 0'f32)
     of 2: (0'f32, chroma, x)

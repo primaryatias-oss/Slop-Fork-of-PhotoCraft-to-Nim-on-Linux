@@ -3,6 +3,7 @@
 import std/math
 import ../geom
 import params, image, util
+import ../rmath
 
 proc runningExtreme*(v: openArray[float32]; k: int; isMax: bool; o: var seq[float32]) =
   ## `o[i]` = extreme of `v[i ..< i + k]` for every full window (van Herk / Gil-Werman).
@@ -56,7 +57,7 @@ proc minMaxRound*(src: Image; o: Rect; radius: float32; isMax: bool): seq[float3
   if ri == 0: return src.crop(o)
   let w = o.width
   result = newSeq[float32](w * o.height * n)
-  for v in result.mitems: v = (if isMax: -high(float32) else: high(float32))
+  for v in result.mitems: v = (if isMax: -F32Max else: F32Max)
   var row, ext: seq[float32]
   for dy in -ri .. ri:
     # Half-width of the disc on this row (the epsilon keeps exact squares).

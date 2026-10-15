@@ -239,13 +239,13 @@ proc distOutsideBy(s: Map; m: Metric): seq[float32] =
     for i, a in s.v: start[i] = if a > InsideEps: 1 - min(a, 1'f32) else: ChamferInf
     let (d, _) = chamferFrom(start, s.w, s.h)
     result = newSeq[float32](s.v.len)
-    for i, a in s.v: result[i] = if a > InsideEps: -0.5'f32 else: d[i] - 0.5
+    for i, a in s.v: result[i] = if a > InsideEps: -0.5'f32 else: d[i] - 0.5'f32
     return
   let inside = covered(s, true)
   let (d, near) = edtNearest(inside, s.w, s.h)
   result = newSeq[float32](s.v.len)
   for i in 0 ..< s.v.len:
-    result[i] = if inside[i]: -0.5'f32 else: d[i] - 0.5 + (1 - min(s.v[near[i]], 1'f32))
+    result[i] = if inside[i]: -0.5'f32 else: d[i] - 0.5'f32 + (1 - min(s.v[near[i]], 1'f32))
 
 proc distInsideBy(s: Map; m: Metric): seq[float32] =
   if m == mChamfer:
@@ -256,22 +256,22 @@ proc distInsideBy(s: Map; m: Metric): seq[float32] =
       start[i] = if a <= InsideEps: 0'f32 elif c < 1 - InsideEps: c else: ChamferInf
     let (d, _) = chamferFrom(start, s.w, s.h)
     result = newSeq[float32](s.v.len)
-    for i, a in s.v: result[i] = if a <= InsideEps: -0.5'f32 else: d[i] - 0.5
+    for i, a in s.v: result[i] = if a <= InsideEps: -0.5'f32 else: d[i] - 0.5'f32
     return
   let outside = covered(s, false)
   let (d, _) = edtNearest(outside, s.w, s.h)
   result = newSeq[float32](s.v.len)
-  for i in 0 ..< s.v.len: result[i] = if outside[i]: -0.5'f32 else: d[i] - 0.5
+  for i in 0 ..< s.v.len: result[i] = if outside[i]: -0.5'f32 else: d[i] - 0.5'f32
 
 # ---------------------------------------------------------------- sharp edges (bevels)
 
 proc edgeOffset(n: array[2, float32]; a: float32): float32 =
   if a != a or abs(a) == Inf: return 0
   let (u, v) = (max(abs(n[0]), abs(n[1])), min(abs(n[0]), abs(n[1])))
-  let (c0, inside) = if a > 0.5: (1 - a, true) else: (a, false)
+  let (c0, inside) = if a > 0.5'f32: (1 - a, true) else: (a, false)
   let c = clamp(c0, 0'f32, 0.5'f32)
   let corner = if u > 0: v / (2 * u) else: 0'f32
-  let r = if c >= corner: (0.5 - c) * u else: 0.5 * (u + v) - sqrt(2 * u * v * c)
+  let r = if c >= corner: (0.5'f32 - c) * u else: 0.5'f32 * (u + v) - sqrt(2 * u * v * c)
   if inside: r else: -r
 
 proc distance(e: SharpEdge; dx, dy: float32; inside: bool): Option[float32] =
@@ -309,7 +309,7 @@ proc refineEdgeNormals(pixels: var seq[EdgePixel]; slot: seq[int32]; w, h: int) 
         let j = int(slot[ny * w + nx]) - 1
         if j < 0: continue
         let o = before[j].edge
-        if o.normal[0] * e.normal[0] + o.normal[1] * e.normal[1] > 0.9:
+        if o.normal[0] * e.normal[0] + o.normal[1] * e.normal[1] > 0.9'f32:
           near.add points[j]
           sum = [sum[0] + points[j][0], sum[1] + points[j][1]]
           n += 1
@@ -321,8 +321,8 @@ proc refineEdgeNormals(pixels: var seq[EdgePixel]; slot: seq[int32]; w, h: int) 
       sxx += dx * dx
       sxy += dx * dy
       syy += dy * dy
-    let half = 0.5 * (sxx + syy)
-    let root = sqrt(0.25 * (sxx - syy) * (sxx - syy) + sxy * sxy)
+    let half = 0.5'f32 * (sxx + syy)
+    let root = sqrt(0.25'f32 * (sxx - syy) * (sxx - syy) + sxy * sxy)
     let (along, across) = (sqrt(max((half + root) / n, 0)), sqrt(max((half - root) / n, 0)))
     if not (along > EdgeLineMinSpread and across < EdgeLineMaxOff): continue
     let angle = float32(0.5 * arctan2(float(2 * sxy), float(sxx - syy)))
@@ -372,7 +372,7 @@ proc sharpEdges(s: Map): SharpEdges =
       let ln = hypot(gx, gy)
       var normal = [0'f32, 0]
       var nn = [1'f32, 0]
-      if ln == ln and ln != Inf and ln > 1e-6:
+      if ln == ln and ln != Inf and ln > 1e-6'f32:
         normal = [gx / ln, gy / ln]
         nn = normal
       result.pixels.add EdgePixel(at: i, cov: c, edge: SharpEdge(offset: edgeOffset(nn, c), normal: normal))
@@ -412,7 +412,7 @@ proc bevelDistInside(s: Map; sharp: SharpEdges; reach: float32): seq[float32] =
       if e.isSome:
         result[i] = e.get.offset
         continue
-      let plain = d[i] - 0.5
+      let plain = d[i] - 0.5'f32
       if d[i] > reach + EdgeMargin or sharp.pixels.len == 0:
         result[i] = plain
         continue
@@ -449,7 +449,7 @@ proc bevelDistOutside(s: Map; sharp: SharpEdges; reach: float32): seq[float32] =
       let q = near[i]
       let e = sharp.edgeAt(q)
       if e.isNone:
-        result[i] = d[i] - (min(s.v[q], 1'f32) - 0.5)
+        result[i] = d[i] - (min(s.v[q], 1'f32) - 0.5'f32)
         continue
       let qp = [q mod s.w, q div s.w]
       let measured = if d[i] <= reach + EdgeMargin: edgeDistance(sharp, [x, y], qp, false)
@@ -463,10 +463,10 @@ proc boxWidth(w: float32): float32 = (if w != w: 1'f32 else: clamp(w, 1'f32, Max
 proc boxWeights(w0: float32): seq[float32] =
   let w = boxWidth(w0)
   let half = w / 2
-  let r = int(max(ceil(half - 0.5), 0))
+  let r = int(max(ceil(half - 0.5'f32), 0))
   var sum = 0'f32
   for i in -r .. r:
-    let x = max(min(float32(i) + 0.5, half) - max(float32(i) - 0.5, -half), 0'f32)
+    let x = max(min(float32(i) + 0.5'f32, half) - max(float32(i) - 0.5'f32, -half), 0'f32)
     result.add x
     sum += x
   for x in result.mitems: x /= sum
@@ -482,8 +482,8 @@ proc tentKernel*(w: float32): (int, seq[float32]) =
 proc boxGeom(bw0: float32): (int, float64, float64) =
   let bw = boxWidth(bw0)
   let half = bw / 2
-  let r = int(max(ceil(half - 0.5), 0))
-  let f = float64(clamp(half - (float32(r) - 0.5), 0'f32, 1'f32))
+  let r = int(max(ceil(half - 0.5'f32), 0))
+  let f = float64(clamp(half - (float32(r) - 0.5'f32), 0'f32, 1'f32))
   (r, f, 1.0 / float64(bw))
 
 proc boxLine(src: openArray[float64]; x0: int; dst: var openArray[float64]; bw: float32) =
@@ -529,7 +529,7 @@ proc dilate(s: Map; r: float32): Map =
   let d = distOutsideBy(s, mChamfer)
   result = s
   for i in 0 ..< result.v.len:
-    result.v[i] = if d[i] < 0: min(result.v[i] + r, 1'f32) else: max(result.v[i], clamp(r + 0.5 - d[i], 0'f32, 1'f32))
+    result.v[i] = if d[i] < 0: min(result.v[i] + r, 1'f32) else: max(result.v[i], clamp(r + 0.5'f32 - d[i], 0'f32, 1'f32))
 
 proc contourLut(c: Contour): Option[seq[float32]] =
   if c.kind == ckLinear: none(seq[float32]) else: some(contourCurveLut(c.points, c.corners))
@@ -543,7 +543,7 @@ proc lutAt(l: openArray[float32]; v: float32): float32 =
 proc rangedLut*(contour: Contour; range0: float32): Option[seq[float32]] =
   let base = contourLut(contour)
   let rng = if range0 == range0 and abs(range0) != Inf: clamp(range0, 0.01'f32, 1'f32) else: 1'f32
-  if rng >= 0.999: return base
+  if rng >= 0.999'f32: return base
   var o = newSeq[float32](4096)
   for k in 0 ..< 4096:
     let v = min(float32(k) / 4095 / rng, 1'f32)
@@ -570,7 +570,7 @@ proc noise(m: var Map; amount: float32; x0, y0: int) =
     for x in 0 ..< m.w:
       let i = y * m.w + x
       if m.v[i] <= 0: continue
-      m.v[i] = clamp(m.v[i] + (hashNoise(int64(x0 + x), int64(y0 + y)) - 0.5) * 2 * amount, 0'f32, 1'f32)
+      m.v[i] = clamp(m.v[i] + (hashNoise(int64(x0 + x), int64(y0 + y)) - 0.5'f32) * 2 * amount, 0'f32, 1'f32)
 
 proc rgb3(c: Color): array[3, float32] = c.toRgb
 
@@ -632,7 +632,7 @@ proc paintFx(dst: var Buffer; m: Map; p: FxPaint; shapeBounds: Rect; anchor: (fl
     let (angle, scale, offset) = gradientLayout(g.style, g.angle, g.scale, g.offset, shapeBounds)
     let w = big.width
     paintWith(dst, m, blend, opacity, prepared.sample(gradientT(g.style, angle, scale, g.reverse, offset, shapeBounds,
-      float32(big.x0 + i mod w) + 0.5, float32(big.y0 + i div w) + 0.5)))
+      float32(big.x0 + i mod w) + 0.5'f32, float32(big.y0 + i div w) + 0.5'f32)))
   of fpPattern:
     paintPattern(dst, m, patterns, p.name, p.id, anchored(anchor, true, (0'f32, 0'f32), p.scale, 0), big, blend, opacity)
 
@@ -672,7 +672,7 @@ proc glowMap(shape: Map; g: Glow; inner: bool; origin: (int, int)): Map =
   of gtPrecise:
     let d = if inner: distInsideBy(shape, mEuclidean) else: distOutsideBy(src, mEuclidean)
     let solid = g.size * g.spread
-    let soft = max(g.size - solid, 1e-3)
+    let soft = max(g.size - solid, 1e-3'f32)
     m = newMap(shape.w, shape.h)
     for i in 0 ..< m.v.len: m.v[i] = if d[i] <= solid: 1'f32 else: clamp(1 - (d[i] - solid) / soft, 0'f32, 1'f32)
     if inner and g.source == gsCenter: m = m.invert
@@ -718,7 +718,7 @@ proc bevelChiselH*(paint: BevelPaint; size, din, dout: float32): float32 =
   case paint
   of bpOuter: 1 - clamp(dout / size, 0'f32, 1'f32)
   of bpBoth:
-    if din > 0: 0.5 + 0.5 * clamp(din / (size / 2), 0'f32, 1'f32) else: 0.5 - 0.5 * clamp(dout / (size / 2), 0'f32, 1'f32)
+    if din > 0: 0.5'f32 + 0.5'f32 * clamp(din / (size / 2), 0'f32, 1'f32) else: 0.5'f32 - 0.5'f32 * clamp(dout / (size / 2), 0'f32, 1'f32)
   of bpInner: clamp(din / size, 0'f32, 1'f32)
 
 proc bevelHeight(shape: Map; b: Bevel; g: BevelGeom; tex: TextureCtx; patterns: var PreparedPatterns): Map =
@@ -740,14 +740,14 @@ proc bevelHeight(shape: Map; b: Bevel; g: BevelGeom; tex: TextureCtx; patterns: 
     let t = b.texture.get
     let tile = patterns.get(t.id, t.name)
     if not tile.isNil:
-      let unit = if abs(b.depth) > 1e-6: max(abs(g.depth / b.depth), 1e-3) else: max(g.width, 1)
+      let unit = if abs(b.depth) > 1e-6'f32: max(abs(g.depth / b.depth), 1e-3'f32) else: max(g.width, 1)
       let place = anchored(tex.anchor, t.link, t.phase, t.scale, 0)
       let k = t.depth / unit
       for y in 0 ..< h.h:
         for x in 0 ..< h.w:
           let (u, v) = place.map(float64(tex.rect.x0 + x) + 0.5, float64(tex.rect.y0 + y) + 0.5)
           let p = tile.sample(u, v)
-          let l = (0.299'f32 * p[0] + 0.587 * p[1] + 0.114 * p[2]) * p[3]
+          let l = (0.299'f32 * p[0] + 0.587'f32 * p[1] + 0.114'f32 * p[2]) * p[3]
           h.v[y * h.w + x] += k * (if t.invert: 1 - l else: l)
   if b.soften >= 1: tent(h, b.soften)
   h
@@ -772,14 +772,14 @@ proc bevelMaps(shape: Map; b: Bevel; light: GlobalLight; tex: TextureCtx; patter
     for y in 0 ..< shape.h:
       for x in 0 ..< shape.w:
         let i = y * shape.w + x
-        let gx = (hmap.get(x + 1, y) - hmap.get(x - 1, y)) * 0.5 * depth
-        let gy = (hmap.get(x, y + 1) - hmap.get(x, y - 1)) * 0.5 * depth
+        let gx = (hmap.get(x + 1, y) - hmap.get(x - 1, y)) * 0.5'f32 * depth
+        let gy = (hmap.get(x, y + 1) - hmap.get(x, y - 1)) * 0.5'f32 * depth
         let ln = sqrt(gx * gx + gy * gy + 1)
         let shade = (-gx * lightV[0] - gy * lightV[1] + lightV[2]) / ln
         let region = if regionKind == 0: shape.v[i] else: float32(shape.v[i] < 1 - InsideEps and onBevel(x, y))
         let k = shade - se
-        if k > 0: hi.v[i] = clamp(k / max(1 - se, 1e-3), 0'f32, 1'f32) * region
-        else: sh.v[i] = clamp(-k / max(se, 1e-3), 0'f32, 1'f32) * region
+        if k > 0: hi.v[i] = clamp(k / max(1 - se, 1e-3'f32), 0'f32, 1'f32) * region
+        else: sh.v[i] = clamp(-k / max(se, 1e-3'f32), 0'f32, 1'f32) * region
     (applyContour(hi, b.glossContour), applyContour(sh, b.glossContour))
   case g.paint
   of bpInner, bpOuter:
@@ -885,7 +885,7 @@ proc knockOutExterior(m: var Map; shape: Map; fillOpacity: float32) =
 proc outlineShare*(cov, l: float32): float32 =
   let outside = max(1 - clamp(cov, 0'f32, 1'f32), 0'f32)
   let rest = 1 - clamp(l, 0'f32, 1'f32)
-  if rest <= 1e-6: 1 else: min(outside / rest, 1'f32)
+  if rest <= 1e-6'f32: 1 else: min(outside / rest, 1'f32)
 
 proc mixPremul(a, b: Px; k: float32): Px =
   let alpha = a[3] + (b[3] - a[3]) * k
@@ -997,7 +997,7 @@ proc compositeWithEffects*(layer: Layer; content: Buffer; backdrop: var Buffer; 
     let inW = strokeWidths(st)[0]
     if inW <= 0 or din.len == 0: continue
     var m = newMap(w, h)
-    for i in 0 ..< m.v.len: m.v[i] = if inside(shape.v[i]): clamp(inW + 0.5 - din[i], 0'f32, 1'f32) else: 0'f32
+    for i in 0 ..< m.v.len: m.v[i] = if inside(shape.v[i]): clamp(inW + 0.5'f32 - din[i], 0'f32, 1'f32) else: 0'f32
     paintFx(lay, m, st.paint, frame(st), anchor, big, st.common.blend, st.common.opacity, patterns)
   for i in countdown(items.high, 0):
     let e = items[i]
@@ -1018,7 +1018,7 @@ proc compositeWithEffects*(layer: Layer; content: Buffer; backdrop: var Buffer; 
       if outW <= 0: continue
       var share = newSeq[float32](w * h)
       for i in 0 ..< share.len:
-        let band = clamp(outW + 0.5 - vd[i], 0'f32, 1'f32)
+        let band = clamp(outW + 0.5'f32 - vd[i], 0'f32, 1'f32)
         let k = if maps.outline: band * outlineShare(shape.v[i], lay.px[i][3])
                 elif inside(shape.v[i]):
                   (if vectorShape: 0'f32

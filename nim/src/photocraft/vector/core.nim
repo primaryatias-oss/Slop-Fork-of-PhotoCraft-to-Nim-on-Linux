@@ -3,7 +3,7 @@
 ## (solid/gradient) and compiled shapes and vector masks.
 
 import std/[math, algorithm, options]
-import ../doc
+import ../doc, ../rmath
 
 const DefaultTolerance* = 0.01  ## curve-to-chord distance in pixels
 
@@ -671,7 +671,7 @@ proc gradientLayout*(style: GradientStyle; angle, scale: float32; offset: (float
   let h = max(frame[3] - frame[1], 1.0)
   let (cx, cy) = (frame[0] + w / 2 + float64(offset[0]) * w, frame[1] + h / 2 + float64(offset[1]) * h)
   let a = degToRad(float64(angle))
-  let half = gradientUnits(a, w, h)[0] * float64(max(scale, 1e-3)) / 2
+  let half = gradientUnits(a, w, h)[0] * float64(max(scale, 1e-3'f32)) / 2
   let (dx, dy) = (cos(a) * half, -sin(a) * half)
   template snap(v: float64): float64 = floor(v + 1e-4)
   let e = (snap(cx + dx), snap(cy + dy))
@@ -688,7 +688,7 @@ proc gradientLayout*(style: GradientStyle; angle, scale: float32; offset: (float
   let a2 = arctan2(-v[1], v[0])
   let span = if style == gsReflected: 2 * ln else: ln
   let scale2 = span / gradientUnits(a2, w, h)[0]
-  (float32(radToDeg(a2)), float32(scale2), (offset[0] + float32((mid[0] - cx) / w), offset[1] + float32((mid[1] - cy) / h)))
+  (float32(toDegrees(a2)), float32(scale2), (offset[0] + float32((mid[0] - cx) / w), offset[1] + float32((mid[1] - cy) / h)))
 
 proc gradientT*(style: GradientStyle; angle, scale: float32; reverse: bool; offset: (float32, float32);
                 frame: (float64, float64, float64, float64); x, y: float64): float32 =
@@ -702,8 +702,8 @@ proc gradientT*(style: GradientStyle; angle, scale: float32; reverse: bool; offs
   let along = dx * c - dy * s
   let across = dx * s + dy * c
   var (chord, ln) = gradientUnits(a, w, h)
-  chord *= float64(max(scale, 1e-3))
-  ln *= float64(max(scale, 1e-3))
+  chord *= float64(max(scale, 1e-3'f32))
+  ln *= float64(max(scale, 1e-3'f32))
   let corner = 0.5 * (c - s)
   var t = case style
     of gsLinear: (along - corner) / chord + 0.5
@@ -711,15 +711,15 @@ proc gradientT*(style: GradientStyle; angle, scale: float32; reverse: bool; offs
     of gsRadial: hypot(dx, dy) / (ln / 2)
     of gsDiamond: (abs(along) + abs(across)) / (ln / 2)
     of gsAngle:
-      (let v = (a - arctan2(-dy, dx)) / TAU; v - floor(v))
+      remEuclidF((a - arctan2(-dy, dx)) / TAU, 1.0)
   t = clamp(t, 0.0, 1.0)
   float32(if reverse: 1 - t else: t)
 
 proc midpointRemap*(u, m0: float32): float32 =
   let m = clamp(m0, 0.05'f32, 0.95'f32)
-  if abs(m - 0.5) < 1e-6: u
-  elif u <= m: 0.5 * u / m
-  else: 0.5 + 0.5 * (u - m) / (1 - m)
+  if abs(m - 0.5'f32) < 1e-6'f32: u
+  elif u <= m: 0.5'f32 * u / m
+  else: 0.5'f32 + 0.5'f32 * (u - m) / (1 - m)
 
 proc sampleColor*(stops: openArray[(float32, array[4, float32])]; mids: openArray[float32]; t: float32): array[4, float32] =
   if stops.len == 0: return

@@ -76,7 +76,7 @@ proc f16ToF32*(h: uint16): float32 =
   let m = float32(h and 0x3FF)
   case e
   of 0: sign * m * pow(2.0'f32, -24.0'f32)
-  of 0x1F: (if m == 0.0: sign * Inf.float32 else: NaN.float32)
+  of 0x1F: (if m == 0.0'f32: sign * Inf.float32 else: NaN.float32)
   else: sign * (1.0'f32 + m / 1024.0'f32) * pow(2.0'f32, float32(e - 15))
 
 proc toRgba8*(l: Lut3d): seq[uint8] =

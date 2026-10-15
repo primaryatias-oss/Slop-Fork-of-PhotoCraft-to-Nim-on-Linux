@@ -7,6 +7,7 @@
 import std/[math, options]
 import ../geom
 import params, image, fxutil, noise, util
+import ../rmath
 
 # Run-time values, not `const`: Nim folds arithmetic on float32 constants in float64, which
 # differs from Rust's f32 arithmetic (`1 - FracPi4` would come out one ulp off).
@@ -152,7 +153,7 @@ proc crystallize*(src: Image; o: Rect; ctx: Ctx; cellSize: float32; seed: uint32
   proc owner(x, y: int): (int, int) =
     let (fx, fy) = (float32(x) + 0.5'f32, float32(y) + 0.5'f32)
     let (cx, cy) = (asI32(float64(floor((fx - origin[0]) / cell))), asI32(float64(floor((fy - origin[1]) / cell))))
-    var best = (high(float32), (cx, cy))
+    var best = (F32Max, (cx, cy))
     for dy in -1 .. 1:
       for dx in -1 .. 1:
         let (px, py) = cellPoint(cx + dx, cy + dy, cell, seed, origin)
@@ -200,7 +201,7 @@ proc facetDirect(src: Image; o: Rect; ctx: Ctx): seq[float32] =
   var i = 0
   while i * n + n <= result.len:
     let (x, y) = xy(o, i)
-    var bestVar = high(float32)
+    var bestVar = F32Max
     var bestMean: array[MaxC, float32]
     for (qx, qy) in [(-r, -r), (0, -r), (-r, 0), (0, 0)]:
       var sum: array[MaxC, float32]
@@ -265,7 +266,7 @@ proc facetRun(src: Image; o: Rect; ctx: Ctx): Option[seq[float32]] =
   for y in 0 ..< height:
     buildRow(y + 2, quads[2])
     for x in 0 ..< width:
-      var best = Quadrant(variance: high(float32))
+      var best = Quadrant(variance: F32Max)
       # Preserve quadrant order, including exact ties and non-finite variances.
       for q in [quads[0][x], quads[0][x + 2], quads[2][x], quads[2][x + 2]]:
         if q.variance < best.variance: best = q

@@ -26,7 +26,7 @@ template withBlendSpace*(lab, hdr: bool; body: untyped) =
     hdrBlend = prevHdr
 
 proc vividLightPs(cb, cs: float32): float32 =
-  if cs <= 0.5: (if cs <= 0: 0'f32 else: 1 - min((1 - cb) / (2 * cs), 1'f32))
+  if cs <= 0.5'f32: (if cs <= 0: 0'f32 else: 1 - min((1 - cb) / (2 * cs), 1'f32))
   elif cs >= 1: 1
   else: min(cb / (2 * (1 - cs)), 1'f32)
 
@@ -37,13 +37,13 @@ proc colorDodgePs(cb, cs: float32): float32 =
   if cb <= Edge: 0 elif cs >= 1: 1 else: min(cb / (1 - cs), 1'f32)
 
 proc vividLightGeneric(cb, cs: float32): float32 =
-  if cs <= 0.5:
+  if cs <= 0.5'f32:
     if cb >= 1 - Edge: 1 elif cs <= 0: 0 else: 1 - min((1 - cb) / (2 * cs), 1'f32)
   elif cb <= Edge: 0
   elif cs >= 1: 1
   else: min(cb / (2 * (1 - cs)), 1'f32)
 
-proc hardMixPs(cb, cs: float32): float32 = (if vividLightGeneric(cb, cs) >= 0.5 - 1e-6: 1 else: 0)
+proc hardMixPs(cb, cs: float32): float32 = (if vividLightGeneric(cb, cs) >= 0.5'f32 - 1e-6'f32: 1 else: 0)
 
 proc blendRgbPs*(mode: BlendMode; cb, cs: array[3, float32]): array[3, float32] =
   ## `B(Cb, Cs)` with Photoshop's variants.

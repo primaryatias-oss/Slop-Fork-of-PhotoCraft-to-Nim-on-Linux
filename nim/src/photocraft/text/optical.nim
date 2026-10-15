@@ -38,7 +38,7 @@ proc isEmpty*(p: Profile): bool =
     if x.isSome: return false
   true
 
-proc sampleY*(i: int): float32 = YLo + (YHi - YLo) * (float32(i) + 0.5) / float32(Samples)
+proc sampleY*(i: int): float32 = YLo + (YHi - YLo) * (float32(i) + 0.5'f32) / float32(Samples)
 
 proc flatten(o: Outline): seq[array[4, float32]] =
   var start, at: (float32, float32)

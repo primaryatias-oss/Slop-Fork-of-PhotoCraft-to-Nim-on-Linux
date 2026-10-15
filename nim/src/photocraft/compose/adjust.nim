@@ -60,18 +60,18 @@ proc identityLut(): Lut =
 proc levelsQ*(ch: LevelsChannel; v: float32; quantum: float32 = 0): float32 =
   ## Photoshop's Levels: input range, gamma (a p-norm blend fitted to Photoshop above 1),
   ## output range. `quantum` > 0 rounds like an integer document.
-  let rng = max(ch.inWhite - ch.inBlack, 1e-6)
+  let rng = max(ch.inWhite - ch.inBlack, 1e-6'f32)
   var u: float32
   if quantum >= 1 and quantum == quantum and quantum != Inf:
     let vq = round(v * quantum) / quantum
-    u = floor(clamp((vq - ch.inBlack) / rng, 0'f32, 1'f32) * quantum + 0.5 + 1e-3) / quantum
+    u = floor(clamp((vq - ch.inBlack) / rng, 0'f32, 1'f32) * quantum + 0.5'f32 + 1e-3'f32) / quantum
   else: u = clamp((v - ch.inBlack) / rng, 0'f32, 1'f32)
-  let g = max(ch.gamma, 0.01)
+  let g = max(ch.gamma, 0.01'f32)
   var t: float32
   if g > 1:
     let power = pow(u, 1 / g)
     let line = 0.93'f32 * pow(2'f32, g) * u
-    if power <= 1e-6 or line <= 1e-6: t = min(power, line)
+    if power <= 1e-6'f32 or line <= 1e-6'f32: t = min(power, line)
     else:
       const p = 10'f32
       t = pow(pow(power, -p) + pow(line, -p), -1 / p)
@@ -79,8 +79,8 @@ proc levelsQ*(ch: LevelsChannel; v: float32; quantum: float32 = 0): float32 =
   ch.outBlack + t * (ch.outWhite - ch.outBlack)
 
 proc levelsFloat*(ch: LevelsChannel; v: float32): float32 =
-  let t0 = (v - ch.inBlack) / max(ch.inWhite - ch.inBlack, 1e-6)
-  let t = if ch.gamma == 1: t0 else: (if t0 < 0: -1'f32 else: 1'f32) * pow(abs(t0), 1 / max(ch.gamma, 0.01))
+  let t0 = (v - ch.inBlack) / max(ch.inWhite - ch.inBlack, 1e-6'f32)
+  let t = if ch.gamma == 1: t0 else: (if t0 < 0: -1'f32 else: 1'f32) * pow(abs(t0), 1 / max(ch.gamma, 0.01'f32))
   ch.outBlack + t * (ch.outWhite - ch.outBlack)
 
 proc curveLut*(points: openArray[CurvePoint]): Lut =
@@ -90,7 +90,7 @@ proc curveLut*(points: openArray[CurvePoint]): Lut =
   pts.sort(proc (a, b: (float32, float32)): int = cmp(a[0], b[0]))
   var dd: seq[(float32, float32)]
   for p in pts:
-    if dd.len == 0 or abs(dd[^1][0] - p[0]) >= 1e-6: dd.add p
+    if dd.len == 0 or abs(dd[^1][0] - p[0]) >= 1e-6'f32: dd.add p
   pts = dd
   if pts.len < 2: return identityLut()
   let n = pts.len
@@ -133,7 +133,7 @@ proc curveMapLut*(points: openArray[CurvePoint]): Lut =
   pts.sort(proc (a, b: (float32, float32)): int = cmp(a[0], b[0]))
   var dd: seq[(float32, float32)]
   for p in pts:
-    if dd.len == 0 or abs(dd[^1][0] - p[0]) >= 1e-6: dd.add p
+    if dd.len == 0 or abs(dd[^1][0] - p[0]) >= 1e-6'f32: dd.add p
   pts = dd
   if pts.len == 0: return identityLut()
   result = newSeq[float32](LutSize)
@@ -167,7 +167,7 @@ proc contourCurveLut*(points: openArray[CurvePoint]; corners: openArray[bool]): 
   pts.sort(proc (a, b: (CurvePoint, bool)): int = cmp(a[0].input, b[0].input))
   var dd: seq[(CurvePoint, bool)]
   for p in pts:
-    if dd.len == 0 or abs(dd[^1][0].input - p[0].input) >= 1e-6: dd.add p
+    if dd.len == 0 or abs(dd[^1][0].input - p[0].input) >= 1e-6'f32: dd.add p
   pts = dd
   var start = 0
   let last = pts.len - 1
@@ -249,9 +249,9 @@ proc rgbToHsl*(c: array[3, float32]): (float32, float32, float32) =
   let mx = max(c[0], max(c[1], c[2]))
   let mn = min(c[0], min(c[1], c[2]))
   let l = (mx + mn) / 2
-  if abs(mx - mn) < 1e-7: return (0'f32, 0'f32, l)
+  if abs(mx - mn) < 1e-7'f32: return (0'f32, 0'f32, l)
   let d = mx - mn
-  let s = if l > 0.5: d / (2 - mx - mn) else: d / (mx + mn)
+  let s = if l > 0.5'f32: d / (2 - mx - mn) else: d / (mx + mn)
   let h = if mx == c[0]: remE((c[1] - c[2]) / d, 6)
           elif mx == c[1]: (c[2] - c[0]) / d + 2
           else: (c[0] - c[1]) / d + 4
@@ -259,15 +259,15 @@ proc rgbToHsl*(c: array[3, float32]): (float32, float32, float32) =
 
 proc hslToRgb*(h, s, l: float32): array[3, float32] =
   if s <= 0: return [l, l, l]
-  let q = if l < 0.5: l * (1 + s) else: l + s - l * s
+  let q = if l < 0.5'f32: l * (1 + s) else: l + s - l * s
   let p = 2 * l - q
   proc f(t0: float32): float32 =
     let t = remE(t0, 1)
-    if t < 1 / 6: p + (q - p) * 6 * t
-    elif t < 0.5: q
-    elif t < 2 / 3: p + (q - p) * (2 / 3 - t) * 6
+    if t < 1'f32 / 6: p + (q - p) * 6 * t
+    elif t < 0.5'f32: q
+    elif t < 2'f32 / 3: p + (q - p) * (2'f32 / 3 - t) * 6
     else: p
-  [f(h + 1 / 3), f(h), f(h - 1 / 3)]
+  [f(h + 1'f32 / 3), f(h), f(h - 1'f32 / 3)]
 
 proc hueRangeTables*(ranges: array[6, HueRange]): array[3, Lut] =
   for i in 0..2: result[i] = newSeq[float32](LutSize)
@@ -306,7 +306,7 @@ proc blackWhiteGray*(c: array[3, float32]; weights: array[6, float32]): float32 
 
 proc bayer4*(x, y: int): float32 =
   const M = [0'f32, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
-  (M[(y and 3) * 4 + (x and 3)] + 0.5) / 16 - 0.5
+  (M[(y and 3) * 4 + (x and 3)] + 0.5'f32) / 16 - 0.5'f32
 
 proc lut3dSample*(table: openArray[float32]; n: int; c: array[3, float32]; tetrahedral: bool): array[3, float32] =
   let m = float32(n - 1)
@@ -372,8 +372,8 @@ proc selectiveColorWeights*(c: array[3, float32]): array[9, float32] =
   let mid = c[0] + c[1] + c[2] - mx - mn
   template top(i: int): float32 = (if c[i] >= mx: mx - mid else: 0'f32)
   template bottom(i: int): float32 = (if c[i] <= mn: mid - mn else: 0'f32)
-  [top(0), bottom(2), top(1), bottom(0), top(2), bottom(1), max((mn - 0.5) * 2, 0'f32),
-   clamp(1 - abs(mx - 0.5) - abs(mn - 0.5), 0'f32, 1'f32), max((0.5 - mx) * 2, 0'f32)]
+  [top(0), bottom(2), top(1), bottom(0), top(2), bottom(1), max((mn - 0.5'f32) * 2, 0'f32),
+   clamp(1 - abs(mx - 0.5'f32) - abs(mn - 0.5'f32), 0'f32, 1'f32), max((0.5'f32 - mx) * 2, 0'f32)]
 
 proc selectiveColor*(c: array[3, float32]; relative: bool; adj: array[9, array[4, float32]]): array[3, float32] =
   let w = selectiveColorWeights(c)
@@ -393,7 +393,7 @@ proc photoFilterMatrix*(color: array[3, float32]; density: float32; normalizeY: 
   let xyz = mat3Mul(SrgbToXyzD50, lin)
   var s: array[3, float32]
   for i in 0..2: s[i] = 1 - d + d * xyz[i] / D50f[i]
-  if normalizeY and s[1] > 1e-6:
+  if normalizeY and s[1] > 1e-6'f32:
     let y = s[1]
     for v in s.mitems: v /= y
   for r in 0..2:
@@ -411,7 +411,7 @@ proc vibranceSkin(h: float32): float32 =
 proc vibranceLin*(c: array[3, float32]; v: float32): array[3, float32] =
   let mx = max(c[0], max(c[1], c[2]))
   let mn = min(c[0], min(c[1], c[2]))
-  if mx <= 0 or mx - mn <= 1e-9: return c
+  if mx <= 0 or mx - mn <= 1e-9'f32: return c
   let t = 1 - mn / mx
   let shape = t * (1 - t) * (2 - t + t * t) * mx * max(1 - mx, 0)
   var t2, v2: float32
@@ -421,7 +421,7 @@ proc vibranceLin*(c: array[3, float32]; v: float32): array[3, float32] =
     v2 = mx - a * shape
   else:
     let w = vibranceSkin(hsvHue(c, mx, mn))
-    let a = v * (1 - w) + 0.64 * pow(v, 1.6) * w
+    let a = v * (1 - w) + 0.64'f32 * pow(v, 1.6'f32) * w
     let b = VibranceBoost
     let boost = (b[0] * a + b[1] * a * a) * pow(t, b[2]) * pow(1 - t, b[3]) * exp((b[4] + b[5] * a + b[6] * (1 - t)) * max(1 - mx, 0))
     t2 = min(t * (1 + boost), 1)
@@ -442,7 +442,7 @@ proc vibrancePx*(c: array[3, float32]; v, s: float32; transfer: Transfer; hi: fl
 proc modernBrightness*(v0, brightness: float32): float32 =
   if brightness == 0: return v0
   let s = pow(1.375'f32, brightness / 50)
-  let p = if brightness >= 0: max(4.5 - 0.013 * brightness, 2'f32) else: 5 - 0.072 * brightness
+  let p = if brightness >= 0: max(4.5'f32 - 0.013'f32 * brightness, 2'f32) else: 5 - 0.072'f32 * brightness
   let v = clamp(v0, 0'f32, 1'f32)
   clamp(s * v + (1 - s) * pow(v, p), 0'f32, 1'f32)
 
@@ -451,9 +451,9 @@ proc modernContrast*(v0, contrast: float32): float32 =
   let k = contrast / 128
   let (e, mid) = (1 - k, 1 + k)
   proc half(t: float32): float32 =
-    e * 0.5 * (t * t * t - 2 * t * t + t) + (-2 * t * t * t + 3 * t * t) * 0.5 + mid * 0.5 * (t * t * t - t * t)
+    e * 0.5'f32 * (t * t * t - 2 * t * t + t) + (-2 * t * t * t + 3 * t * t) * 0.5'f32 + mid * 0.5'f32 * (t * t * t - t * t)
   let v = clamp(v0, 0'f32, 1'f32)
-  if v <= 0.5: half(v / 0.5) else: 1 - half((1 - v) / 0.5)
+  if v <= 0.5'f32: half(v / 0.5'f32) else: 1 - half((1 - v) / 0.5'f32)
 
 proc posterize*(v: float32; levels: uint32): float32 =
   let n = float32(clamp(levels, 2'u32, 255'u32))
@@ -513,7 +513,7 @@ proc applyDepth*(adj: Adjustment; buf: var Buffer; transfer: Transfer; depth: Sa
         for i in 0..2: o[i] = clamp(modernContrast(modernBrightness(c[i], b), cc), 0'f32, 1'f32)
   of akExposure:
     let m = pow(2'f32, adj.exposure)
-    let g = max(adj.gamma, 0.01)
+    let g = max(adj.gamma, 0.01'f32)
     let tr = transfer.forExposure
     let off = adj.offset
     eachPx(buf):
@@ -588,7 +588,7 @@ proc applyDepth*(adj: Adjustment; buf: var Buffer; transfer: Transfer; depth: Sa
     eachPx(buf):
       let g = blackWhiteGray(c, adj.weights)
       if adj.tint.isSome:
-        for i in 0..2: o[i] = clamp(g * adj.tint.get[i] * 2, 0'f32, 1'f32) * 0.5 + g * 0.5
+        for i in 0..2: o[i] = clamp(g * adj.tint.get[i] * 2, 0'f32, 1'f32) * 0.5'f32 + g * 0.5'f32
       else: o = [g, g, g]
   of akGradientMap:
     let w = max(buf.rect.width, 1)

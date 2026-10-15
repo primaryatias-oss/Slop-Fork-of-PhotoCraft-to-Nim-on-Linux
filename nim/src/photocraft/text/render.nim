@@ -170,7 +170,7 @@ proc rasterizeWarped*(l: TextLayout; transform: Affine; format: PixelFormat; ant
     let comps = colorIn(fmt, c)
     let a = clamp(c.alpha, 0'f32, 1'f32)
     for i, v0 in cv:
-      let v = if antialias == aaNone: (if v0 >= 0.5: 1'f32 else: 0'f32) else: v0
+      let v = if antialias == aaNone: (if v0 >= 0.5'f32: 1'f32 else: 0'f32) else: v0
       let s = v * a
       if s <= 0: continue
       let keep = 1 - s

@@ -132,7 +132,7 @@ proc edgeIndex(t: seq[float32]; start: bool): float32 =
     let v = t[0]
     var i = n - 1
     for k in 0 ..< n:
-      if abs(t[k] - v) > 1e-7:
+      if abs(t[k] - v) > 1e-7'f32:
         i = k - 1
         break
     float32(i) / float32(n - 1)
@@ -140,7 +140,7 @@ proc edgeIndex(t: seq[float32]; start: bool): float32 =
     let v = t[n - 1]
     var i = 0
     for k in countdown(n - 1, 0):
-      if abs(t[k] - v) > 1e-7:
+      if abs(t[k] - v) > 1e-7'f32:
         i = k + 1
         break
     float32(i) / float32(n - 1)
@@ -160,7 +160,7 @@ proc tableInverse(t: seq[float32]; y: float32): float32 =
     if (t[mid] < y) == increasing: lo = mid else: hi = mid
   let a = t[lo]
   let b = t[hi]
-  let f = if abs(b - a) > 1e-12: (y - a) / (b - a) else: 0.5'f32
+  let f = if abs(b - a) > 1e-12'f32: (y - a) / (b - a) else: 0.5'f32
   (float32(lo) + f) / float32(n - 1)
 
 proc isIdentity*(c: Curve): bool =

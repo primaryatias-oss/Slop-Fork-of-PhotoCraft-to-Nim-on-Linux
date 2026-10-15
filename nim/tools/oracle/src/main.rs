@@ -3,6 +3,7 @@
 use photocraft_color::{BlendMode, Color, ColorMode, SampleType};
 use photocraft_doc::*;
 use photocraft_geom::*;
+mod axio;
 mod ax_blur;
 mod ax_fx;
 mod ax_geometry;
@@ -284,7 +285,7 @@ fn main() {
             std::fs::write(&args[4], photocraft_format::save_to_bytes(&d, &Default::default()).unwrap()).unwrap();
         }
         _ => {
-            let _ = ax_blur::run(&args) || ax_fx::run(&args) || ax_geometry::run(&args) || ax_retouch::run(&args) || ax_selection::run(&args) || ax_tone::run(&args);
+            let _ = ax_blur::run(&args) || ax_fx::run(&args) || ax_geometry::run(&args) || ax_retouch::run(&args) || ax_selection::run(&args) || ax_tone::run(&args) || ax_tone::run_hdr(&args) || ax_tone::run_exif(&args);
         }
     }
 }

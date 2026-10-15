@@ -3,7 +3,7 @@
 ## 16-bit chroma scaling, matting.
 
 import std/math
-import ../color
+import ../color, ../rmath
 
 proc psdDepth*(s: SampleType): int =
   case s
@@ -89,9 +89,9 @@ proc lab16Chroma*(bytes: var openArray[byte]; ch: int; toDoc: bool) =
 
 proc encodeBe*(v: float32; s: SampleType; outp: var seq[byte]) =
   case s
-  of stU8: outp.add byte(clamp(v, 0'f32, 1'f32) * 255 + 0.5)
+  of stU8: outp.add byte(clamp(v, 0'f32, 1'f32) * 255 + 0.5'f32)
   of stU16:
-    let x = uint16(clamp(v, 0'f32, 1'f32) * 65535 + 0.5)
+    let x = asU16(clamp(v, 0'f32, 1'f32) * 65535 + 0.5'f32)
     outp.add byte(x shr 8)
     outp.add byte(x and 0xff)
   of stF32:

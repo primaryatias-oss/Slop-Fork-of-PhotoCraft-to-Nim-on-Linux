@@ -3,8 +3,12 @@
 ## crate's rayon helpers become plain loops: the Nim port runs single-threaded.)
 
 import std/math
+import ../rmath
+export rmath
 
 proc isFinite*(v: SomeFloat): bool {.inline.} = v.classify notin {fcInf, fcNegInf, fcNan}
+
+proc totalCmp*(a, b: float64): int
 
 proc solveDense*(n: int; a0, b0: seq[float64]): seq[float64] =
   ## Gaussian elimination with partial pivoting; empty when singular or non-finite.
@@ -12,9 +16,10 @@ proc solveDense*(n: int; a0, b0: seq[float64]): seq[float64] =
   var b = b0
   if a.len < n * n or b.len < n: return @[]
   for col in 0 ..< n:
+    # Rust's `max_by` over `total_cmp`: the last of equal maxima (NaN ranks highest).
     var piv = col
-    for i in col ..< n:
-      if abs(a[i * n + col]) > abs(a[piv * n + col]): piv = i
+    for i in col + 1 ..< n:
+      if totalCmp(abs(a[i * n + col]), abs(a[piv * n + col])) >= 0: piv = i
     if abs(a[piv * n + col]) < 1e-14: return @[]
     if piv != col:
       for k in 0 ..< n: swap(a[col * n + k], a[piv * n + k])
@@ -122,10 +127,10 @@ proc hash01*(x, y: int64; seed: uint64): float32 =
   float32(z shr 40) / float32(1'u64 shl 24)
 
 proc srgbToLinear*(v: float32): float32 =
-  if v <= 0.04045: v / 12.92 else: pow((v + 0.055'f32) / 1.055'f32, 2.4'f32)
+  if v <= 0.04045'f32: v / 12.92'f32 else: pow((v + 0.055'f32) / 1.055'f32, 2.4'f32)
 
 proc linearToSrgb*(v: float32): float32 =
-  if v <= 0.003_130_8: v * 12.92 else: 1.055'f32 * pow(v, 1 / 2.4'f32) - 0.055'f32
+  if v <= 0.003_130_8'f32: v * 12.92'f32 else: 1.055'f32 * pow(v, 1 / 2.4'f32) - 0.055'f32
 
 proc bilinear*(buf: openArray[float32]; w, h, ch, c: int; x0, y0: float32): float32 =
   if w <= 0 or h <= 0: return 0
@@ -152,21 +157,16 @@ proc totalCmp*(a, b: float32): int =
   y = y xor int32(cast[uint32](y shr 31) shr 1)
   cmp(x, y)
 
+proc totalCmp*(a, b: float64): int =
+  ## Rust's `f64::total_cmp`.
+  var x = cast[int64](a)
+  var y = cast[int64](b)
+  x = x xor int64(cast[uint64](x shr 63) shr 1)
+  y = y xor int64(cast[uint64](y shr 63) shr 1)
+  cmp(x, y)
+
 # ---------------------------------------------------------------- Rust float semantics
 
-proc rmax*[T: SomeFloat](a, b: T): T {.inline.} =
-  ## Rust `f32::max`/`f64::max`: a NaN operand is ignored.
-  if a != a: b elif b != b: a else: max(a, b)
-proc rmin*[T: SomeFloat](a, b: T): T {.inline.} =
-  ## Rust `f32::min`/`f64::min`: a NaN operand is ignored.
-  if a != a: b elif b != b: a else: min(a, b)
-proc remEuclidF*[T: SomeFloat](a, b: T): T {.inline.} =
-  ## Rust `f32::rem_euclid`.
-  let r = a mod b
-  if r < 0: r + abs(b) else: r
-proc signum*[T: SomeFloat](x: T): T {.inline.} =
-  ## Rust `f32::signum`: ±1 by the sign bit (also for ±0), NaN for NaN.
-  if x != x: x else: copySign(T(1), x)
 proc powi*[T: SomeFloat](x: T; n: int): T =
   ## Rust's run-time `powi` as LLVM expands it (binary powering, `Res * CurSquare` order).
   var val = abs(n)

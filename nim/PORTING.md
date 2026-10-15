@@ -60,6 +60,12 @@ own nimcache (`.nimcache/<name>`), so different test files can compile at the sa
 
 ## Nim pitfalls met so far
 
+* `f32 * 12.92` with an unsuffixed literal is computed in **float64** in Nim (the literal is a
+  float64, so the float32 operand is widened) and narrowed afterwards; Rust does it in f32. Suffix
+  literals that meet float32 values (`12.92'f32`), also in `max(x, 1e-6'f32)` and `1'f32 / 3`
+  (`1 / 3` is a float64 division). `tools/floatdiag.sh` lists every such site.
+* `f32::to_radians` equals `degToRad` (one product by the rounded constant), but `to_degrees` is a
+  product by `180/π` where Nim's `radToDeg` divides: use `rmath.toDegrees`.
 * Nim folds arithmetic on `float32` constants in float64 (a `const X = float32(PI / 4)` keeps
   the unrounded value, and `1 - X` is folded before rounding), unlike Rust's f32 constant
   folding. Keep float32 constants that take part in arithmetic as module-level `let`s.
@@ -67,6 +73,13 @@ own nimcache (`.nimcache/<name>`), so different test files can compile at the sa
   `photocraft/rmath.cbrt`. Every other libm function the port uses matches glibc bit for bit
   (checked on 200k inputs each). Rust's `powi(n)` at run time is repeated multiplication
   (`x * x * x`), but a constant-folded `powi` equals `pow`.
+* `high(float32)`/`low(float32)` are ±∞ in Nim, not Rust's `f32::MAX`/`f32::MIN`: use
+  `rmath.F32Max` (blend modes at `f32::MAX` stay finite only with it).
+* A `float64` argument passed to a `float32` parameter is narrowed silently (no error): give
+  helpers both overloads (`util.totalCmp` has them) or make them generic.
+* Rust `as` casts from floats saturate and map NaN to 0 (`rmath.asIdx`/`asU8`/`asU16`/`asU32`,
+  `geom.asI32`/`asUsize`); a bare `int(NaN)` is undefined. `max_by`/`max_by_key` keep the last
+  of equal maxima, `min_by` the first.
 
 * Closures cannot capture `openArray`/`var` parameters. Use a `template`, a top-level `proc` that
   takes the data as a parameter, or copy (`let vals = @values`). `nim check` does not catch this;
@@ -94,7 +107,11 @@ See the bottom of this file (updated as crates land) and `git log`.
 | doc, ops, vector | ported, tested |
 | compose | ported, tested (GPU compositor intentionally not ported: SDL3 textures display the CPU result) |
 | format (.pcraft, zstd, BLAKE3, autosave/recovery) | ported, tested; files interchange with the Rust build both ways |
-| algo | in progress: foundation, resample, transform, warp; filter dispatcher (`algo/filters`: halos, tiled apply, selection mixing, registry); blur family (`blur`, `sharpen`, `blur2`, `gallery`, `radial_plan`: Gaussian/Box with the separable fast path, Motion with the FFT fast path, Radial, Surface, Unsharp Mask, Smart Sharpen, High Pass, Smart/Lens/Shape Blur, Tilt-Shift, Iris, Field, Spin, Path); noise, median, custom, HSB/HSL, color to alpha, video, stylize part 2; Other, Stylize, Distort, Pixelate, Oil Paint, Render (clouds, fibers, lens flare, lighting), Relight, Reduce Noise, Filter Gallery (`artistic_fx`, all 47 effects). 2869 of 2870 filter runs identical to Rust (`tools/filtercases.json`, 410 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
+| algo | in progress: foundation, resample, transform, warp; filter dispatcher (`algo/filters`: halos, tiled apply, selection mixing, registry); blur family (`blur`, `sharpen`, `blur2`, `gallery`, `radial_plan`: Gaussian/Box with the separable fast path, Motion with the FFT fast path, Radial, Surface, Unsharp Mask, Smart Sharpen, High Pass, Smart/Lens/Shape Blur, Tilt-Shift, Iris, Field, Spin, Path); noise, median, custom, HSB/HSL, color to alpha, video, stylize part 2; Other, Stylize, Distort, Pixelate, Oil Paint, Render (clouds, fibers, lens flare, lighting), Relight, Reduce Noise, Filter Gallery (`artistic_fx`, all 47 effects); selection (magic wand/regions, colour and Lab
+ranges, modify incl. the cosine-series feather, polygon, marquee tiles, combines), histogram, tone
+(Shadows/Highlights, Replace/Match Color, HDR Toning), HDR merge (exposures, MTB, Debevec–Malik
+response, ghosts, tone mapping), EXIF. Non-filter APIs are checked with `tools/algocheck.py`
+(`tools/algocases/*.json`, 717 command runs identical). 2869 of 2870 filter runs identical to Rust (`tools/filtercases.json`, 410 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
 | io (PSD/PSB ↔ document, layered TIFF, multi-part EXR, flat formats, facade) | ported, tested; see "io notes" below |
 | io: OpenRaster, Paint.NET | ported, tested |
 | io: SVG, camera raw, Affinity | pending (the facade reports "unsupported" until they land; SVG needs a usvg-style normalizer) |
@@ -135,6 +152,15 @@ by document JSON + tile hashes (`.pcraft`), raw float renders, or output bytes.
   from `countProcessors`, rayon's default); its f64 FFT is the port's own, so 32-bit float
   results can differ in the last bits.
 
+* `tools/algocheck.py [--tol X] cases.json…` runs non-filter algo APIs through the oracle's
+  `ax_*.rs` commands and `tools/algocheck.nim` on shared raw buffers (`PCIM` files written by
+  `algocheck gen`) and compares stdout and output files byte for byte. New groups add a command
+  pair (Rust in `tools/oracle/src/ax_<group>.rs`, Nim in `tools/algocheck.nim`) and a cases file.
+* `tools/floatdiag.sh [program.nim…]` builds an instrumented Nim compiler that lists every
+  implicit float32 ↔ float64 conversion in `src/photocraft`. Comparisons with exactly
+  representable literals, `classify` and ±∞ tests are harmless; arithmetic sites are bugs (Rust
+  computes them in f32). Run it after porting a module.
+
 ## Text notes
 
 * `tools/oracle shape <font> <text> [features] [script] [lang] [rtl]` shapes with HarfRust; the
@@ -161,16 +187,15 @@ by document JSON + tile hashes (`.pcraft`), raw float renders, or output bytes.
 
 Checked against the Rust build on the psd-tools corpus with a Rust oracle (`import`, `conv`):
 
-* PSD → document: identical documents (manifest JSON and tile hashes) on 308 of 309 imports,
+* PSD → document: identical documents (manifest JSON and tile hashes) on all 309 imports,
   type layers included (typed model, `Txt2` kerning modes, named styles, layers rendered from
-  their model when the file has no pixels). The other one differs by 2e-6 in a perceptual
-  gradient-map stop.
+  their model when the file has no pixels).
 * PSD → PSD: every layer record, tagged block (`TySh`, `Txt2` and the rest), global block and
   resource identical on all 308 files Rust converts, except the 1036 JPEG preview (independent JPEG
-  encoder; close but not equal pixels). The merged image is identical on 301; on 7 (CMYK and
-  hue/saturation adjustments, CMYK blend modes, layer effects) 1 to 27 samples differ by 1–2
-  levels (compositor float rounding). 16/32-bit ZIP streams can differ in bytes (the port's own
-  deflate vs miniz_oxide) with identical decoded content.
+  encoder; close but not equal pixels). The merged (composited) image is identical on all 308
+  (the last 1–2 level differences were float64 arithmetic leaking into f32 code, found with
+  `tools/floatdiag.sh`). 16/32-bit ZIP streams can differ in bytes (the port's own deflate vs
+  miniz_oxide) with identical decoded content.
 * Flat exports: PNG and TIFF decode to identical pixels; JPEG and WebP (lossy) differ (encoders are
   independent implementations).
 * Layered TIFF: identical layer data (tag 37724) and resources (34377) except text and ZIP cases.

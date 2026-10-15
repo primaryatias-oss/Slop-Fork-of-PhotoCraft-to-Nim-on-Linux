@@ -91,7 +91,7 @@ proc waveShape(t: WaveType; phase: float32): float32 =
   case t
   of wtSine: sin(phase)
   of wtTriangle: 1 - 4 * abs(p - 0.5'f32)
-  of wtSquare: (if p < 0.5: 1 else: -1)
+  of wtSquare: (if p < 0.5'f32: 1 else: -1)
 
 proc wave*(src: Image; o: Rect; ctx: Ctx; w: WaveSpec): seq[float32] =
   let n = clamp(w.generators, 1'u32, 64'u32)

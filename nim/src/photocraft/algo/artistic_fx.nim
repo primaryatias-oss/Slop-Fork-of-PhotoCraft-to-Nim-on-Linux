@@ -9,6 +9,7 @@ import std/math
 import ../geom, ./params, ./image, ./noise, ./util
 from ./fxutil import boxBlurN, gaussBlurN, gaussBoxRadii, cellPoint, rgba, setRgba, MaxBoxRadius
 from ./filters import wrapAddI32
+import ../rmath
 
 type
   Px = array[3, float32]
@@ -193,7 +194,7 @@ proc kuwahara(win: var Win; r0: int) =
   let o = h2
   for y in 0 ..< h:
     for x in 0 ..< w:
-      var best = high(float32)
+      var best = F32Max
       var col: Px
       for (dx, dy) in [(-o, -o), (o, -o), (-o, o), (o, o)]:
         let i = (clamp(y + dy, 0, h - 1) * w + clamp(x + dx, 0, w - 1)) * 5
@@ -340,7 +341,7 @@ proc texturize(win: var Win; kind: string; scaling, relief: float32; light: stri
 proc voronoi(x, y, cell: float32; seed: uint32): (float32, float32, (float32, float32)) =
   ## Closest and second-closest jittered cell points (distances and the closest point).
   let (cx, cy) = (i32(floor(x / cell)), i32(floor(y / cell)))
-  var (d1, d2, p1) = (high(float32), high(float32), (x, y))
+  var (d1, d2, p1) = (F32Max, F32Max, (x, y))
   for j in -1'i32 .. 1'i32:
     for i in -1'i32 .. 1'i32:
       let p = cellPoint(int(cx +% i), int(cy +% j), cell, seed, (0'f32, 0'f32))

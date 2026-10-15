@@ -8,7 +8,7 @@
 ## Port of `crates/raster`.
 
 import std/[tables, algorithm, sets, math]
-import geom, color
+import geom, color, rmath
 
 type
   AllocationError* = object of CatchableError ## A surface allocation could not be represented.
@@ -435,7 +435,7 @@ proc writeRegion*(s: var Surface; r: Rect; data: openArray[float32]) =
       let base = ((y - tc.ty * TileSize) * TileSize + (tr.x0 - tc.tx * TileSize)) * n
       case sample
       of stU8:
-        for i in 0 ..< span: t.data[base + i] = uint8(clamp(data[o + i], 0.0'f32, 1.0'f32) * 255.0'f32 + 0.5'f32)
+        for i in 0 ..< span: t.data[base + i] = asU8(clamp(data[o + i], 0.0'f32, 1.0'f32) * 255.0'f32 + 0.5'f32)
       else:
         for i in 0 ..< span: writeSample(t.data, sample, base + i, data[o + i])
 

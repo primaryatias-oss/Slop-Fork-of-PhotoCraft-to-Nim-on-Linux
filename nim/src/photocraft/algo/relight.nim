@@ -37,7 +37,7 @@ proc haloRadius*(softness: float32; bounds: Rect): int =
 
 proc norm3(v: array[3, float32]): array[3, float32] =
   let m = sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
-  if not m.isFinite or m < 1e-9: [0'f32, 0, 1] else: [v[0] / m, v[1] / m, v[2] / m]
+  if not m.isFinite or m < 1e-9'f32: [0'f32, 0, 1] else: [v[0] / m, v[1] / m, v[2] / m]
 
 proc lightDir(angle, elevation: float32): array[3, float32] =
   ## Infinite-light direction: 0° from the right, 90° from above (image space, y down).
@@ -84,7 +84,7 @@ proc blurChannel(src: openArray[float32]; w, h: int; sigma: float32): seq[float3
   result = newSeq[float32](n)
   for i in 0 ..< n:
     let (acc, wgt) = (packed[i * 2], packed[i * 2 + 1])
-    result[i] = if wgt > 1e-6 and acc.isFinite and wgt.isFinite: acc / wgt else: 0.5'f32
+    result[i] = if wgt > 1e-6'f32 and acc.isFinite and wgt.isFinite: acc / wgt else: 0.5'f32
 
 proc readRgba(src: Image; ctx: Ctx; x, y: int): array[4, float32] =
   let n = min(src.ch, MaxC)

@@ -224,7 +224,7 @@ proc exportBlocks*(d: Document; blocks0: seq[PsdGlobalBlock]): seq[PsdGlobalBloc
       if x != b[i]: return false
       let (cx, cy) = (a[i].color.toRgb, b[i].color.toRgb)
       for k in 0 .. 2:
-        if abs(cx[k] - cy[k]) >= 1 / 512: return false
+        if abs(cx[k] - cy[k]) >= 1'f32 / 512: return false
     true
   if (parsed.isSome and want.isSome and same(parsed.get, want.get)) or (entries.isNone and d.notes.len == 0):
     return blocks

@@ -5,6 +5,7 @@
 import std/[options, strutils, math, xmlparser, xmltree, strtabs, unicode, streams]
 import ../geom, ../color, ../raster, ../doc, ../compose, ../format, ../codecs
 import common
+import ../rmath
 
 const
   Mimetype* = "image/openraster"
@@ -381,10 +382,10 @@ proc encodeRgba(px: openArray[Px]; sample: ImgSample): seq[byte] =
   for p in px:
     for v in p:
       if sample == isU16:
-        let u = uint16(clamp(v, 0'f32, 1'f32) * 65535 + 0.5)
+        let u = asU16(clamp(v, 0'f32, 1'f32) * 65535 + 0.5'f32)
         result.add cast[array[2, byte]](u)
       else:
-        result.add uint8(clamp(v, 0'f32, 1'f32) * 255 + 0.5)
+        result.add asU8(clamp(v, 0'f32, 1'f32) * 255 + 0.5'f32)
 
 proc pngBytes(w, h: int; px: openArray[Px]; sample: ImgSample): seq[byte] =
   var opts = defaultEncodeOptions()

@@ -15,7 +15,7 @@ type StripData* = (Rect, seq[float32])   ## samples of a column strip of an outp
 
 proc gaussianKernel*(sigma: float32): seq[float32] =
   ## Normalized Gaussian kernel with standard deviation `sigma` (radius 3σ).
-  if sigma < 0.05: return @[1'f32]
+  if sigma < 0.05'f32: return @[1'f32]
   let r = asI32(float64(ceil(sigma * 3)))
   for i in -r .. r: result.add exp(-float32(i * i) / (2 * sigma * sigma))
   var s = 0'f32
@@ -248,7 +248,7 @@ proc averageSamples(src: Image; o: Rect; ctx: Ctx; offsets: OffsetsProc): seq[fl
       for c in 0 ..< n: result[at + c] = acc[c] * k
       if ctx.alpha:
         let alpha = acc[n - 1] * k
-        for c in 0 ..< n - 1: result[at + c] = (if alpha > 1e-7: result[at + c] / alpha else: 0)
+        for c in 0 ..< n - 1: result[at + c] = (if alpha > 1e-7'f32: result[at + c] / alpha else: 0)
 
 proc motionOffsets(angle, distance: float32): seq[(float32, float32)] =
   ## Sample offsets of a motion blur of `distance` at `angle`, relative to the pixel centre.
@@ -264,7 +264,7 @@ proc motion*(src: Image; o: Rect; ctx: Ctx; angle, distance: float32): seq[float
   ## Motion blur: the mean of bilinear samples along a line centred on the pixel. The bilinear
   ## taps of the (pixel-independent) offsets are merged once into a fixed kernel, applied tap by
   ## tap to whole rows of a premultiplied window.
-  if abs(distance) < 0.5: return src.crop(o)
+  if abs(distance) < 0.5'f32: return src.crop(o)
   let offs = motionOffsets(angle, distance)
   let k = 1'f32 / float32(offs.len)
   # Merged taps (dx, dy, weight), in the order first seen.
@@ -309,7 +309,7 @@ proc motion*(src: Image; o: Rect; ctx: Ctx; angle, distance: float32): seq[float
       for px in 0 ..< ow:
         let at = rowAt + px * n
         let a = result[at + n - 1]
-        for c in 0 ..< n - 1: result[at + c] = (if a > 1e-7: result[at + c] / a else: 0)
+        for c in 0 ..< n - 1: result[at + c] = (if a > 1e-7'f32: result[at + c] / a else: 0)
 
 proc radialIntervals*(pathLength: float32; quality: RadialQuality): int =
   let mx = case quality
@@ -660,7 +660,7 @@ proc sampleRowPoint(src: Image; x, y: int; alpha: bool; taps: openArray[Tap]): O
       res[c] += weight * pm
   if alpha:
     let a = res[src.ch - 1]
-    for c in 0 ..< src.ch - 1: res[c] = (if a > 1e-7: res[c] / a else: 0)
+    for c in 0 ..< src.ch - 1: res[c] = (if a > 1e-7'f32: res[c] / a else: 0)
   some(res)
 
 proc spanOf(taps: openArray[Tap]): (int, int, int, int) =

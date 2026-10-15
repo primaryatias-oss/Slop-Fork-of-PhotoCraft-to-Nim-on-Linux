@@ -71,7 +71,7 @@ proc mosaic*(src: Image; o: Rect; ctx: Ctx; cell: float32): seq[float32] =
         for v in acc.mitems: v /= count
       if ctx.alpha:
         let a = acc[n - 1]
-        for c in 0 ..< n - 1: acc[c] = (if a > 1e-7: acc[c] / a else: 0)
+        for c in 0 ..< n - 1: acc[c] = (if a > 1e-7'f32: acc[c] / a else: 0)
       # The full cell clips the output, keeping partial cells beyond the averaging bounds.
       let wr = cellRect.intersect(o)
       for row in 0 ..< wr.height:

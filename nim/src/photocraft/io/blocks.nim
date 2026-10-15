@@ -18,10 +18,10 @@ proc methodFromCode*(code: Option[string]): BakeMethod =
   of "Smoo": bmSmooth
   else: bmClassic
 
-proc lin(c: float32): float32 = (if c <= 0.04045: c / 12.92 else: pow((c + 0.055'f32) / 1.055'f32, 2.4'f32))
+proc lin(c: float32): float32 = (if c <= 0.04045'f32: c / 12.92'f32 else: pow((c + 0.055'f32) / 1.055'f32, 2.4'f32))
 proc enc(c0: float32): float32 =
   let c = clamp(c0, 0'f32, 1'f32)
-  if c <= 0.003_130_8: 12.92'f32 * c else: 1.055'f32 * pow(c, 1 / 2.4'f32) - 0.055'f32
+  if c <= 0.003_130_8'f32: 12.92'f32 * c else: 1.055'f32 * pow(c, 1 / 2.4'f32) - 0.055'f32
 
 proc toOklab(rgb: array[3, float32]): array[3, float32] =
   let (r, g, b) = (lin(rgb[0]), lin(rgb[1]), lin(rgb[2]))
@@ -103,7 +103,7 @@ proc bake*(stops0: seq[(float32, Color)]; midpoints: openArray[float32]; smoothn
   ## plain stops (Classic gradients without any of those come back unchanged).
   var plainMids = true
   for x in midpoints:
-    if abs(x - 0.5) >= 1e-3: plainMids = false
+    if abs(x - 0.5'f32) >= 1e-3'f32: plainMids = false
   var lab = m == bmClassic
   for (_, c) in stops0:
     if c.mode != cmLab: lab = false
@@ -127,7 +127,7 @@ proc bake*(stops0: seq[(float32, Color)]; midpoints: openArray[float32]; smoothn
              else:
                let rgb = outOfSpace(m, v)
                rgba(rgb[0], rgb[1], rgb[2], alphaAt(s, t)))
-    if result.len > 0 and abs(result[^1][0] - t) < 1e-6: continue
+    if result.len > 0 and abs(result[^1][0] - t) < 1e-6'f32: continue
     result.add (t, c)
 
 # ---------------------------------------------------------------- flags, locks, labels
@@ -344,11 +344,11 @@ proc gradientStopsEditable*(grad: Descriptor; meth: Option[string]): RawStops =
     result.mids.setLen(0)
   var plain = true
   for x in result.mids:
-    if abs(x - 0.5) >= 1e-3: plain = false
+    if abs(x - 0.5'f32) >= 1e-3'f32: plain = false
   if plain: result.mids.setLen(0)
   var opaque = true
   for o in result.opacity:
-    if abs(o[1] - 1) >= 1e-4: opaque = false
+    if abs(o[1] - 1) >= 1e-4'f32: opaque = false
   if opaque: result.opacity.setLen(0)
 
 proc gradientDescWith*(stops0: openArray[(float32, Color)]; opacity: openArray[(float32, float32)];
@@ -448,7 +448,7 @@ proc fillFromDesc*(key: string; d: Descriptor): Option[Fill] =
       opacityStops = smoothedOpacityStops(g.get)
     var opaque = true
     for o in opacityStops:
-      if o[1] < 1 - 1e-4: opaque = false
+      if o[1] < 1 - 1e-4'f32: opaque = false
     if opaque: opacityStops.setLen(0)
     if stops.len == 0: stops = @[(0'f32, Black), (1'f32, White)]
     let o = getD(d, "Ofst")

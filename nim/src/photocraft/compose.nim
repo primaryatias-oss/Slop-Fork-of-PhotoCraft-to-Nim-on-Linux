@@ -334,7 +334,7 @@ proc effectShape(layer: Layer; rc: Rect; cx: Ctx): seq[float32] =
     for x in 0 ..< w:
       let i = y * w + x
       var v: float32
-      if cov[i] >= 1 - 1e-3:
+      if cov[i] >= 1 - 1e-3'f32:
         v = 1
       else:
         var f = 0'f32

@@ -5,6 +5,7 @@
 ## Burn/Dodge, Vivid/Linear/Pin Light, Subtract, Divide).
 
 import std/[math, options, algorithm]
+import ../rmath
 
 type
   BlendMode* = enum
@@ -114,37 +115,37 @@ proc isSeparable*(m: BlendMode): bool =
   m notin {bmHue, bmSaturation, bmColor, bmLuminosity, bmDarkerColor, bmLighterColor}
 
 proc reflect(cb, cs: float32): float32 {.inline.} =
-  if cs >= 1.0: 1.0 else: min(cb * cb / (1.0'f32 - cs), 1.0'f32)
+  if cs >= 1.0'f32: 1.0'f32 else: min(cb * cb / (1.0'f32 - cs), 1.0'f32)
 
 proc vividLightHardMix(cb, cs: float32): float32 {.inline.} =
   const Edge = 1e-4'f32
-  if cs <= 0.5:
+  if cs <= 0.5'f32:
     if cb >= 1.0'f32 - Edge: 1.0
-    elif cs <= 0.0: 0.0
+    elif cs <= 0.0'f32: 0.0'f32
     else: 1.0'f32 - min((1.0'f32 - cb) / (2.0'f32 * cs), 1.0'f32)
   elif cb <= Edge: 0.0
-  elif cs >= 1.0: 1.0
+  elif cs >= 1.0'f32: 1.0'f32
   else: min(cb / (2.0'f32 * (1.0'f32 - cs)), 1.0'f32)
 
 proc colorBurn(cb, cs: float32): float32 {.inline.} =
-  if cb >= 1.0: 1.0
-  elif cs <= 0.0: 0.0
+  if cb >= 1.0'f32: 1.0'f32
+  elif cs <= 0.0'f32: 0.0'f32
   else: 1.0'f32 - min((1.0'f32 - cb) / cs, 1.0'f32)
 
 proc colorDodge(cb, cs: float32): float32 {.inline.} =
-  if cb <= 0.0: 0.0
-  elif cs >= 1.0: 1.0
+  if cb <= 0.0'f32: 0.0'f32
+  elif cs >= 1.0'f32: 1.0'f32
   else: min(cb / (1.0'f32 - cs), 1.0'f32)
 
 proc hardLight(cb, cs: float32): float32 {.inline.} =
-  if cs <= 0.5: cb * 2.0'f32 * cs
+  if cs <= 0.5'f32: cb * 2.0'f32 * cs
   else:
     let s = 2.0'f32 * cs - 1.0'f32
     cb + s - cb * s
 
 proc softLightPs(cb, cs: float32): float32 {.inline.} =
   ## Photoshop's Soft Light (differs from the W3C/PDF definition in the upper half).
-  if cs <= 0.5: 2.0'f32 * cb * cs + cb * cb * (1.0'f32 - 2.0'f32 * cs)
+  if cs <= 0.5'f32: 2.0'f32 * cb * cs + cb * cb * (1.0'f32 - 2.0'f32 * cs)
   else: 2.0'f32 * cb * (1.0'f32 - cs) + sqrt(max(cb, 0.0'f32)) * (2.0'f32 * cs - 1.0'f32)
 
 proc channel(mode: BlendMode; cb, cs, hi: float32): float32 {.inline.} =
@@ -162,20 +163,20 @@ proc channel(mode: BlendMode; cb, cs, hi: float32): float32 {.inline.} =
   of bmSoftLight: softLightPs(cb, cs)
   of bmHardLight: hardLight(cb, cs)
   of bmVividLight:
-    if cs <= 0.0: 0.0
-    elif cs >= 1.0: 1.0
-    elif cs <= 0.5: colorBurn(cb, 2.0'f32 * cs)
+    if cs <= 0.0'f32: 0.0'f32
+    elif cs >= 1.0'f32: 1.0'f32
+    elif cs <= 0.5'f32: colorBurn(cb, 2.0'f32 * cs)
     else: colorDodge(cb, 2.0'f32 * (cs - 0.5'f32))
   of bmLinearLight: clamp(cb + 2.0'f32 * cs - 1.0'f32, 0.0'f32, 1.0'f32)
   of bmPinLight:
-    if cs <= 0.5: min(cb, 2.0'f32 * cs) else: max(cb, 2.0'f32 * cs - 1.0'f32)
+    if cs <= 0.5'f32: min(cb, 2.0'f32 * cs) else: max(cb, 2.0'f32 * cs - 1.0'f32)
   of bmHardMix:
     if vividLightHardMix(cb, cs) >= 0.5'f32 - 1e-6'f32: 1.0 else: 0.0
   of bmDifference: abs(cb - cs)
   of bmExclusion: cb + cs - 2.0'f32 * cb * cs
   of bmSubtract: max(cb - cs, 0.0'f32)
   of bmDivide:
-    if cs <= 0.0: (if cb <= 0.0: 0.0 else: 1.0)
+    if cs <= 0.0'f32: (if cb <= 0.0'f32: 0.0'f32 else: 1.0'f32)
     else: min(cb / cs, hi)
   of bmReflect: reflect(cb, cs)
   of bmGlow: reflect(cs, cb)
@@ -185,9 +186,9 @@ proc channel(mode: BlendMode; cb, cs, hi: float32): float32 {.inline.} =
     let s = uint8(round(clamp(cs, 0.0'f32, 1.0'f32) * 255.0'f32))
     float32(b xor s) / 255.0'f32
   of bmPaintNetColorBurn:
-    if cs <= 0.0: 0.0 else: max(1.0'f32 - (1.0'f32 - cb) / cs, 0.0'f32)
+    if cs <= 0.0'f32: 0.0'f32 else: max(1.0'f32 - (1.0'f32 - cb) / cs, 0.0'f32)
   of bmPaintNetColorDodge:
-    if cs >= 1.0: 1.0 else: min(cb / (1.0'f32 - cs), 1.0'f32)
+    if cs >= 1.0'f32: 1.0'f32 else: min(cb / (1.0'f32 - cs), 1.0'f32)
   of bmDarkerColor, bmLighterColor, bmHue, bmSaturation, bmColor, bmLuminosity: cs
 
 proc blendChannel*(mode: BlendMode; cb, cs: float32): float32 {.inline.} =
@@ -196,7 +197,7 @@ proc blendChannel*(mode: BlendMode; cb, cs: float32): float32 {.inline.} =
 
 proc blendChannelHdr*(mode: BlendMode; cb, cs: float32): float32 {.inline.} =
   ## `blendChannel` for 32-bit float documents (Add and Divide don't clip at 1).
-  channel(mode, cb, cs, high(float32))
+  channel(mode, cb, cs, F32Max)
 
 proc lum*(c: array[3, float32]): float32 {.inline.} = 0.3'f32 * c[0] + 0.59'f32 * c[1] + 0.11'f32 * c[2]
 
@@ -205,12 +206,12 @@ proc clipColor(c: array[3, float32]; top: float32): array[3, float32] =
   let n = min(c[0], min(c[1], c[2]))
   let x = max(c[0], max(c[1], c[2]))
   result = c
-  if n < 0.0:
+  if n < 0.0'f32:
     let d = l - n
-    for v in result.mitems: v = (if l > 0.0 and d > 0.0: l + (v - l) * l / d else: l)
+    for v in result.mitems: v = (if l > 0.0'f32 and d > 0.0'f32: l + (v - l) * l / d else: l)
   if x > top:
     let d = x - l
-    for v in result.mitems: v = (if l < top and d > 0.0: l + (v - l) * (top - l) / d else: l)
+    for v in result.mitems: v = (if l < top and d > 0.0'f32: l + (v - l) * (top - l) / d else: l)
 
 proc setLumWithin(c: array[3, float32]; l, top: float32): array[3, float32] =
   let d = l - lum(c)
@@ -250,19 +251,19 @@ proc blendRgbHdr*(mode: BlendMode; cb, cs: array[3, float32]): array[3, float32]
   ## `blendRgb` for 32-bit float documents.
   if mode.isSeparable:
     [blendChannelHdr(mode, cb[0], cs[0]), blendChannelHdr(mode, cb[1], cs[1]), blendChannelHdr(mode, cb[2], cs[2])]
-  else: blendRgbWithin(mode, cb, cs, high(float32))
+  else: blendRgbWithin(mode, cb, cs, F32Max)
 
 proc composite*(mode: BlendMode; backdrop, source: array[4, float32]; opacity: float32): array[4, float32] =
   ## Composite a straight-alpha source over a straight-alpha backdrop (W3C/PDF general formula).
   ## Dissolve must be resolved by the caller before calling.
   let ab = backdrop[3]
   let asrc = source[3] * opacity
-  if asrc <= 0.0: return backdrop
+  if asrc <= 0.0'f32: return backdrop
   let cb = [backdrop[0], backdrop[1], backdrop[2]]
   let cs = [source[0], source[1], source[2]]
   let b = blendRgb(mode, cb, cs)
   let ao = asrc + ab * (1.0'f32 - asrc)
-  if ao <= 0.0: return [0.0'f32, 0, 0, 0]
+  if ao <= 0.0'f32: return [0.0'f32, 0, 0, 0]
   for i in 0..2:
     let premul = (1.0'f32 - asrc) * ab * cb[i] + (1.0'f32 - ab) * asrc * cs[i] + asrc * ab * b[i]
     result[i] = premul / ao

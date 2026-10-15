@@ -137,3 +137,41 @@ proc asU16*(v: float32): uint16 {.inline.} =
   if v != v or v <= 0: 0'u16
   elif v >= 65535: 65535'u16
   else: uint16(v)
+
+proc asU32*(v: float32): uint32 {.inline.} =
+  ## Rust `v as u32`: saturating, NaN → 0.
+  if v != v or v <= 0: 0'u32
+  elif v >= 4294967295'f32: high(uint32)
+  else: uint32(v)
+
+const F32Max* = 3.4028234663852886e38'f32
+  ## Rust's `f32::MAX` (Nim's `high(float32)` is +∞).
+
+proc toDegrees*(v: float32): float32 {.inline.} =
+  ## Rust's `f32::to_degrees` (one multiplication by the rounded constant).
+  v * 57.2957795130823208767981548141051703'f32
+proc toDegrees*(v: float64): float64 {.inline.} =
+  ## Rust's `f64::to_degrees`: `v * (180 / π)`.
+  v * (180.0 / PI)
+proc toRadians*(v: float32): float32 {.inline.} =
+  ## Rust's `f32::to_radians`: `v * (π / 180)` with the constant rounded once (= `degToRad`).
+  v * 0.017453292519943295'f32
+proc toRadians*(v: float64): float64 {.inline.} =
+  ## Rust's `f64::to_radians`.
+  v * (PI / 180.0)
+
+# ---------------------------------------------------------------- Rust float semantics
+
+proc rmax*[T: SomeFloat](a, b: T): T {.inline.} =
+  ## Rust `f32::max`/`f64::max`: a NaN operand is ignored.
+  if a != a: b elif b != b: a else: max(a, b)
+proc rmin*[T: SomeFloat](a, b: T): T {.inline.} =
+  ## Rust `f32::min`/`f64::min`: a NaN operand is ignored.
+  if a != a: b elif b != b: a else: min(a, b)
+proc remEuclidF*[T: SomeFloat](a, b: T): T {.inline.} =
+  ## Rust `f32::rem_euclid`.
+  let r = a mod b
+  if r < 0: r + abs(b) else: r
+proc signum*[T: SomeFloat](x: T): T {.inline.} =
+  ## Rust `f32::signum`: ±1 by the sign bit (also for ±0), NaN for NaN.
+  if x != x: x else: copySign(T(1), x)

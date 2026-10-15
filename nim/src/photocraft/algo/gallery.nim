@@ -9,6 +9,7 @@
 import std/math
 import ../geom
 import params, image, fxutil
+import ../rmath
 
 proc sigmaOf(blur: float32): float32 = clamp(blur, 0'f32, 500'f32) * 0.6'f32
 proc fmax(a, b: float32): float32 = (if a.isNaN: b elif b.isNaN: a else: max(a, b))
@@ -26,7 +27,7 @@ proc variableBlur(src: Image; o: Rect; ctx: Ctx; smax: float32; trimLevels: bool
   ## Blurs `src` over `o` with a per-pixel σ (`sigma(x, y)`, ≤ `smax`).
   let n = src.ch
   if n == 0 or o.isEmpty: return
-  if smax < 0.3: return src.crop(o)
+  if smax < 0.3'f32: return src.crop(o)
   let win = src.rect
   let (ww, wh) = (win.width, win.height)
   let (ow, oh) = (o.width, o.height)
@@ -71,7 +72,7 @@ proc variableBlur(src: Image; o: Rect; ctx: Ctx; smax: float32; trimLevels: bool
       # Iris and Tilt-Shift opt in: each level needs its own box-cascade reach.
       let trim = trimLevels and win.intersect(o) == o
       var rch = 0
-      if trim and lvk >= 0.3:
+      if trim and lvk >= 0.3'f32:
         for r in gaussBoxRadii(lvk): rch += r
       rch = min(rch, int(high(int32)))
       lw = if trim: min(satAdd(o.x1, rch), win.x1) - win.x0 else: ww
@@ -160,11 +161,11 @@ proc iris*(src: Image; o: Rect; ctx: Ctx; pins: openArray[IrisPin]): seq[float32
   let b = ctx.bounds
   var smax = 0'f32
   for p in pins: smax = fmax(smax, sigmaOf(p.blur))
-  if pins.len == 0 or smax < 0.3: return src.crop(o)
+  if pins.len == 0 or smax < 0.3'f32: return src.crop(o)
   var prepared: seq[PreparedIris]
   for p in pins: prepared.add prepareIris(p, b)
   variableBlur(src, o, ctx, smax, true, proc(x, y: float32): float32 =
-    result = high(float32)
+    result = F32Max
     for p in prepared: result = fmin(result, p.sigma(x, y)))
 
 proc field*(src: Image; o: Rect; ctx: Ctx; pins: openArray[FieldPin]): seq[float32] =
@@ -269,7 +270,7 @@ proc path*(src: Image; o: Rect; ctx: Ctx; paths: openArray[BlurPath]): seq[float
       ws += w
     let m = sqrt(dx * dx + dy * dy)
     let len = ln / ws
-    if m < 1e-6 or len < 0.5:
+    if m < 1e-6'f32 or len < 0.5'f32:
       inc i
       continue
     let (ux, uy) = (dx / m, dy / m)

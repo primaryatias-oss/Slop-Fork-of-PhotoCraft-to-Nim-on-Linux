@@ -1,6 +1,6 @@
 ## Straight-alpha RGBA float buffers covering a rectangle (the compositor's working type).
 
-import ../geom, ../raster
+import ../geom, ../raster, ../rmath
 
 type
   Px* = array[4, float32]
@@ -19,7 +19,7 @@ proc get*(b: Buffer; x, y: int): Px {.inline.} = b.px[(y - b.rect.y0) * b.rect.w
 proc toRgba8*(b: Buffer): Rgba8Image =
   result = Rgba8Image(width: b.rect.width, height: b.rect.height, pixels: newSeq[uint8](b.px.len * 4))
   for i, p in b.px:
-    for k in 0..3: result.pixels[i * 4 + k] = uint8(clamp(p[k], 0'f32, 1'f32) * 255 + 0.5)
+    for k in 0..3: result.pixels[i * 4 + k] = asU8(clamp(p[k], 0'f32, 1'f32) * 255 + 0.5'f32)
 
 proc overBackground*(b: Buffer; bg: array[3, float32]): Buffer =
   ## Flattens over an opaque background colour.

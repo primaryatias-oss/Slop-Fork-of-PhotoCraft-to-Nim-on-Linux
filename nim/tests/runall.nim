@@ -19,3 +19,4 @@ import t_text_psd
 import t_text_extra
 import t_algo_blur
 import t_algo_fx
+import t_algo_select

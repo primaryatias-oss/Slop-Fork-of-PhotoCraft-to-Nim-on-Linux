@@ -96,5 +96,5 @@ proc unpremultiply*(data: var openArray[float32]; ch: int; alpha: bool) =
   var i = 0
   while i + ch <= data.len:
     let a = data[i + ch - 1]
-    for k in 0 ..< ch - 1: data[i + k] = (if a > 1e-7: data[i + k] / a else: 0)
+    for k in 0 ..< ch - 1: data[i + k] = (if a > 1e-7'f32: data[i + k] / a else: 0)
     i += ch

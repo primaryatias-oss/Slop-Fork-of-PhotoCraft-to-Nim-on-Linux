@@ -5,6 +5,7 @@
 
 import std/[math, options]
 import ../geom, ./params, ./fxutil, ./noise
+import ../rmath
 
 proc asI32(v: float32): int {.inline.} =
   ## Rust's saturating `f32 as i32` (NaN → 0).
@@ -36,7 +37,7 @@ proc diffuse*(src: Image; o: Rect; ctx: Ctx; mode: DiffuseMode; seed: uint32): s
     case mode
     of dmAnisotropic:
       let me = luma(ctx, result.toOpenArray(b, b + n - 1))
-      var best = (high(float32), (0, 0))
+      var best = (F32Max, (0, 0))
       let start = int(hash01(x, y, 3, seed) * 8)
       for k in 0 ..< 8:
         let (dx, dy) = Ring[(start + k) mod 8]
@@ -71,7 +72,7 @@ proc extrudeReach*(depth: float32): float32 =
   clamp(depth, 0'f32, 255'f32) * 0.25'f32
 
 proc interval(p, m, o, half: float32): Option[(float32, float32)] {.inline.} =
-  if abs(o) < 1e-6:
+  if abs(o) < 1e-6'f32:
     return (if abs(p - m) <= half: some((0'f32, 1'f32)) else: none((float32, float32)))
   let (a, b) = ((p - m - half) / o, (p - m + half) / o)
   let (lo, hi) = (max(min(a, b), 0'f32), min(max(a, b), 1'f32))

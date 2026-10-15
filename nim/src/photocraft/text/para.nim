@@ -6,6 +6,7 @@
 import std/[options, unicode, algorithm, math]
 import ../font/[sfnt, shape]
 import uprops, segment, bidi, fonts
+import ../rmath
 
 type
   FamilyRef* = object
@@ -657,7 +658,7 @@ proc shapeText(l: var ParaLayout; db: FontDb; text: string; infos: seq[CharInfo]
 
 proc finishSpacing(l: var ParaLayout) =
   ## Letter and word spacing after each cluster (parley `LayoutData::finish`).
-  proc nearlyZero(x: float32): bool = abs(x) < 1e-6
+  proc nearlyZero(x: float32): bool = abs(x) < 1e-6'f32
   for run in l.runs:
     if nearlyZero(run.wordSpacing) and nearlyZero(run.letterSpacing): continue
     for ci in run.clusterStart ..< run.clusterEnd:
@@ -853,8 +854,8 @@ proc finishLine(l: ParaLayout; br: var Breaker; idx: int; lineHeight: float32) =
         line.itemStart = at
         line.itemEnd = at + 1
   line.metrics.leading = line.metrics.lineHeight - (line.metrics.ascent + line.metrics.descent)
-  let above = line.metrics.leading * 0.5
-  let below = line.metrics.leading * 0.5
+  let above = line.metrics.leading * 0.5'f32
+  let below = line.metrics.leading * 0.5'f32
   let y = br.lineY
   line.metrics.baseline = line.metrics.ascent + above + float32(y)
   line.metrics.blockMin = line.metrics.baseline - line.metrics.ascent - max(above, 0)
@@ -874,7 +875,7 @@ proc startNewLine(l: ParaLayout; br: var Breaker; reason: BreakReason; maxAdvanc
 
 proc breakNext(l: ParaLayout; br: var Breaker): bool =
   if br.done: return false
-  let maxAdv0 = if l.textLen == 0: high(float32) else: br.lineMaxAdvance
+  let maxAdv0 = if l.textLen == 0: F32Max else: br.lineMaxAdvance
   let indent = if br.lines.len == 0: l.indentAmount else: 0'f32
   let maxAdvance = maxAdv0 - indent
   while br.itemIdx < l.items.len:
@@ -943,7 +944,7 @@ proc unjustify(l: var ParaLayout)
 proc breakAllLines*(l: var ParaLayout; maxAdvance: Option[float32]) =
   ## Breaks the paragraph into lines no longer than `maxAdvance` (unbounded when none).
   l.unjustify()
-  var br = Breaker(lineMaxAdvance: maxAdvance.get(high(float32)))
+  var br = Breaker(lineMaxAdvance: maxAdvance.get(F32Max))
   while l.breakNext(br): discard
   if l.textLen == 0 and br.lineItems.len > 0:
     br.lineItems[0].textStart = 0
@@ -957,9 +958,9 @@ proc breakAllLines*(l: var ParaLayout; maxAdvance: Option[float32]) =
     full = max(full, lineMax)
     width = max(width, lineMax - line.metrics.trailingWhitespace)
     height += float64(line.metrics.lineHeight)
-  if br.lineMaxAdvance >= high(float32):
+  if br.lineMaxAdvance >= F32Max:
     for line in br.lines.mitems:
-      if line.metrics.inlineMax >= high(float32): line.metrics.inlineMax = width
+      if line.metrics.inlineMax >= F32Max: line.metrics.inlineMax = width
   if br.lines.len > 0 and br.lines[^1].itemEnd <= br.lines[^1].itemStart:
     height -= float64(br.lines[^1].metrics.lineHeight)
   l.width = width
@@ -988,7 +989,7 @@ proc alignImpl(l: var ParaLayout; alignment: Alignment; alignWhenOverflowing: bo
     of alStart: (if rtl: line.metrics.offset += free)
     of alEnd: (if not rtl: line.metrics.offset += free)
     of alRight: line.metrics.offset += free
-    of alCenter: line.metrics.offset += free * 0.5
+    of alCenter: line.metrics.offset += free * 0.5'f32
     of alJustify:
       if free > 0:
         if line.breakReason in {brNone, brExplicit} or line.numSpaces == 0:

@@ -105,7 +105,7 @@ proc evalMultilinear*(c: Clut; input: openArray[float32]; outp: var openArray[fl
         off += s[d]
       else:
         w *= 1.0'f32 - r[d]
-    if w == 0.0: continue
+    if w == 0.0'f32: continue
     for k in 0 ..< o: outp[k] += w * c.data[off + k]
 
 proc eval1(c: Clut; v: float32; outp: var openArray[float32]) =
@@ -132,7 +132,7 @@ proc eval*(c: Clut; input: openArray[float32]; outp: var openArray[float32]) =
     let base = b0 + b1 + b2 + b3
     var lo: array[MaxChannels, float32]
     c.tetra(base, [s1, s2, s3], [r1, r2, r3], lo)
-    if r0 > 0.0 and s0 > 0:
+    if r0 > 0.0'f32 and s0 > 0:
       var hi: array[MaxChannels, float32]
       c.tetra(base + s0, [s1, s2, s3], [r1, r2, r3], hi)
       for k in 0 ..< c.outputs: outp[k] = lo[k] + (hi[k] - lo[k]) * r0

@@ -6,7 +6,7 @@
 
 import std/[options, math, strutils, algorithm]
 from std/unicode import validateUtf8
-import ./image, ./meta, ../zlib
+import ./image, ./meta, ../zlib, ../rmath
 
 const
   ExifHeader = "Exif\0\0"
@@ -404,7 +404,7 @@ proc idct8x8(coefs: openArray[int16]; off: int; q: array[64, int]; outp: var arr
       for y in 0..7:
         var s = 0.0'f32
         for v in 0..7: s += idctCos[y][v] * tmp[v * 8 + x]
-        outp[y * 8 + x] = uint8(clamp(round(s + 128.0'f32), 0.0'f32, 255.0'f32))
+        outp[y * 8 + x] = asU8(clamp(round(s + 128.0'f32), 0.0'f32, 255.0'f32))
 
 proc decodeJpeg*(bytes: openArray[byte]; limits: Limits): Image =
   ## Decodes a JPEG file. Raises `CodecError`.
@@ -577,7 +577,7 @@ proc decodeJpeg*(bytes: openArray[byte]; limits: Limits): Image =
     let cc = float32(planes[ci][y1 * pw + x0])
     let dd = float32(planes[ci][y1 * pw + x1])
     (a * (1 - fx) + b * fx) * (1 - fy) + (cc * (1 - fx) + dd * fx) * fy
-  proc clip(v: float32): uint8 {.inline.} = uint8(clamp(round(v), 0.0'f32, 255.0'f32))
+  proc clip(v: float32): uint8 {.inline.} = asU8(clamp(round(v), 0.0'f32, 255.0'f32))
   let transform = if nc == 3: (if d.adobe == 0: 0 else: 1)
                   elif nc == 4: (if d.adobe == 2: 2 else: 0)
                   else: 0
@@ -750,8 +750,8 @@ proc encodeJpeg*(src: Image; layout: ChannelLayout; opts: EncodeOptions): seq[by
   var unit = 0'u8
   if opts.embedMetadata and img.meta.dpi.isSome and img.meta.dpi.get[0] >= 1 and img.meta.dpi.get[1] >= 1:
     unit = 1
-    dx = int(min(round(img.meta.dpi.get[0]), 65535.0))
-    dy = int(min(round(img.meta.dpi.get[1]), 65535.0))
+    dx = int(min(round(img.meta.dpi.get[0]), 65535.0'f32))
+    dy = int(min(round(img.meta.dpi.get[1]), 65535.0'f32))
   jfif.add [unit, byte(dx shr 8), byte(dx and 0xFF), byte(dy shr 8), byte(dy and 0xFF), 0, 0]
   o.writeSegment(0xE0, jfif)
   if layout == clCmyk:

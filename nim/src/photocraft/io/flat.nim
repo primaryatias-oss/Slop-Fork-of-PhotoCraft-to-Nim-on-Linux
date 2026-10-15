@@ -572,7 +572,7 @@ proc exportModeSpecific(d: Document; format: Format; opts: ExportOptions): Optio
     var idx = tryBuffer(int(d.size.area), 1)
     renderBands(d, d.bounds, 0, proc(band: Buffer) =
       for p in band.px:
-        if table.transparent.isSome and p[3] < 0.5: idx.add table.transparent.get
+        if table.transparent.isSome and p[3] < 0.5'f32: idx.add table.transparent.get
         else: idx.add uint8(table.nearest([p[0], p[1], p[2]])))
     let dpi = if opts.encode.embedMetadata: some((d.resolutionDpi, d.resolutionDpi)) else: none((float32, float32))
     var bytes: seq[byte]

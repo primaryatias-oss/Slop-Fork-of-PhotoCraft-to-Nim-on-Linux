@@ -38,11 +38,11 @@ proc fitStroke(fill: Surface; stroke: var Surface; cache: Surface; canvas: Rect)
   for i in 0 ..< n:
     let (fp, sp, cp) = (f[i], s[i], c[i])
     var p = sp
-    if fp[3] < 1 - 1e-3:
+    if fp[3] < 1 - 1e-3'f32:
       let a = clamp((cp[3] - fp[3]) / (1 - fp[3]), 0'f32, 1'f32)
       if sp[3] <= 0:
         p = [cp[0], cp[1], cp[2], a]
-      elif a > 1e-3:
+      elif a > 1e-3'f32:
         let k = fp[3] * (1 - a)
         for j in 0 .. 2:
           let v = (cp[3] * cp[j] - k * fp[j]) / a

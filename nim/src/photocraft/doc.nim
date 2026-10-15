@@ -685,7 +685,7 @@ proc validate*(s: ShapeStroke): Option[string] =
     if not d.finite or d < 0 or d > 10000: return some("dash pattern must contain at most 32 finite lengths between 0 and 10000 widths")
     total += d
   if s.dashes.len > 32: return some("dash pattern must contain at most 32 finite lengths between 0 and 10000 widths")
-  if s.dashes.len > 0 and total < 0.01: return some("dash pattern total must be at least 0.01 widths")
+  if s.dashes.len > 0 and total < 0.01'f32: return some("dash pattern total must be at least 0.01 widths")
   none(string)
 
 # ---------------------------------------------------------------- text
@@ -1057,7 +1057,7 @@ proc curveEval(pts: openArray[CurvePoint]; x: float32): float32 =
   if x <= pts[0].input: return pts[0].output
   for i in 0 ..< pts.len - 1:
     if x <= pts[i + 1].input:
-      let span = max(pts[i + 1].input - pts[i].input, 1e-6)
+      let span = max(pts[i + 1].input - pts[i].input, 1e-6'f32)
       return pts[i].output + (pts[i + 1].output - pts[i].output) * (x - pts[i].input) / span
   pts[^1].output
 

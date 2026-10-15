@@ -10,7 +10,7 @@
 
 import std/[options, tables, sets, math, algorithm, unicode, strutils, sequtils]
 import ../geom, ../color, ../raster, ../doc, ../psd, ../compose, ../format, ../blake3
-import ../codecs/meta
+import ../codecs/meta, ../rmath
 import ../compose/gradient as cgradient
 import ../color/convert as cconvert
 import ../algo/[transform, warp]
@@ -995,7 +995,7 @@ proc mergedPlanes(d: Document; fmt: PixelFormat; cmyk, matte: bool; ctl: Interru
         of stU8:
           if q255(a) < 255: hasAlpha = true
         of stU16:
-          if uint16(clamp(a, 0'f32, 1'f32) * 65535 + 0.5) != high(uint16): hasAlpha = true
+          if asU16(clamp(a, 0'f32, 1'f32) * 65535 + 0.5'f32) != high(uint16): hasAlpha = true
         of stF32:
           if a != 1: hasAlpha = true
         if a < 1: translucent = true

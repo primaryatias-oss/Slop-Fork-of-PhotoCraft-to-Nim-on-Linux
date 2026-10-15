@@ -27,7 +27,7 @@ type
 proc newSpans*(r: float32; inside: InsideProc): Spans =
   ## Rasterizes `inside(u, v)` (u, v in −1…1) over a disc of radius `r`.
   let ri = asI32(float64(ceil(max(r, 0))))
-  if r < 0.5: return Spans(rows: @[(0, 0, 0)], count: 1)
+  if r < 0.5'f32: return Spans(rows: @[(0, 0, 0)], count: 1)
   for dy in -ri .. ri:
     var run = none(int)
     for dx in -ri .. ri + 1:

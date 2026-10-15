@@ -3,16 +3,16 @@
 ## dither, and handle positions for on-canvas editing.
 
 import std/[math, algorithm, options]
-import ../doc, ../raster, ./buffer
+import ../doc, ../raster, ../rmath, ./buffer
 
-proc rad(d: float32): float32 {.inline.} = d * float32(PI) / 180
+proc rad(d: float32): float32 {.inline.} = toRadians(d)
 
 proc gradientUnits*(angle, w, h: float32): (float32, float32) =
   ## (chord, diagonal) lengths over a `w × h` frame at `angle` degrees.
   let a = rad(angle)
   let (s, c) = (sin(a), cos(a))
-  let ln = max(sqrt(pow(c * w, 2) + pow(s * h, 2)), 1'f32)
-  let chord = max(min(w / max(abs(c), 1e-6), h / max(abs(s), 1e-6)), 1'f32)
+  let ln = max(sqrt((c * w) * (c * w) + (s * h) * (s * h)), 1'f32)
+  let chord = max(min(w / max(abs(c), 1e-6'f32), h / max(abs(s), 1e-6'f32)), 1'f32)
   (chord, ln)
 
 proc gradientT*(style: GradientStyle; angle, scale: float32; reverse: bool; offset: (float32, float32);
@@ -27,16 +27,16 @@ proc gradientT*(style: GradientStyle; angle, scale: float32; reverse: bool; offs
   let along = dx * c - dy * s
   let across = dx * s + dy * c
   var (chord, ln) = gradientUnits(angle, w, h)
-  chord *= max(scale, 1e-3)
-  ln *= max(scale, 1e-3)
+  chord *= max(scale, 1e-3'f32)
+  ln *= max(scale, 1e-3'f32)
   let corner = 0.5'f32 * (c - s)
   var t = case style
-    of gsLinear: (along - corner) / chord + 0.5
+    of gsLinear: (along - corner) / chord + 0.5'f32
     of gsReflected: abs((along - corner) / (chord / 2))
     of gsRadial: sqrt(dx * dx + dy * dy) / (ln / 2)
     of gsDiamond: (abs(along) + abs(across)) / (ln / 2)
     of gsAngle:
-      (let v = (a - arctan2(-dy, dx)) / float32(TAU); v - floor(v))
+      remEuclidF((a - arctan2(-dy, dx)) / float32(TAU), 1'f32)
   t = clamp(t, 0'f32, 1'f32)
   if reverse: 1 - t else: t
 
@@ -51,7 +51,7 @@ proc gradientLayout*(style: GradientStyle; angle, scale: float32; offset: (float
   let (cx, cy) = (float64(frame.x0) + w / 2 + float64(offset[0]) * w, float64(frame.y0) + h / 2 + float64(offset[1]) * h)
   proc chordOf(a: float64): float64 = max(min(w / max(abs(cos(a)), 1e-6), h / max(abs(sin(a)), 1e-6)), 1.0)
   let a = degToRad(float64(angle))
-  let half = chordOf(a) * float64(max(scale, 1e-3)) / 2
+  let half = chordOf(a) * float64(max(scale, 1e-3'f32)) / 2
   let (dx, dy) = (cos(a) * half, -sin(a) * half)
   template snap(v: float64): float64 = floor(v + 1e-4)
   let e = (snap(cx + dx), snap(cy + dy))
@@ -66,11 +66,11 @@ proc gradientLayout*(style: GradientStyle; angle, scale: float32; offset: (float
   if ln < 0.5: return unchanged
   let a2 = arctan2(-v[1], v[0])
   let span = if style == gsReflected: 2 * ln else: ln
-  (float32(radToDeg(a2)), float32(span / chordOf(a2)), (offset[0] + float32((mid[0] - cx) / w), offset[1] + float32((mid[1] - cy) / h)))
+  (float32(toDegrees(a2)), float32(span / chordOf(a2)), (offset[0] + float32((mid[0] - cx) / w), offset[1] + float32((mid[1] - cy) / h)))
 
 proc midpointRemap*(u, m0: float32): float32 =
   let m = clamp(m0, 0.05'f32, 0.95'f32)
-  if abs(m - 0.5) < 1e-6: u elif u <= m: 0.5 * u / m else: 0.5 + 0.5 * (u - m) / (1 - m)
+  if abs(m - 0.5'f32) < 1e-6'f32: u elif u <= m: 0.5'f32 * u / m else: 0.5'f32 + 0.5'f32 * (u - m) / (1 - m)
 
 type Ramp*[N: static int] = object
   color*: seq[(float32, array[N, float32])]
@@ -113,7 +113,7 @@ proc ditherTo(c: var openArray[float32]; n: int; x, y: int; quantum: float32) =
   let d = (ditherNoise(x, y) - 0.5'f32) / 255
   for i in 0 ..< n:
     c[i] = clamp(c[i] + d, 0'f32, 1'f32)
-    if quantum > 0: c[i] = floor(c[i] * quantum + 0.5) / quantum
+    if quantum > 0: c[i] = floor(c[i] * quantum + 0.5'f32) / quantum
 
 proc renderGradient*(f: Fill; rc, frame: Rect; quantum: float32 = 0): seq[Px] =
   ## A gradient fill over `rc`, laid out in `frame` (`quantum` > 0 rounds dithered output).
@@ -124,7 +124,7 @@ proc renderGradient*(f: Fill; rc, frame: Rect; quantum: float32 = 0): seq[Px] =
   var i = 0
   for y in rc.y0 ..< rc.y1:
     for x in rc.x0 ..< rc.x1:
-      var p = ramp.sample(gradientT(f.style, angle, scale, f.reverse, offset, frame, float32(x) + 0.5, float32(y) + 0.5))
+      var p = ramp.sample(gradientT(f.style, angle, scale, f.reverse, offset, frame, float32(x) + 0.5'f32, float32(y) + 0.5'f32))
       if f.dither: ditherTo(p, 3, x, y, quantum)
       result[i] = p
       inc i
@@ -148,7 +148,7 @@ proc renderCmykFill*(f: Fill; rc, frame: Rect; depth: SampleType): Option[Surfac
     var data = newSeqOfCap[float32](rc.width * rc.height * 5)
     for y in rc.y0 ..< rc.y1:
       for x in rc.x0 ..< rc.x1:
-        var p = ramp.sample(gradientT(f.style, angle, scale, f.reverse, offset, frame, float32(x) + 0.5, float32(y) + 0.5))
+        var p = ramp.sample(gradientT(f.style, angle, scale, f.reverse, offset, frame, float32(x) + 0.5'f32, float32(y) + 0.5'f32))
         if f.dither: ditherTo(p, 4, x, y, 0)
         data.add p
     s.writeRegion(rc, data)
@@ -180,7 +180,7 @@ proc fromHandles*(style: GradientStyle; frm, to: array[2, float32]; frame: Rect;
   ## Angle, scale and offset for handles dragged to `frm` → `to`.
   let (dx, dy) = (to[0] - frm[0], to[1] - frm[1])
   var ln = hypot(dx, dy)
-  let angle = if ln > 1e-4: arctan2(-dy, dx) * 180 / float32(PI) else: fallbackAngle
+  let angle = if ln > 1e-4'f32: toDegrees(arctan2(-dy, dx)) else: fallbackAngle
   ln = max(ln, 0.5)
   let c = if style == gsLinear: [(frm[0] + to[0]) / 2, (frm[1] + to[1]) / 2] else: frm
   let (w, h) = (float32(max(frame.width, 1)), float32(max(frame.height, 1)))
