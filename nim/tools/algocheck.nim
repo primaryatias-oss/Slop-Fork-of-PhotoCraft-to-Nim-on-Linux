@@ -7,7 +7,9 @@
 
 import std/[os, strutils, options, math, tables]
 import photocraft/[geom, raster]
-import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize]
+import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch]
+import photocraft/color as pcolor
+import photocraft/color/blend
 
 type Buf = object
   w, h, ch: int
@@ -537,8 +539,161 @@ proc quantizeCmd(a: seq[string]): bool =
   else: return false
   true
 
+# ---------------------------------------------------------------- retouch / paint
+
+proc fmtArg(s0: string): PixelFormat =
+  var s = s0
+  var mode = cmRgb
+  for (p, m) in [("cmyk", cmCmyk), ("gray", cmGrayscale), ("lab", cmLab), ("rgb", cmRgb)]:
+    if s.startsWith(p):
+      mode = m
+      s = s[p.len .. ^1]
+      break
+  let alpha = not s.endsWith("x")
+  let st = (case s.strip(chars = {'x'}, leading = false)
+    of "16": stU16
+    of "32": stF32
+    else: stU8)
+  pixelFormat(mode, st, alpha)
+
+proc surfaceArg(f: string; b: Buf): Surface =
+  var s = newSurface(pixelFormat(cmRgb, stF32, true))
+  s.writeRegion(rect(0, 0, b.w, b.h), b.f)
+  s.convert(fmtArg(f))
+
+proc maskArg(path: string; area: Rect): Option[Surface] =
+  if path == "-": none(Surface) else: some(maskToSurface(readBuf(path).f, area))
+
+proc blendArg(s: string): BlendMode =
+  case s
+  of "multiply": bmMultiply
+  of "screen": bmScreen
+  of "overlay": bmOverlay
+  of "difference": bmDifference
+  of "color": bmColor
+  of "luminosity": bmLuminosity
+  of "dissolve": bmDissolve
+  of "hardmix": bmHardMix
+  of "lighten": bmLighten
+  else: bmNormal
+
+proc shapeArg(s: string): GradientShape =
+  case s
+  of "radial": gsRadial
+  of "angle": gsAngle
+  of "reflected": gsReflected
+  of "diamond": gsDiamond
+  else: gsLinear
+
+proc statArg(s: string): Stat =
+  case s
+  of "entropy": stEntropy
+  of "kurtosis": stKurtosis
+  of "maximum": stMaximum
+  of "mean": stMean
+  of "median": stMedian
+  of "minimum": stMinimum
+  of "range": stRange
+  of "skewness": stSkewness
+  of "sd": stStandardDeviation
+  of "sum": stSummation
+  else: stVariance
+
+proc toneArg(s: string): ToneRange =
+  case s
+  of "shadows": trShadows
+  of "highlights": trHighlights
+  else: trMidtones
+
+proc optAlpha(s: string): Option[int] =
+  let v = parseInt(s)
+  if v >= 0: some(v) else: none(int)
+
+proc retouchCmd(a: seq[string]): bool =
+  let o = a[^1]
+  case a[1]
+  of "rt.erase":
+    let b = readBuf(a[3])
+    let area = rect(0, 0, b.w, b.h)
+    var s = surfaceArg(a[2], b)
+    let img = rgba8Image(s, area)
+    let region = wandRegion(img, area, (i(a[4]), i(a[5])), f(a[6]), bl(a[7]), bl(a[8]))
+    if region.isNone:
+      echo "none"
+      return true
+    let lock = (if a[11] == "-": none(seq[float32]) else: some(floats(a[11])))
+    let r = magicErase(s, region.get, f(a[9]), maskArg(a[10], area), lock)
+    echo "dmg ", r.x0, " ", r.y0, " ", r.x1, " ", r.y1
+    dumpSurface(o, s, area)
+  of "rt.stack":
+    var layers: seq[seq[array[4, float32]]]
+    for p in a[3 ..< a.len - 1]: layers.add rgba(readBuf(p))
+    let r = stack.combine(layers, statArg(a[2]))
+    let b = readBuf(a[3])
+    writeF32(o, b.w, b.h, 4, flat4(r))
+  of "rt.trap":
+    let b = readBuf(a[2])
+    var px = b.f
+    trap(px, b.w, b.h, b.ch, parseInt(a[3]))
+    writeF32(o, b.w, b.h, b.ch, px)
+  of "rt.gradient":
+    let b = readBuf(a[3])
+    var s = surfaceArg(a[2], b)
+    let p = floats(a[5])
+    var stops: seq[Stop4]
+    for t in a[6].split(';'):
+      let v = floats(t)
+      stops.add (v[0], [v[1], v[2], v[3], v[4]])
+    let full = rect(0, 0, b.w, b.h)
+    paintGradient(s, rectArg(a[13]), (p[0], p[1]), (p[2], p[3]), shapeArg(a[4]), stops, bl(a[7]), f(a[8]),
+                  blendArg(a[9]), bl(a[10]), maskArg(a[11], full), bl(a[12]))
+    dumpSurface(o, s, full)
+  of "rt.bucket":
+    let b = readBuf(a[3])
+    var s = surfaceArg(a[2], b)
+    let full = rect(0, 0, b.w, b.h)
+    let c = floats(a[9])
+    let ok = bucketFill(s, full, (i(a[4]), i(a[5])), f(a[6]), bl(a[7]), bl(a[8]), [c[0], c[1], c[2], c[3]], f(a[10]),
+                        maskArg(a[11], full), bl(a[12]))
+    echo ok
+    dumpSurface(o, s, full)
+  of "rt.kernels":
+    var v: seq[float32]
+    let vals = [-0.2'f32, 0, 0.01, 0.1, 0.25, 0.5, 0.73, 0.9, 1, 1.3, NaN]
+    for r in ["shadows", "midtones", "highlights"]:
+      for burn in [false, true]:
+        for e in [0'f32, 0.1, 0.5, 1, 2]:
+          for x in vals: v.add toneCurve(x, e, toneArg(r), burn)
+          for c in [[0.2'f32, 0.5, 0.8], [0.9'f32, 0.95, 1], [0'f32, 0, 0], [0.6'f32, 0.1, 0.1], [1.2'f32, -0.1, 0.4]]:
+            for protect in [false, true]:
+              for x in dodgeBurn(c, e, toneArg(r), burn, protect): v.add x
+    for c in [[0.2'f32, 0.5, 0.8], [0.9'f32, 0.95, 1], [0.5'f32, 0.5, 0.5], [0.6'f32, 0.1, 0.1]]:
+      for amt in [0'f32, 0.2, 0.7, 1]:
+        for (sat, vb) in [(false, false), (true, false), (false, true), (true, true)]:
+          for x in sponge(c, amt, sat, vb): v.add x
+      v.add saturation(c)
+      v.add retouch.luma(c)
+    let stops = @[(0'f32, [1'f32, 0, 0, 1]), (0.4'f32, [0'f32, 1, 0, 0.5]), (0.4'f32, [0'f32, 0, 1, 1]), (1'f32, [1'f32, 1, 1, 0])]
+    for t in [-1'f32, 0, 0.2, 0.4, 0.41, 0.7, 1, 2]:
+      for x in sampleStops(stops, t): v.add x
+      for sh in ["linear", "radial", "angle", "reflected", "diamond"]:
+        v.add toolGradientT(shapeArg(sh), (3'f32, 4'f32), (40'f32, -9'f32), t * 30'f32, 20'f32 - t * 7'f32)
+    writeF32(o, v.len, 1, 1, v)
+  of "rt.blur":
+    let b = readBuf(a[2])
+    let w = rectArg(a[4])
+    let r = localBlur(b.f, b.w, b.h, b.ch, optAlpha(a[5]), (w.x0, w.y0, w.x1, w.y1), f(a[3]))
+    writeF32(o, w.x1 - w.x0, w.y1 - w.y0, b.ch, r)
+  of "rt.sharpen":
+    let b = readBuf(a[2])
+    let w = rectArg(a[4])
+    let r = localSharpen(b.f, b.w, b.h, b.ch, optAlpha(a[5]), (w.x0, w.y0, w.x1, w.y1), f(a[3]), bl(a[6]))
+    writeF32(o, w.x1 - w.x0, w.y1 - w.y0, b.ch, r)
+  else: return false
+  true
+
 when isMainModule:
   let a = @[getAppFilename()] & commandLineParams()
   if a.len < 2: quit("usage: algocheck gen <dir> | <command> <args…> <out>")
   if a[1] == "gen": gen(a[2])
-  elif not (selectionCmd(a) or toneCmd(a) or hdrCmd(a) or exifCmd(a) or quantizeCmd(a)): quit("unknown command " & a[1])
+  elif not (selectionCmd(a) or toneCmd(a) or hdrCmd(a) or exifCmd(a) or quantizeCmd(a) or retouchCmd(a)): quit("unknown command " & a[1])

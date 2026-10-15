@@ -110,8 +110,9 @@ See the bottom of this file (updated as crates land) and `git log`.
 | algo | in progress: foundation, resample, transform, warp; filter dispatcher (`algo/filters`: halos, tiled apply, selection mixing, registry); blur family (`blur`, `sharpen`, `blur2`, `gallery`, `radial_plan`: Gaussian/Box with the separable fast path, Motion with the FFT fast path, Radial, Surface, Unsharp Mask, Smart Sharpen, High Pass, Smart/Lens/Shape Blur, Tilt-Shift, Iris, Field, Spin, Path); noise, median, custom, HSB/HSL, color to alpha, video, stylize part 2; Other, Stylize, Distort, Pixelate, Oil Paint, Render (clouds, fibers, lens flare, lighting), Relight, Reduce Noise, Filter Gallery (`artistic_fx`, all 47 effects); selection (magic wand/regions, colour and Lab
 ranges, modify incl. the cosine-series feather, polygon, marquee tiles, combines), histogram, tone
 (Shadows/Highlights, Replace/Match Color, HDR Toning), HDR merge (exposures, MTB, Debevec–Malik
-response, ghosts, tone mapping), EXIF. Non-filter APIs are checked with `tools/algocheck.py`
-(`tools/algocases/*.json`, 717 command runs identical). 2869 of 2870 filter runs identical to Rust (`tools/filtercases.json`, 410 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
+response, ghosts, tone mapping), EXIF, Indexed Color/Bitmap (`quantize`), Magic Eraser, stack modes,
+Trap, gradient/bucket tools, retouch kernels (dodge, burn, sponge, local blur/sharpen). Non-filter
+APIs are checked with `tools/algocheck.py` (`tools/algocases/*.json`, 1813 command runs identical). 2869 of 2870 filter runs identical to Rust (`tools/filtercases.json`, 410 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
 | io (PSD/PSB ↔ document, layered TIFF, multi-part EXR, flat formats, facade) | ported, tested; see "io notes" below |
 | io: OpenRaster, Paint.NET | ported, tested |
 | io: SVG, camera raw, Affinity | pending (the facade reports "unsupported" until they land; SVG needs a usvg-style normalizer) |

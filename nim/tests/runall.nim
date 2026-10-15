@@ -20,3 +20,4 @@ import t_text_extra
 import t_algo_blur
 import t_algo_fx
 import t_algo_select
+import t_algo_retouch
