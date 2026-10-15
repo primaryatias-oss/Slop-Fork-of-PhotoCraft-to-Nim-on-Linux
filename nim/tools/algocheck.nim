@@ -7,7 +7,7 @@
 
 import std/[os, strutils, options, math, tables]
 import photocraft/[geom, raster]
-import photocraft/algo/[selection, util, histogram, tone, hdr, exif]
+import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize]
 
 type Buf = object
   w, h, ch: int
@@ -481,8 +481,64 @@ proc exifCmd(a: seq[string]): bool =
   else: return false
   true
 
+# ---------------------------------------------------------------- quantize
+
+proc palLine(p: openArray[Rgb8]): string =
+  for k, c in p:
+    if k > 0: result.add ' '
+    result.add toHex(c[0], 2).toLowerAscii & toHex(c[1], 2).toLowerAscii & toHex(c[2], 2).toLowerAscii
+
+proc forcedArg(s: string): Forced =
+  case s
+  of "bw": fcBlackWhite
+  of "primaries": fcPrimaries
+  of "web": fcWeb
+  else: fcNone
+
+proc ditherArg(s: string): Dither =
+  case s
+  of "diffusion": dtDiffusion
+  of "pattern": dtPattern
+  of "noise": dtNoise
+  else: dtNone
+
+proc quantizeCmd(a: seq[string]): bool =
+  let o = a[^1]
+  case a[1]
+  of "q.fixed":
+    echo palLine(webPalette())
+    echo palLine(macPalette())
+    echo palLine(windowsPalette())
+    for n in [0, 2, 8, 9, 26, 27, 64, 100, 216, 256, 1000]: echo n, " ", palLine(uniformPalette(n))
+  of "q.palette":
+    let b = readBuf(a[2])
+    try: echo palLine(buildPalette(rgba(b), paletteKindFromId(a[3]).get, parseInt(a[4]), forcedArg(a[5])))
+    except QuantizeError as e: echo "ERR ", e.msg
+  of "q.quantize":
+    let b = readBuf(a[2])
+    var px = rgba(b)
+    let pal = buildPalette(px, paletteKindFromId(a[3]).get, parseInt(a[4]), forcedArg(a[5]))
+    let t = parseInt(a[8])
+    let idx = quantize(px, b.w, pal, ditherArg(a[6]), f(a[7]), (if t >= 0: some(t) else: none(int)))
+    var line = ""
+    for v in idx: line.add toHex(v, 2).toLowerAscii
+    echo line
+    writeF32(o, b.w, b.h, 4, flat4(px))
+  of "q.bitmap":
+    let b = readBuf(a[2])
+    var g = b.f
+    let m = (case a[3]
+      of "threshold": BitmapMethod(kind: bmThreshold)
+      of "pattern": BitmapMethod(kind: bmPattern)
+      of "diffusion": BitmapMethod(kind: bmDiffusion)
+      else: BitmapMethod(kind: bmHalftone, cell: f(a[4]), angle: f(a[5]), shape: halftoneShapeFromId(a[6]).get))
+    toBitmap(g, b.w, m)
+    writeF32(o, b.w, b.h, 1, g)
+  else: return false
+  true
+
 when isMainModule:
   let a = @[getAppFilename()] & commandLineParams()
   if a.len < 2: quit("usage: algocheck gen <dir> | <command> <args…> <out>")
   if a[1] == "gen": gen(a[2])
-  elif not (selectionCmd(a) or toneCmd(a) or hdrCmd(a) or exifCmd(a)): quit("unknown command " & a[1])
+  elif not (selectionCmd(a) or toneCmd(a) or hdrCmd(a) or exifCmd(a) or quantizeCmd(a)): quit("unknown command " & a[1])

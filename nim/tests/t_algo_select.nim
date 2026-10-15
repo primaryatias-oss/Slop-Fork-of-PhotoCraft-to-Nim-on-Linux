@@ -1,9 +1,9 @@
 ## Selection, histogram, tone and HDR algorithms (ports of the Rust unit tests). Bit parity with
 ## Rust is checked by `tools/algocheck.py` (see PORTING.md).
 
-import std/[unittest, options, math, sequtils]
+import std/[unittest, options, math, sequtils, algorithm]
 import photocraft/[geom, color, raster]
-import photocraft/algo/[selection, histogram, tone, hdr, util, exif]
+import photocraft/algo/[selection, histogram, tone, hdr, util, exif, quantize]
 
 proc img(w, h: int; f: proc(x, y: int): array[4, float32]): seq[array[4, float32]] =
   for y in 0 ..< h:
@@ -285,3 +285,60 @@ suite "exif":
         x = x xor (x shl 5)
         n.add byte(x and 0xFF)
       discard read(n)
+
+suite "quantize":
+  proc gradient(w, h: int): seq[array[4, float32]] =
+    for i in 0 ..< w * h: result.add [float32(i mod w) / float32(w - 1), float32(i div w) / float32(h - 1), 0.3'f32, 1]
+
+  test "fixed palettes have the expected sizes":
+    check webPalette().len == 216 and macPalette().len == 256 and windowsPalette().len == 256
+    check uniformPalette(27).len == 27
+    var m = macPalette()
+    m.sort(proc(a, b: Rgb8): int = cmp(int(a[0]) shl 16 or int(a[1]) shl 8 or int(a[2]), int(b[0]) shl 16 or int(b[1]) shl 8 or int(b[2])))
+    m = deduplicate(m, isSorted = true)
+    check m.len == 256
+
+  test "exact palette and failure":
+    check buildPalette([[1'f32, 0, 0, 1], [0'f32, 0, 1, 1], [1'f32, 0, 0, 1]], pkExact, 256, fcNone).len == 2
+    expect QuantizeError: discard buildPalette(gradient(64, 64), pkExact, 256, fcNone)
+
+  test "adaptive and perceptual respect count and forced colours":
+    for kind in [pkAdaptive, pkPerceptual, pkSelective]:
+      let pal = buildPalette(gradient(40, 40), kind, 16, fcBlackWhite)
+      check pal.len <= 16 and pal.len >= 8
+      check pal[0 .. 1] == @[[0'u8, 0, 0], [255'u8, 255, 255]]
+
+  test "forced colours filling the count leave no room and do not crash":
+    for kind in [pkAdaptive, pkPerceptual, pkSelective]:
+      check buildPalette(newSeqWith(16, [1'f32, 1, 1, 1]), kind, 2, fcBlackWhite) == @[[0'u8, 0, 0], [255'u8, 255, 255]]
+      check buildPalette(gradient(8, 8), kind, 8, fcPrimaries).len == 8
+
+  test "quantize maps to the palette with each dither":
+    let pal = @[[0'u8, 0, 0], [255'u8, 255, 255]]
+    for d in Dither:
+      var px: seq[array[4, float32]]
+      for i in 0 ..< 64:
+        let v = float32(i) / 63
+        px.add [v, v, v, 1'f32]
+      let idx = quantize(px, 8, pal, d, 1, none(int))
+      check px.allIt(it[0] == 0 or it[0] == 1)
+      check idx.len == 64
+      if d == dtDiffusion:
+        var mean = 0'f32
+        for p in px: mean += p[0]
+        check abs(mean / 64 - 0.5) < 0.08
+    var px = @[[1'f32, 1, 1, 0.2]]
+    let idx = quantize(px, 1, pal, dtNone, 1, some(1))
+    check idx[0] == 1 and px[0][3] == 0
+
+  test "bitmap methods are binary and track tone":
+    for m in [BitmapMethod(kind: bmThreshold), BitmapMethod(kind: bmPattern), BitmapMethod(kind: bmDiffusion),
+              BitmapMethod(kind: bmHalftone, cell: 6, angle: 45, shape: hsRound)]:
+      var g = newSeqWith(32 * 32, 0.25'f32)
+      toBitmap(g, 32, m)
+      check g.allIt(it == 0 or it == 1)
+      var mean = 0'f32
+      for v in g: mean += v
+      mean /= float32(g.len)
+      if m.kind != bmThreshold: check abs(mean - 0.25) < 0.15
+      else: check mean == 0
