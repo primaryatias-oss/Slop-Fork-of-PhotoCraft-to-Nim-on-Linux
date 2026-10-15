@@ -7,7 +7,7 @@
 
 import std/[os, strutils, options, math, tables, sequtils, json]
 import photocraft/[geom, raster]
-import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch, poisson, nonlocal, remove, perspective, scancrop, redeye, seam, magnetic, liquify, render2, pyramid, lens]
+import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch, poisson, nonlocal, remove, perspective, scancrop, redeye, seam, magnetic, liquify, render2, pyramid, lens, vanishing]
 import photocraft/color as pcolor
 import photocraft/color/blend
 
@@ -1184,6 +1184,63 @@ proc photoCmd(a: seq[string]): bool =
               let r = remap(s, bounds, o2, edge, map)
               echo "PixelFormat { mode: ", r.format.mode, ", sample: ", r.format.sample, ", alpha: ", r.format.alpha, " } ", r.tileCount, " ", r.channels
               v.add r.readRegion(o2)
+    writeF32(o, v.len, 1, 1, v)
+  of "vp.run":
+    let im = readBuf(a[2])
+    var surf = surfaceArg(a[3], im)
+    let full = rect(0, 0, im.w, im.h)
+    let q = nums64(a[4])
+    let plane = VpPlane(corners: [[q[0], q[1]], [q[2], q[3]], [q[4], q[5]], [q[6], q[7]]])
+    let c = [parseFloat(a[5]), parseFloat(a[6])]
+    let focal = (if a[7] == "-": none(float64) else: some(parseFloat(a[7])))
+    proc optB(v: Option[float64]): string = (if v.isSome: "Some(\"" & b64(v.get) & "\")" else: "None")
+    proc pcName(p: PlaneCheck): string = (case p
+      of pcValid: "Valid"
+      of pcQuestionable: "Questionable"
+      of pcInvalid: "Invalid")
+    echo "check ", pcName(plane.check(c)), " focal ", optB(plane.focal(c)), " norm ", quadLine(plane.normalized.corners)
+    var scene = newScene(plane, c, focal, parseFloat(a[8]))
+    echo "scene focal ", b64(scene.focal)
+    var v: seq[float32]
+    proc optI(v: Option[int]): string = (if v.isSome: "Some(" & $v.get & ")" else: "None")
+    for op in a[9 ..< a.len - 1]:
+      let t = op.splitWhitespace()
+      proc f(k: int): float64 = parseFloat(t[k])
+      case t[0]
+      of "plane":
+        let i = parseInt(t[1])
+        let l = scene.lifted(i)
+        var pts: seq[string]
+        for p in l.pts: pts.add b64(p[0]) & " " & b64(p[1]) & " " & b64(p[2])
+        let (lu, lv) = l.lengths
+        echo "plane ", quadLine(scene.planes[i].corners), " ", pts.join(" "), " lengths ", b64(lu), " ", b64(lv), " check ",
+             pcName(scene.planes[i].check(c))
+      of "tear":
+        let edge = (case t[2]
+          of "top": edTop
+          of "right": edRight
+          of "bottom": edBottom
+          else: edLeft)
+        echo "tear ", optI(scene.tearOff(parseInt(t[1]), edge, f(3), f(4)))
+      of "at": echo "at ", optI(scene.planeAt([f(1), f(2)]))
+      of "paste":
+        let r = rect(asI32(f(2)), asI32(f(3)), asI32(f(4)), asI32(f(5)))
+        let o2 = paste(scene, parseInt(t[1]), surf, r, [f(6), f(7)], f(8))
+        if o2.isSome:
+          let cb = o2.get.contentBounds
+          let fm = o2.get.format
+          echo "paste ", cb.x0, " ", cb.y0, " ", cb.x1, " ", cb.y1, " PixelFormat { mode: ", fm.mode, ", sample: ", fm.sample,
+               ", alpha: ", fm.alpha, " }"
+          v.add o2.get.readRegion(cb)
+        else: echo "paste none"
+      else:
+        var pts: seq[array[2, float64]]
+        var k = 6
+        while k + 1 < t.len:
+          pts.add [parseFloat(t[k]), parseFloat(t[k + 1])]
+          k += 2
+        echo "clone ", cloneStroke(scene, surf, [f(1), f(2)], pts, f(3), f(4), float32(f(5)))
+    v.add surf.readRegion(full)
     writeF32(o, v.len, 1, 1, v)
   of "lc.misc":
     for f in [-5.0, 0.0, 12.0, 14.0, 17.5, 18.5, 24.0, 35.0, 49.9, 85.0, 120.0, 200.0, 999.0, NaN, Inf]:

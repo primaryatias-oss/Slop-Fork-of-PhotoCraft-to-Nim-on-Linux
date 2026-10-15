@@ -2,7 +2,7 @@
 //! land, features, Photomerge, lens and camera models (see nim/PORTING.md).
 
 use crate::axio;
-use photocraft_algo::{lens, pyramid as py};
+use photocraft_algo::{lens, pyramid as py, vanishing as vp};
 use photocraft_geom::Rect;
 
 fn luma(b: &axio::Buf) -> Vec<f32> {
@@ -126,6 +126,61 @@ pub fn run(args: &[String]) -> bool {
                     }
                 }
             }
+            axio::write_f32(out, v.len(), 1, 1, &v);
+        }
+        "vp.run" => {
+            // img fmt corners cx cy focal|- fallback ops… (ops: "plane i", "tear i edge angle depth",
+            // "at x y", "paste i sx0 sy0 sx1 sy1 u v width", "clone sx sy size hardness opacity x y x y …")
+            let im = axio::read(a[2]);
+            let mut surf = crate::ax_retouch::surface(a[3], &im);
+            let full = Rect::new(0, 0, im.w as i32, im.h as i32);
+            let nums = |t: &str| -> Vec<f64> { t.split(',').map(|x| x.trim().parse().unwrap()).collect() };
+            let q = nums(a[4]);
+            let plane = vp::VpPlane { corners: [[q[0], q[1]], [q[2], q[3]], [q[4], q[5]], [q[6], q[7]]] };
+            let c = [a[5].parse::<f64>().unwrap(), a[6].parse::<f64>().unwrap()];
+            let focal = if a[7] == "-" { None } else { Some(a[7].parse::<f64>().unwrap()) };
+            let b = |v: f64| v.to_bits().to_string();
+            let quad = |q: &[[f64; 2]; 4]| q.iter().map(|p| format!("{} {}", b(p[0]), b(p[1]))).collect::<Vec<_>>().join(" ");
+            println!("check {:?} focal {:?} norm {}", plane.check(c), plane.focal(c).map(b), quad(&plane.normalized().corners));
+            let mut scene = vp::Scene::new(plane, c, focal, a[8].parse().unwrap());
+            println!("scene focal {}", b(scene.focal));
+            let mut v: Vec<f32> = Vec::new();
+            for op in &a[9..a.len() - 1] {
+                let t: Vec<&str> = op.split_whitespace().collect();
+                let f = |k: usize| -> f64 { t[k].parse().unwrap() };
+                match t[0] {
+                    "plane" => {
+                        let i: usize = t[1].parse().unwrap();
+                        let l = scene.lifted(i);
+                        let pts: Vec<String> = l.pts.iter().map(|p| format!("{} {} {}", b(p[0]), b(p[1]), b(p[2]))).collect();
+                        let (lu, lv) = l.lengths();
+                        println!("plane {} {} lengths {} {} check {:?}", quad(&scene.planes[i].corners), pts.join(" "), b(lu), b(lv), scene.planes[i].check(c));
+                    }
+                    "tear" => {
+                        let edge = match t[2] { "top" => vp::Edge::Top, "right" => vp::Edge::Right, "bottom" => vp::Edge::Bottom, _ => vp::Edge::Left };
+                        let r = scene.tear_off(t[1].parse().unwrap(), edge, f(3), f(4));
+                        println!("tear {:?}", r);
+                    }
+                    "at" => println!("at {:?}", scene.plane_at([f(1), f(2)])),
+                    "paste" => {
+                        let r = Rect::new(f(2) as i32, f(3) as i32, f(4) as i32, f(5) as i32);
+                        match vp::paste(&scene, t[1].parse().unwrap(), &surf, r, [f(6), f(7)], f(8)).unwrap() {
+                            Some(o) => {
+                                let cb = o.content_bounds();
+                                println!("paste {} {} {} {} {:?}", cb.x0, cb.y0, cb.x1, cb.y1, o.format());
+                                v.extend(o.read_region(cb));
+                            }
+                            None => println!("paste none"),
+                        }
+                    }
+                    _ => {
+                        let pts: Vec<[f64; 2]> = t[6..].chunks_exact(2).map(|c| [c[0].parse().unwrap(), c[1].parse().unwrap()]).collect();
+                        let n = vp::clone_stroke(&scene, &mut surf, [f(1), f(2)], &pts, f(3), f(4), f(5) as f32);
+                        println!("clone {n}");
+                    }
+                }
+            }
+            v.extend(surf.read_region(full));
             axio::write_f32(out, v.len(), 1, 1, &v);
         }
         "lc.misc" => {
