@@ -114,8 +114,8 @@ response, ghosts, tone mapping), EXIF, Indexed Color/Bitmap (`quantize`), Magic 
 Trap, gradient/bucket tools, retouch kernels (dodge, burn, sponge, local blur/sharpen), Poisson
 blending (`poisson`), non-local patch completion (`nonlocal`), the Remove Tool (`remove`, `holes`),
 Perspective Warp, Crop and Straighten Photos (`scancrop`), Red Eye, Content-Aware Scale (`seam`),
-Magnetic Lasso. Non-filter APIs are checked with `tools/algocheck.py` (`tools/algocases/*.json`,
-2375 command runs identical). 2869 of 2870 filter runs identical to Rust (`tools/filtercases.json`, 410 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
+Magnetic Lasso, Liquify. Non-filter APIs are checked with `tools/algocheck.py`
+(`tools/algocases/*.json`, 2511 command runs identical). 2869 of 2870 filter runs identical to Rust (`tools/filtercases.json`, 410 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
 | io (PSD/PSB ↔ document, layered TIFF, multi-part EXR, flat formats, facade) | ported, tested; see "io notes" below |
 | io: OpenRaster, Paint.NET | ported, tested |
 | io: SVG, camera raw, Affinity | pending (the facade reports "unsupported" until they land; SVG needs a usvg-style normalizer) |
@@ -164,6 +164,10 @@ by document JSON + tile hashes (`.pcraft`), raw float renders, or output bytes.
   implicit float32 ↔ float64 conversion in `src/photocraft`. Comparisons with exactly
   representable literals, `classify` and ±∞ tests are harmless; arithmetic sites are bugs (Rust
   computes them in f32). Run it after porting a module.
+* Where the Rust crate panics (or wraps in release builds) on input the port must survive, the
+  Nim code saturates instead, and the case stays out of the cross-check: Liquify's `dab` with a
+  valid stroke to x = 1e200 (the dab margin overflows `usize`) is one; `t_algo_liquify` keeps it
+  as a no-crash test.
 
 ## Text notes
 

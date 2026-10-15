@@ -1,0 +1,1042 @@
+[
+[
+"lq.field",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[30, 40], [45, 42], [60, 40]]}]"
+],
+[
+"lq.field",
+"10,5,80,60",
+"1",
+"[{\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[30, 40], [45, 42], [60, 40]]}]"
+],
+[
+"lq.field",
+"0,0,97,71",
+"3.5",
+"[{\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[30, 40], [45, 42], [60, 40]]}]"
+],
+[
+"lq.field",
+"-20,-10,120,90",
+"4",
+"[{\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[30, 40], [45, 42], [60, 40]]}]"
+],
+[
+"lq.field",
+"0,0,97,71",
+"100",
+"[{\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[30, 40], [45, 42], [60, 40]]}]"
+],
+[
+"lq.field",
+"0,0,97,71",
+"0.5",
+"[{\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[30, 40], [45, 42], [60, 40]]}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[30, 40], [45, 42], [60, 40]]}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb16x",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[30, 40], [45, 42], [60, 40]]}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb32",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[30, 40], [45, 42], [60, 40]]}]"
+],
+[
+"lq.apply",
+"@img",
+"cmyk8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[30, 40], [45, 42], [60, 40]]}]"
+],
+[
+"lq.apply",
+"@img",
+"gray16",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[30, 40], [45, 42], [60, 40]]}]"
+],
+[
+"lq.apply",
+"@img",
+"lab32x",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[30, 40], [45, 42], [60, 40]]}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb8",
+"10,5,80,60",
+"1",
+"[{\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[30, 40], [45, 42], [60, 40]]}]"
+],
+[
+"lq.apply",
+"@odd",
+"rgb32",
+"0,0,97,71",
+"3",
+"[{\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[30, 40], [45, 42], [60, 40]]}]"
+],
+[
+"lq.proxy",
+"@img",
+"rgb8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[30, 40], [45, 42], [60, 40]]}]",
+"40"
+],
+[
+"lq.proxy",
+"@img",
+"gray16x",
+"10,5,80,60",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[30, 40], [45, 42], [60, 40]]}]",
+"500"
+],
+[
+"lq.full",
+"@img",
+"rgb8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[30, 40], [45, 42], [60, 40]]}]",
+"20,10,70,60"
+],
+[
+"lq.full",
+"@img",
+"cmyk16",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[30, 40], [45, 42], [60, 40]]}]",
+"0,0,97,71"
+],
+[
+"lq.full",
+"@img",
+"rgb8x",
+"10,5,80,60",
+"1",
+"[{\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[30, 40], [45, 42], [60, 40]]}]",
+"0,0,200,200"
+],
+[
+"lq.field",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"twirlCw\", \"size\": 50, \"points\": [[48, 35], [48, 35], [48, 35, 0.5], [50, 36]], \"rate\": 90}, {\"tool\": \"twirlCcw\", \"size\": 30, \"points\": [[20, 20], [22, 21]]}]"
+],
+[
+"lq.field",
+"10,5,80,60",
+"1",
+"[{\"tool\": \"twirlCw\", \"size\": 50, \"points\": [[48, 35], [48, 35], [48, 35, 0.5], [50, 36]], \"rate\": 90}, {\"tool\": \"twirlCcw\", \"size\": 30, \"points\": [[20, 20], [22, 21]]}]"
+],
+[
+"lq.field",
+"0,0,97,71",
+"3.5",
+"[{\"tool\": \"twirlCw\", \"size\": 50, \"points\": [[48, 35], [48, 35], [48, 35, 0.5], [50, 36]], \"rate\": 90}, {\"tool\": \"twirlCcw\", \"size\": 30, \"points\": [[20, 20], [22, 21]]}]"
+],
+[
+"lq.field",
+"-20,-10,120,90",
+"4",
+"[{\"tool\": \"twirlCw\", \"size\": 50, \"points\": [[48, 35], [48, 35], [48, 35, 0.5], [50, 36]], \"rate\": 90}, {\"tool\": \"twirlCcw\", \"size\": 30, \"points\": [[20, 20], [22, 21]]}]"
+],
+[
+"lq.field",
+"0,0,97,71",
+"100",
+"[{\"tool\": \"twirlCw\", \"size\": 50, \"points\": [[48, 35], [48, 35], [48, 35, 0.5], [50, 36]], \"rate\": 90}, {\"tool\": \"twirlCcw\", \"size\": 30, \"points\": [[20, 20], [22, 21]]}]"
+],
+[
+"lq.field",
+"0,0,97,71",
+"0.5",
+"[{\"tool\": \"twirlCw\", \"size\": 50, \"points\": [[48, 35], [48, 35], [48, 35, 0.5], [50, 36]], \"rate\": 90}, {\"tool\": \"twirlCcw\", \"size\": 30, \"points\": [[20, 20], [22, 21]]}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"twirlCw\", \"size\": 50, \"points\": [[48, 35], [48, 35], [48, 35, 0.5], [50, 36]], \"rate\": 90}, {\"tool\": \"twirlCcw\", \"size\": 30, \"points\": [[20, 20], [22, 21]]}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb16x",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"twirlCw\", \"size\": 50, \"points\": [[48, 35], [48, 35], [48, 35, 0.5], [50, 36]], \"rate\": 90}, {\"tool\": \"twirlCcw\", \"size\": 30, \"points\": [[20, 20], [22, 21]]}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb32",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"twirlCw\", \"size\": 50, \"points\": [[48, 35], [48, 35], [48, 35, 0.5], [50, 36]], \"rate\": 90}, {\"tool\": \"twirlCcw\", \"size\": 30, \"points\": [[20, 20], [22, 21]]}]"
+],
+[
+"lq.apply",
+"@img",
+"cmyk8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"twirlCw\", \"size\": 50, \"points\": [[48, 35], [48, 35], [48, 35, 0.5], [50, 36]], \"rate\": 90}, {\"tool\": \"twirlCcw\", \"size\": 30, \"points\": [[20, 20], [22, 21]]}]"
+],
+[
+"lq.apply",
+"@img",
+"gray16",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"twirlCw\", \"size\": 50, \"points\": [[48, 35], [48, 35], [48, 35, 0.5], [50, 36]], \"rate\": 90}, {\"tool\": \"twirlCcw\", \"size\": 30, \"points\": [[20, 20], [22, 21]]}]"
+],
+[
+"lq.apply",
+"@img",
+"lab32x",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"twirlCw\", \"size\": 50, \"points\": [[48, 35], [48, 35], [48, 35, 0.5], [50, 36]], \"rate\": 90}, {\"tool\": \"twirlCcw\", \"size\": 30, \"points\": [[20, 20], [22, 21]]}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb8",
+"10,5,80,60",
+"1",
+"[{\"tool\": \"twirlCw\", \"size\": 50, \"points\": [[48, 35], [48, 35], [48, 35, 0.5], [50, 36]], \"rate\": 90}, {\"tool\": \"twirlCcw\", \"size\": 30, \"points\": [[20, 20], [22, 21]]}]"
+],
+[
+"lq.apply",
+"@odd",
+"rgb32",
+"0,0,97,71",
+"3",
+"[{\"tool\": \"twirlCw\", \"size\": 50, \"points\": [[48, 35], [48, 35], [48, 35, 0.5], [50, 36]], \"rate\": 90}, {\"tool\": \"twirlCcw\", \"size\": 30, \"points\": [[20, 20], [22, 21]]}]"
+],
+[
+"lq.proxy",
+"@img",
+"rgb8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"twirlCw\", \"size\": 50, \"points\": [[48, 35], [48, 35], [48, 35, 0.5], [50, 36]], \"rate\": 90}, {\"tool\": \"twirlCcw\", \"size\": 30, \"points\": [[20, 20], [22, 21]]}]",
+"40"
+],
+[
+"lq.proxy",
+"@img",
+"gray16x",
+"10,5,80,60",
+"2",
+"[{\"tool\": \"twirlCw\", \"size\": 50, \"points\": [[48, 35], [48, 35], [48, 35, 0.5], [50, 36]], \"rate\": 90}, {\"tool\": \"twirlCcw\", \"size\": 30, \"points\": [[20, 20], [22, 21]]}]",
+"500"
+],
+[
+"lq.full",
+"@img",
+"rgb8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"twirlCw\", \"size\": 50, \"points\": [[48, 35], [48, 35], [48, 35, 0.5], [50, 36]], \"rate\": 90}, {\"tool\": \"twirlCcw\", \"size\": 30, \"points\": [[20, 20], [22, 21]]}]",
+"20,10,70,60"
+],
+[
+"lq.full",
+"@img",
+"cmyk16",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"twirlCw\", \"size\": 50, \"points\": [[48, 35], [48, 35], [48, 35, 0.5], [50, 36]], \"rate\": 90}, {\"tool\": \"twirlCcw\", \"size\": 30, \"points\": [[20, 20], [22, 21]]}]",
+"0,0,97,71"
+],
+[
+"lq.full",
+"@img",
+"rgb8x",
+"10,5,80,60",
+"1",
+"[{\"tool\": \"twirlCw\", \"size\": 50, \"points\": [[48, 35], [48, 35], [48, 35, 0.5], [50, 36]], \"rate\": 90}, {\"tool\": \"twirlCcw\", \"size\": 30, \"points\": [[20, 20], [22, 21]]}]",
+"0,0,200,200"
+],
+[
+"lq.field",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"pucker\", \"size\": 36, \"points\": [[30, 30], [30, 30]]}, {\"tool\": \"bloat\", \"size\": 44, \"points\": [[60, 40], [61, 40], [62, 41]], \"density\": 0}, {\"tool\": \"pushLeft\", \"size\": 20, \"points\": [[10, 60], [80, 58]], \"pressure\": 60}, {\"tool\": \"forwardWarp\", \"size\": 25, \"points\": [[70, 10], [50, 30, 0.3], [40, 50, 1]], \"density\": 100}]"
+],
+[
+"lq.field",
+"10,5,80,60",
+"1",
+"[{\"tool\": \"pucker\", \"size\": 36, \"points\": [[30, 30], [30, 30]]}, {\"tool\": \"bloat\", \"size\": 44, \"points\": [[60, 40], [61, 40], [62, 41]], \"density\": 0}, {\"tool\": \"pushLeft\", \"size\": 20, \"points\": [[10, 60], [80, 58]], \"pressure\": 60}, {\"tool\": \"forwardWarp\", \"size\": 25, \"points\": [[70, 10], [50, 30, 0.3], [40, 50, 1]], \"density\": 100}]"
+],
+[
+"lq.field",
+"0,0,97,71",
+"3.5",
+"[{\"tool\": \"pucker\", \"size\": 36, \"points\": [[30, 30], [30, 30]]}, {\"tool\": \"bloat\", \"size\": 44, \"points\": [[60, 40], [61, 40], [62, 41]], \"density\": 0}, {\"tool\": \"pushLeft\", \"size\": 20, \"points\": [[10, 60], [80, 58]], \"pressure\": 60}, {\"tool\": \"forwardWarp\", \"size\": 25, \"points\": [[70, 10], [50, 30, 0.3], [40, 50, 1]], \"density\": 100}]"
+],
+[
+"lq.field",
+"-20,-10,120,90",
+"4",
+"[{\"tool\": \"pucker\", \"size\": 36, \"points\": [[30, 30], [30, 30]]}, {\"tool\": \"bloat\", \"size\": 44, \"points\": [[60, 40], [61, 40], [62, 41]], \"density\": 0}, {\"tool\": \"pushLeft\", \"size\": 20, \"points\": [[10, 60], [80, 58]], \"pressure\": 60}, {\"tool\": \"forwardWarp\", \"size\": 25, \"points\": [[70, 10], [50, 30, 0.3], [40, 50, 1]], \"density\": 100}]"
+],
+[
+"lq.field",
+"0,0,97,71",
+"100",
+"[{\"tool\": \"pucker\", \"size\": 36, \"points\": [[30, 30], [30, 30]]}, {\"tool\": \"bloat\", \"size\": 44, \"points\": [[60, 40], [61, 40], [62, 41]], \"density\": 0}, {\"tool\": \"pushLeft\", \"size\": 20, \"points\": [[10, 60], [80, 58]], \"pressure\": 60}, {\"tool\": \"forwardWarp\", \"size\": 25, \"points\": [[70, 10], [50, 30, 0.3], [40, 50, 1]], \"density\": 100}]"
+],
+[
+"lq.field",
+"0,0,97,71",
+"0.5",
+"[{\"tool\": \"pucker\", \"size\": 36, \"points\": [[30, 30], [30, 30]]}, {\"tool\": \"bloat\", \"size\": 44, \"points\": [[60, 40], [61, 40], [62, 41]], \"density\": 0}, {\"tool\": \"pushLeft\", \"size\": 20, \"points\": [[10, 60], [80, 58]], \"pressure\": 60}, {\"tool\": \"forwardWarp\", \"size\": 25, \"points\": [[70, 10], [50, 30, 0.3], [40, 50, 1]], \"density\": 100}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"pucker\", \"size\": 36, \"points\": [[30, 30], [30, 30]]}, {\"tool\": \"bloat\", \"size\": 44, \"points\": [[60, 40], [61, 40], [62, 41]], \"density\": 0}, {\"tool\": \"pushLeft\", \"size\": 20, \"points\": [[10, 60], [80, 58]], \"pressure\": 60}, {\"tool\": \"forwardWarp\", \"size\": 25, \"points\": [[70, 10], [50, 30, 0.3], [40, 50, 1]], \"density\": 100}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb16x",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"pucker\", \"size\": 36, \"points\": [[30, 30], [30, 30]]}, {\"tool\": \"bloat\", \"size\": 44, \"points\": [[60, 40], [61, 40], [62, 41]], \"density\": 0}, {\"tool\": \"pushLeft\", \"size\": 20, \"points\": [[10, 60], [80, 58]], \"pressure\": 60}, {\"tool\": \"forwardWarp\", \"size\": 25, \"points\": [[70, 10], [50, 30, 0.3], [40, 50, 1]], \"density\": 100}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb32",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"pucker\", \"size\": 36, \"points\": [[30, 30], [30, 30]]}, {\"tool\": \"bloat\", \"size\": 44, \"points\": [[60, 40], [61, 40], [62, 41]], \"density\": 0}, {\"tool\": \"pushLeft\", \"size\": 20, \"points\": [[10, 60], [80, 58]], \"pressure\": 60}, {\"tool\": \"forwardWarp\", \"size\": 25, \"points\": [[70, 10], [50, 30, 0.3], [40, 50, 1]], \"density\": 100}]"
+],
+[
+"lq.apply",
+"@img",
+"cmyk8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"pucker\", \"size\": 36, \"points\": [[30, 30], [30, 30]]}, {\"tool\": \"bloat\", \"size\": 44, \"points\": [[60, 40], [61, 40], [62, 41]], \"density\": 0}, {\"tool\": \"pushLeft\", \"size\": 20, \"points\": [[10, 60], [80, 58]], \"pressure\": 60}, {\"tool\": \"forwardWarp\", \"size\": 25, \"points\": [[70, 10], [50, 30, 0.3], [40, 50, 1]], \"density\": 100}]"
+],
+[
+"lq.apply",
+"@img",
+"gray16",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"pucker\", \"size\": 36, \"points\": [[30, 30], [30, 30]]}, {\"tool\": \"bloat\", \"size\": 44, \"points\": [[60, 40], [61, 40], [62, 41]], \"density\": 0}, {\"tool\": \"pushLeft\", \"size\": 20, \"points\": [[10, 60], [80, 58]], \"pressure\": 60}, {\"tool\": \"forwardWarp\", \"size\": 25, \"points\": [[70, 10], [50, 30, 0.3], [40, 50, 1]], \"density\": 100}]"
+],
+[
+"lq.apply",
+"@img",
+"lab32x",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"pucker\", \"size\": 36, \"points\": [[30, 30], [30, 30]]}, {\"tool\": \"bloat\", \"size\": 44, \"points\": [[60, 40], [61, 40], [62, 41]], \"density\": 0}, {\"tool\": \"pushLeft\", \"size\": 20, \"points\": [[10, 60], [80, 58]], \"pressure\": 60}, {\"tool\": \"forwardWarp\", \"size\": 25, \"points\": [[70, 10], [50, 30, 0.3], [40, 50, 1]], \"density\": 100}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb8",
+"10,5,80,60",
+"1",
+"[{\"tool\": \"pucker\", \"size\": 36, \"points\": [[30, 30], [30, 30]]}, {\"tool\": \"bloat\", \"size\": 44, \"points\": [[60, 40], [61, 40], [62, 41]], \"density\": 0}, {\"tool\": \"pushLeft\", \"size\": 20, \"points\": [[10, 60], [80, 58]], \"pressure\": 60}, {\"tool\": \"forwardWarp\", \"size\": 25, \"points\": [[70, 10], [50, 30, 0.3], [40, 50, 1]], \"density\": 100}]"
+],
+[
+"lq.apply",
+"@odd",
+"rgb32",
+"0,0,97,71",
+"3",
+"[{\"tool\": \"pucker\", \"size\": 36, \"points\": [[30, 30], [30, 30]]}, {\"tool\": \"bloat\", \"size\": 44, \"points\": [[60, 40], [61, 40], [62, 41]], \"density\": 0}, {\"tool\": \"pushLeft\", \"size\": 20, \"points\": [[10, 60], [80, 58]], \"pressure\": 60}, {\"tool\": \"forwardWarp\", \"size\": 25, \"points\": [[70, 10], [50, 30, 0.3], [40, 50, 1]], \"density\": 100}]"
+],
+[
+"lq.proxy",
+"@img",
+"rgb8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"pucker\", \"size\": 36, \"points\": [[30, 30], [30, 30]]}, {\"tool\": \"bloat\", \"size\": 44, \"points\": [[60, 40], [61, 40], [62, 41]], \"density\": 0}, {\"tool\": \"pushLeft\", \"size\": 20, \"points\": [[10, 60], [80, 58]], \"pressure\": 60}, {\"tool\": \"forwardWarp\", \"size\": 25, \"points\": [[70, 10], [50, 30, 0.3], [40, 50, 1]], \"density\": 100}]",
+"40"
+],
+[
+"lq.proxy",
+"@img",
+"gray16x",
+"10,5,80,60",
+"2",
+"[{\"tool\": \"pucker\", \"size\": 36, \"points\": [[30, 30], [30, 30]]}, {\"tool\": \"bloat\", \"size\": 44, \"points\": [[60, 40], [61, 40], [62, 41]], \"density\": 0}, {\"tool\": \"pushLeft\", \"size\": 20, \"points\": [[10, 60], [80, 58]], \"pressure\": 60}, {\"tool\": \"forwardWarp\", \"size\": 25, \"points\": [[70, 10], [50, 30, 0.3], [40, 50, 1]], \"density\": 100}]",
+"500"
+],
+[
+"lq.full",
+"@img",
+"rgb8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"pucker\", \"size\": 36, \"points\": [[30, 30], [30, 30]]}, {\"tool\": \"bloat\", \"size\": 44, \"points\": [[60, 40], [61, 40], [62, 41]], \"density\": 0}, {\"tool\": \"pushLeft\", \"size\": 20, \"points\": [[10, 60], [80, 58]], \"pressure\": 60}, {\"tool\": \"forwardWarp\", \"size\": 25, \"points\": [[70, 10], [50, 30, 0.3], [40, 50, 1]], \"density\": 100}]",
+"20,10,70,60"
+],
+[
+"lq.full",
+"@img",
+"cmyk16",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"pucker\", \"size\": 36, \"points\": [[30, 30], [30, 30]]}, {\"tool\": \"bloat\", \"size\": 44, \"points\": [[60, 40], [61, 40], [62, 41]], \"density\": 0}, {\"tool\": \"pushLeft\", \"size\": 20, \"points\": [[10, 60], [80, 58]], \"pressure\": 60}, {\"tool\": \"forwardWarp\", \"size\": 25, \"points\": [[70, 10], [50, 30, 0.3], [40, 50, 1]], \"density\": 100}]",
+"0,0,97,71"
+],
+[
+"lq.full",
+"@img",
+"rgb8x",
+"10,5,80,60",
+"1",
+"[{\"tool\": \"pucker\", \"size\": 36, \"points\": [[30, 30], [30, 30]]}, {\"tool\": \"bloat\", \"size\": 44, \"points\": [[60, 40], [61, 40], [62, 41]], \"density\": 0}, {\"tool\": \"pushLeft\", \"size\": 20, \"points\": [[10, 60], [80, 58]], \"pressure\": 60}, {\"tool\": \"forwardWarp\", \"size\": 25, \"points\": [[70, 10], [50, 30, 0.3], [40, 50, 1]], \"density\": 100}]",
+"0,0,200,200"
+],
+[
+"lq.field",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 60, \"points\": [[20, 35], [75, 35]]}, {\"tool\": \"smooth\", \"size\": 30, \"points\": [[48, 35], [48, 35], [50, 34]]}, {\"tool\": \"reconstruct\", \"size\": 24, \"points\": [[40, 30], [44, 30]], \"rate\": 50}, {\"tool\": \"reconstructAll\", \"size\": 1, \"points\": [], \"amount\": 40}]"
+],
+[
+"lq.field",
+"10,5,80,60",
+"1",
+"[{\"tool\": \"forwardWarp\", \"size\": 60, \"points\": [[20, 35], [75, 35]]}, {\"tool\": \"smooth\", \"size\": 30, \"points\": [[48, 35], [48, 35], [50, 34]]}, {\"tool\": \"reconstruct\", \"size\": 24, \"points\": [[40, 30], [44, 30]], \"rate\": 50}, {\"tool\": \"reconstructAll\", \"size\": 1, \"points\": [], \"amount\": 40}]"
+],
+[
+"lq.field",
+"0,0,97,71",
+"3.5",
+"[{\"tool\": \"forwardWarp\", \"size\": 60, \"points\": [[20, 35], [75, 35]]}, {\"tool\": \"smooth\", \"size\": 30, \"points\": [[48, 35], [48, 35], [50, 34]]}, {\"tool\": \"reconstruct\", \"size\": 24, \"points\": [[40, 30], [44, 30]], \"rate\": 50}, {\"tool\": \"reconstructAll\", \"size\": 1, \"points\": [], \"amount\": 40}]"
+],
+[
+"lq.field",
+"-20,-10,120,90",
+"4",
+"[{\"tool\": \"forwardWarp\", \"size\": 60, \"points\": [[20, 35], [75, 35]]}, {\"tool\": \"smooth\", \"size\": 30, \"points\": [[48, 35], [48, 35], [50, 34]]}, {\"tool\": \"reconstruct\", \"size\": 24, \"points\": [[40, 30], [44, 30]], \"rate\": 50}, {\"tool\": \"reconstructAll\", \"size\": 1, \"points\": [], \"amount\": 40}]"
+],
+[
+"lq.field",
+"0,0,97,71",
+"100",
+"[{\"tool\": \"forwardWarp\", \"size\": 60, \"points\": [[20, 35], [75, 35]]}, {\"tool\": \"smooth\", \"size\": 30, \"points\": [[48, 35], [48, 35], [50, 34]]}, {\"tool\": \"reconstruct\", \"size\": 24, \"points\": [[40, 30], [44, 30]], \"rate\": 50}, {\"tool\": \"reconstructAll\", \"size\": 1, \"points\": [], \"amount\": 40}]"
+],
+[
+"lq.field",
+"0,0,97,71",
+"0.5",
+"[{\"tool\": \"forwardWarp\", \"size\": 60, \"points\": [[20, 35], [75, 35]]}, {\"tool\": \"smooth\", \"size\": 30, \"points\": [[48, 35], [48, 35], [50, 34]]}, {\"tool\": \"reconstruct\", \"size\": 24, \"points\": [[40, 30], [44, 30]], \"rate\": 50}, {\"tool\": \"reconstructAll\", \"size\": 1, \"points\": [], \"amount\": 40}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 60, \"points\": [[20, 35], [75, 35]]}, {\"tool\": \"smooth\", \"size\": 30, \"points\": [[48, 35], [48, 35], [50, 34]]}, {\"tool\": \"reconstruct\", \"size\": 24, \"points\": [[40, 30], [44, 30]], \"rate\": 50}, {\"tool\": \"reconstructAll\", \"size\": 1, \"points\": [], \"amount\": 40}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb16x",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 60, \"points\": [[20, 35], [75, 35]]}, {\"tool\": \"smooth\", \"size\": 30, \"points\": [[48, 35], [48, 35], [50, 34]]}, {\"tool\": \"reconstruct\", \"size\": 24, \"points\": [[40, 30], [44, 30]], \"rate\": 50}, {\"tool\": \"reconstructAll\", \"size\": 1, \"points\": [], \"amount\": 40}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb32",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 60, \"points\": [[20, 35], [75, 35]]}, {\"tool\": \"smooth\", \"size\": 30, \"points\": [[48, 35], [48, 35], [50, 34]]}, {\"tool\": \"reconstruct\", \"size\": 24, \"points\": [[40, 30], [44, 30]], \"rate\": 50}, {\"tool\": \"reconstructAll\", \"size\": 1, \"points\": [], \"amount\": 40}]"
+],
+[
+"lq.apply",
+"@img",
+"cmyk8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 60, \"points\": [[20, 35], [75, 35]]}, {\"tool\": \"smooth\", \"size\": 30, \"points\": [[48, 35], [48, 35], [50, 34]]}, {\"tool\": \"reconstruct\", \"size\": 24, \"points\": [[40, 30], [44, 30]], \"rate\": 50}, {\"tool\": \"reconstructAll\", \"size\": 1, \"points\": [], \"amount\": 40}]"
+],
+[
+"lq.apply",
+"@img",
+"gray16",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 60, \"points\": [[20, 35], [75, 35]]}, {\"tool\": \"smooth\", \"size\": 30, \"points\": [[48, 35], [48, 35], [50, 34]]}, {\"tool\": \"reconstruct\", \"size\": 24, \"points\": [[40, 30], [44, 30]], \"rate\": 50}, {\"tool\": \"reconstructAll\", \"size\": 1, \"points\": [], \"amount\": 40}]"
+],
+[
+"lq.apply",
+"@img",
+"lab32x",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 60, \"points\": [[20, 35], [75, 35]]}, {\"tool\": \"smooth\", \"size\": 30, \"points\": [[48, 35], [48, 35], [50, 34]]}, {\"tool\": \"reconstruct\", \"size\": 24, \"points\": [[40, 30], [44, 30]], \"rate\": 50}, {\"tool\": \"reconstructAll\", \"size\": 1, \"points\": [], \"amount\": 40}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb8",
+"10,5,80,60",
+"1",
+"[{\"tool\": \"forwardWarp\", \"size\": 60, \"points\": [[20, 35], [75, 35]]}, {\"tool\": \"smooth\", \"size\": 30, \"points\": [[48, 35], [48, 35], [50, 34]]}, {\"tool\": \"reconstruct\", \"size\": 24, \"points\": [[40, 30], [44, 30]], \"rate\": 50}, {\"tool\": \"reconstructAll\", \"size\": 1, \"points\": [], \"amount\": 40}]"
+],
+[
+"lq.apply",
+"@odd",
+"rgb32",
+"0,0,97,71",
+"3",
+"[{\"tool\": \"forwardWarp\", \"size\": 60, \"points\": [[20, 35], [75, 35]]}, {\"tool\": \"smooth\", \"size\": 30, \"points\": [[48, 35], [48, 35], [50, 34]]}, {\"tool\": \"reconstruct\", \"size\": 24, \"points\": [[40, 30], [44, 30]], \"rate\": 50}, {\"tool\": \"reconstructAll\", \"size\": 1, \"points\": [], \"amount\": 40}]"
+],
+[
+"lq.proxy",
+"@img",
+"rgb8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 60, \"points\": [[20, 35], [75, 35]]}, {\"tool\": \"smooth\", \"size\": 30, \"points\": [[48, 35], [48, 35], [50, 34]]}, {\"tool\": \"reconstruct\", \"size\": 24, \"points\": [[40, 30], [44, 30]], \"rate\": 50}, {\"tool\": \"reconstructAll\", \"size\": 1, \"points\": [], \"amount\": 40}]",
+"40"
+],
+[
+"lq.proxy",
+"@img",
+"gray16x",
+"10,5,80,60",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 60, \"points\": [[20, 35], [75, 35]]}, {\"tool\": \"smooth\", \"size\": 30, \"points\": [[48, 35], [48, 35], [50, 34]]}, {\"tool\": \"reconstruct\", \"size\": 24, \"points\": [[40, 30], [44, 30]], \"rate\": 50}, {\"tool\": \"reconstructAll\", \"size\": 1, \"points\": [], \"amount\": 40}]",
+"500"
+],
+[
+"lq.full",
+"@img",
+"rgb8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 60, \"points\": [[20, 35], [75, 35]]}, {\"tool\": \"smooth\", \"size\": 30, \"points\": [[48, 35], [48, 35], [50, 34]]}, {\"tool\": \"reconstruct\", \"size\": 24, \"points\": [[40, 30], [44, 30]], \"rate\": 50}, {\"tool\": \"reconstructAll\", \"size\": 1, \"points\": [], \"amount\": 40}]",
+"20,10,70,60"
+],
+[
+"lq.full",
+"@img",
+"cmyk16",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 60, \"points\": [[20, 35], [75, 35]]}, {\"tool\": \"smooth\", \"size\": 30, \"points\": [[48, 35], [48, 35], [50, 34]]}, {\"tool\": \"reconstruct\", \"size\": 24, \"points\": [[40, 30], [44, 30]], \"rate\": 50}, {\"tool\": \"reconstructAll\", \"size\": 1, \"points\": [], \"amount\": 40}]",
+"0,0,97,71"
+],
+[
+"lq.full",
+"@img",
+"rgb8x",
+"10,5,80,60",
+"1",
+"[{\"tool\": \"forwardWarp\", \"size\": 60, \"points\": [[20, 35], [75, 35]]}, {\"tool\": \"smooth\", \"size\": 30, \"points\": [[48, 35], [48, 35], [50, 34]]}, {\"tool\": \"reconstruct\", \"size\": 24, \"points\": [[40, 30], [44, 30]], \"rate\": 50}, {\"tool\": \"reconstructAll\", \"size\": 1, \"points\": [], \"amount\": 40}]",
+"0,0,200,200"
+],
+[
+"lq.field",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"freeze\", \"size\": 30, \"points\": [[40, 35], [42, 36]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[20, 35], [70, 30]]}, {\"tool\": \"thaw\", \"size\": 16, \"points\": [[40, 35]]}, {\"tool\": \"invertFreeze\", \"size\": 1, \"points\": []}, {\"tool\": \"bloat\", \"size\": 40, \"points\": [[45, 35], [45, 35]]}, {\"tool\": \"freezeAll\", \"size\": 1, \"points\": []}, {\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[10, 10], [80, 60]]}, {\"tool\": \"thawAll\", \"size\": 1, \"points\": []}, {\"tool\": \"twirlCw\", \"size\": 40, \"points\": [[50, 40]]}]"
+],
+[
+"lq.field",
+"10,5,80,60",
+"1",
+"[{\"tool\": \"freeze\", \"size\": 30, \"points\": [[40, 35], [42, 36]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[20, 35], [70, 30]]}, {\"tool\": \"thaw\", \"size\": 16, \"points\": [[40, 35]]}, {\"tool\": \"invertFreeze\", \"size\": 1, \"points\": []}, {\"tool\": \"bloat\", \"size\": 40, \"points\": [[45, 35], [45, 35]]}, {\"tool\": \"freezeAll\", \"size\": 1, \"points\": []}, {\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[10, 10], [80, 60]]}, {\"tool\": \"thawAll\", \"size\": 1, \"points\": []}, {\"tool\": \"twirlCw\", \"size\": 40, \"points\": [[50, 40]]}]"
+],
+[
+"lq.field",
+"0,0,97,71",
+"3.5",
+"[{\"tool\": \"freeze\", \"size\": 30, \"points\": [[40, 35], [42, 36]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[20, 35], [70, 30]]}, {\"tool\": \"thaw\", \"size\": 16, \"points\": [[40, 35]]}, {\"tool\": \"invertFreeze\", \"size\": 1, \"points\": []}, {\"tool\": \"bloat\", \"size\": 40, \"points\": [[45, 35], [45, 35]]}, {\"tool\": \"freezeAll\", \"size\": 1, \"points\": []}, {\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[10, 10], [80, 60]]}, {\"tool\": \"thawAll\", \"size\": 1, \"points\": []}, {\"tool\": \"twirlCw\", \"size\": 40, \"points\": [[50, 40]]}]"
+],
+[
+"lq.field",
+"-20,-10,120,90",
+"4",
+"[{\"tool\": \"freeze\", \"size\": 30, \"points\": [[40, 35], [42, 36]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[20, 35], [70, 30]]}, {\"tool\": \"thaw\", \"size\": 16, \"points\": [[40, 35]]}, {\"tool\": \"invertFreeze\", \"size\": 1, \"points\": []}, {\"tool\": \"bloat\", \"size\": 40, \"points\": [[45, 35], [45, 35]]}, {\"tool\": \"freezeAll\", \"size\": 1, \"points\": []}, {\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[10, 10], [80, 60]]}, {\"tool\": \"thawAll\", \"size\": 1, \"points\": []}, {\"tool\": \"twirlCw\", \"size\": 40, \"points\": [[50, 40]]}]"
+],
+[
+"lq.field",
+"0,0,97,71",
+"100",
+"[{\"tool\": \"freeze\", \"size\": 30, \"points\": [[40, 35], [42, 36]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[20, 35], [70, 30]]}, {\"tool\": \"thaw\", \"size\": 16, \"points\": [[40, 35]]}, {\"tool\": \"invertFreeze\", \"size\": 1, \"points\": []}, {\"tool\": \"bloat\", \"size\": 40, \"points\": [[45, 35], [45, 35]]}, {\"tool\": \"freezeAll\", \"size\": 1, \"points\": []}, {\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[10, 10], [80, 60]]}, {\"tool\": \"thawAll\", \"size\": 1, \"points\": []}, {\"tool\": \"twirlCw\", \"size\": 40, \"points\": [[50, 40]]}]"
+],
+[
+"lq.field",
+"0,0,97,71",
+"0.5",
+"[{\"tool\": \"freeze\", \"size\": 30, \"points\": [[40, 35], [42, 36]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[20, 35], [70, 30]]}, {\"tool\": \"thaw\", \"size\": 16, \"points\": [[40, 35]]}, {\"tool\": \"invertFreeze\", \"size\": 1, \"points\": []}, {\"tool\": \"bloat\", \"size\": 40, \"points\": [[45, 35], [45, 35]]}, {\"tool\": \"freezeAll\", \"size\": 1, \"points\": []}, {\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[10, 10], [80, 60]]}, {\"tool\": \"thawAll\", \"size\": 1, \"points\": []}, {\"tool\": \"twirlCw\", \"size\": 40, \"points\": [[50, 40]]}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"freeze\", \"size\": 30, \"points\": [[40, 35], [42, 36]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[20, 35], [70, 30]]}, {\"tool\": \"thaw\", \"size\": 16, \"points\": [[40, 35]]}, {\"tool\": \"invertFreeze\", \"size\": 1, \"points\": []}, {\"tool\": \"bloat\", \"size\": 40, \"points\": [[45, 35], [45, 35]]}, {\"tool\": \"freezeAll\", \"size\": 1, \"points\": []}, {\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[10, 10], [80, 60]]}, {\"tool\": \"thawAll\", \"size\": 1, \"points\": []}, {\"tool\": \"twirlCw\", \"size\": 40, \"points\": [[50, 40]]}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb16x",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"freeze\", \"size\": 30, \"points\": [[40, 35], [42, 36]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[20, 35], [70, 30]]}, {\"tool\": \"thaw\", \"size\": 16, \"points\": [[40, 35]]}, {\"tool\": \"invertFreeze\", \"size\": 1, \"points\": []}, {\"tool\": \"bloat\", \"size\": 40, \"points\": [[45, 35], [45, 35]]}, {\"tool\": \"freezeAll\", \"size\": 1, \"points\": []}, {\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[10, 10], [80, 60]]}, {\"tool\": \"thawAll\", \"size\": 1, \"points\": []}, {\"tool\": \"twirlCw\", \"size\": 40, \"points\": [[50, 40]]}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb32",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"freeze\", \"size\": 30, \"points\": [[40, 35], [42, 36]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[20, 35], [70, 30]]}, {\"tool\": \"thaw\", \"size\": 16, \"points\": [[40, 35]]}, {\"tool\": \"invertFreeze\", \"size\": 1, \"points\": []}, {\"tool\": \"bloat\", \"size\": 40, \"points\": [[45, 35], [45, 35]]}, {\"tool\": \"freezeAll\", \"size\": 1, \"points\": []}, {\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[10, 10], [80, 60]]}, {\"tool\": \"thawAll\", \"size\": 1, \"points\": []}, {\"tool\": \"twirlCw\", \"size\": 40, \"points\": [[50, 40]]}]"
+],
+[
+"lq.apply",
+"@img",
+"cmyk8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"freeze\", \"size\": 30, \"points\": [[40, 35], [42, 36]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[20, 35], [70, 30]]}, {\"tool\": \"thaw\", \"size\": 16, \"points\": [[40, 35]]}, {\"tool\": \"invertFreeze\", \"size\": 1, \"points\": []}, {\"tool\": \"bloat\", \"size\": 40, \"points\": [[45, 35], [45, 35]]}, {\"tool\": \"freezeAll\", \"size\": 1, \"points\": []}, {\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[10, 10], [80, 60]]}, {\"tool\": \"thawAll\", \"size\": 1, \"points\": []}, {\"tool\": \"twirlCw\", \"size\": 40, \"points\": [[50, 40]]}]"
+],
+[
+"lq.apply",
+"@img",
+"gray16",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"freeze\", \"size\": 30, \"points\": [[40, 35], [42, 36]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[20, 35], [70, 30]]}, {\"tool\": \"thaw\", \"size\": 16, \"points\": [[40, 35]]}, {\"tool\": \"invertFreeze\", \"size\": 1, \"points\": []}, {\"tool\": \"bloat\", \"size\": 40, \"points\": [[45, 35], [45, 35]]}, {\"tool\": \"freezeAll\", \"size\": 1, \"points\": []}, {\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[10, 10], [80, 60]]}, {\"tool\": \"thawAll\", \"size\": 1, \"points\": []}, {\"tool\": \"twirlCw\", \"size\": 40, \"points\": [[50, 40]]}]"
+],
+[
+"lq.apply",
+"@img",
+"lab32x",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"freeze\", \"size\": 30, \"points\": [[40, 35], [42, 36]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[20, 35], [70, 30]]}, {\"tool\": \"thaw\", \"size\": 16, \"points\": [[40, 35]]}, {\"tool\": \"invertFreeze\", \"size\": 1, \"points\": []}, {\"tool\": \"bloat\", \"size\": 40, \"points\": [[45, 35], [45, 35]]}, {\"tool\": \"freezeAll\", \"size\": 1, \"points\": []}, {\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[10, 10], [80, 60]]}, {\"tool\": \"thawAll\", \"size\": 1, \"points\": []}, {\"tool\": \"twirlCw\", \"size\": 40, \"points\": [[50, 40]]}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb8",
+"10,5,80,60",
+"1",
+"[{\"tool\": \"freeze\", \"size\": 30, \"points\": [[40, 35], [42, 36]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[20, 35], [70, 30]]}, {\"tool\": \"thaw\", \"size\": 16, \"points\": [[40, 35]]}, {\"tool\": \"invertFreeze\", \"size\": 1, \"points\": []}, {\"tool\": \"bloat\", \"size\": 40, \"points\": [[45, 35], [45, 35]]}, {\"tool\": \"freezeAll\", \"size\": 1, \"points\": []}, {\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[10, 10], [80, 60]]}, {\"tool\": \"thawAll\", \"size\": 1, \"points\": []}, {\"tool\": \"twirlCw\", \"size\": 40, \"points\": [[50, 40]]}]"
+],
+[
+"lq.apply",
+"@odd",
+"rgb32",
+"0,0,97,71",
+"3",
+"[{\"tool\": \"freeze\", \"size\": 30, \"points\": [[40, 35], [42, 36]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[20, 35], [70, 30]]}, {\"tool\": \"thaw\", \"size\": 16, \"points\": [[40, 35]]}, {\"tool\": \"invertFreeze\", \"size\": 1, \"points\": []}, {\"tool\": \"bloat\", \"size\": 40, \"points\": [[45, 35], [45, 35]]}, {\"tool\": \"freezeAll\", \"size\": 1, \"points\": []}, {\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[10, 10], [80, 60]]}, {\"tool\": \"thawAll\", \"size\": 1, \"points\": []}, {\"tool\": \"twirlCw\", \"size\": 40, \"points\": [[50, 40]]}]"
+],
+[
+"lq.proxy",
+"@img",
+"rgb8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"freeze\", \"size\": 30, \"points\": [[40, 35], [42, 36]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[20, 35], [70, 30]]}, {\"tool\": \"thaw\", \"size\": 16, \"points\": [[40, 35]]}, {\"tool\": \"invertFreeze\", \"size\": 1, \"points\": []}, {\"tool\": \"bloat\", \"size\": 40, \"points\": [[45, 35], [45, 35]]}, {\"tool\": \"freezeAll\", \"size\": 1, \"points\": []}, {\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[10, 10], [80, 60]]}, {\"tool\": \"thawAll\", \"size\": 1, \"points\": []}, {\"tool\": \"twirlCw\", \"size\": 40, \"points\": [[50, 40]]}]",
+"40"
+],
+[
+"lq.proxy",
+"@img",
+"gray16x",
+"10,5,80,60",
+"2",
+"[{\"tool\": \"freeze\", \"size\": 30, \"points\": [[40, 35], [42, 36]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[20, 35], [70, 30]]}, {\"tool\": \"thaw\", \"size\": 16, \"points\": [[40, 35]]}, {\"tool\": \"invertFreeze\", \"size\": 1, \"points\": []}, {\"tool\": \"bloat\", \"size\": 40, \"points\": [[45, 35], [45, 35]]}, {\"tool\": \"freezeAll\", \"size\": 1, \"points\": []}, {\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[10, 10], [80, 60]]}, {\"tool\": \"thawAll\", \"size\": 1, \"points\": []}, {\"tool\": \"twirlCw\", \"size\": 40, \"points\": [[50, 40]]}]",
+"500"
+],
+[
+"lq.full",
+"@img",
+"rgb8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"freeze\", \"size\": 30, \"points\": [[40, 35], [42, 36]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[20, 35], [70, 30]]}, {\"tool\": \"thaw\", \"size\": 16, \"points\": [[40, 35]]}, {\"tool\": \"invertFreeze\", \"size\": 1, \"points\": []}, {\"tool\": \"bloat\", \"size\": 40, \"points\": [[45, 35], [45, 35]]}, {\"tool\": \"freezeAll\", \"size\": 1, \"points\": []}, {\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[10, 10], [80, 60]]}, {\"tool\": \"thawAll\", \"size\": 1, \"points\": []}, {\"tool\": \"twirlCw\", \"size\": 40, \"points\": [[50, 40]]}]",
+"20,10,70,60"
+],
+[
+"lq.full",
+"@img",
+"cmyk16",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"freeze\", \"size\": 30, \"points\": [[40, 35], [42, 36]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[20, 35], [70, 30]]}, {\"tool\": \"thaw\", \"size\": 16, \"points\": [[40, 35]]}, {\"tool\": \"invertFreeze\", \"size\": 1, \"points\": []}, {\"tool\": \"bloat\", \"size\": 40, \"points\": [[45, 35], [45, 35]]}, {\"tool\": \"freezeAll\", \"size\": 1, \"points\": []}, {\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[10, 10], [80, 60]]}, {\"tool\": \"thawAll\", \"size\": 1, \"points\": []}, {\"tool\": \"twirlCw\", \"size\": 40, \"points\": [[50, 40]]}]",
+"0,0,97,71"
+],
+[
+"lq.full",
+"@img",
+"rgb8x",
+"10,5,80,60",
+"1",
+"[{\"tool\": \"freeze\", \"size\": 30, \"points\": [[40, 35], [42, 36]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[20, 35], [70, 30]]}, {\"tool\": \"thaw\", \"size\": 16, \"points\": [[40, 35]]}, {\"tool\": \"invertFreeze\", \"size\": 1, \"points\": []}, {\"tool\": \"bloat\", \"size\": 40, \"points\": [[45, 35], [45, 35]]}, {\"tool\": \"freezeAll\", \"size\": 1, \"points\": []}, {\"tool\": \"forwardWarp\", \"size\": 40, \"points\": [[10, 10], [80, 60]]}, {\"tool\": \"thawAll\", \"size\": 1, \"points\": []}, {\"tool\": \"twirlCw\", \"size\": 40, \"points\": [[50, 40]]}]",
+"0,0,200,200"
+],
+[
+"lq.field",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[20, 10], [70, 15], [60, 60], [25, 50]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[10, 35], [85, 35]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[30, 20], [50, 20], [40, 45]], \"amount\": 0}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[35, 30], [45, 40]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[0, 0], [1, 1]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[5, 5], [90, 5], [5, 65], [90, 65]]}]"
+],
+[
+"lq.field",
+"10,5,80,60",
+"1",
+"[{\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[20, 10], [70, 15], [60, 60], [25, 50]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[10, 35], [85, 35]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[30, 20], [50, 20], [40, 45]], \"amount\": 0}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[35, 30], [45, 40]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[0, 0], [1, 1]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[5, 5], [90, 5], [5, 65], [90, 65]]}]"
+],
+[
+"lq.field",
+"0,0,97,71",
+"3.5",
+"[{\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[20, 10], [70, 15], [60, 60], [25, 50]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[10, 35], [85, 35]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[30, 20], [50, 20], [40, 45]], \"amount\": 0}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[35, 30], [45, 40]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[0, 0], [1, 1]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[5, 5], [90, 5], [5, 65], [90, 65]]}]"
+],
+[
+"lq.field",
+"-20,-10,120,90",
+"4",
+"[{\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[20, 10], [70, 15], [60, 60], [25, 50]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[10, 35], [85, 35]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[30, 20], [50, 20], [40, 45]], \"amount\": 0}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[35, 30], [45, 40]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[0, 0], [1, 1]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[5, 5], [90, 5], [5, 65], [90, 65]]}]"
+],
+[
+"lq.field",
+"0,0,97,71",
+"100",
+"[{\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[20, 10], [70, 15], [60, 60], [25, 50]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[10, 35], [85, 35]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[30, 20], [50, 20], [40, 45]], \"amount\": 0}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[35, 30], [45, 40]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[0, 0], [1, 1]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[5, 5], [90, 5], [5, 65], [90, 65]]}]"
+],
+[
+"lq.field",
+"0,0,97,71",
+"0.5",
+"[{\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[20, 10], [70, 15], [60, 60], [25, 50]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[10, 35], [85, 35]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[30, 20], [50, 20], [40, 45]], \"amount\": 0}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[35, 30], [45, 40]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[0, 0], [1, 1]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[5, 5], [90, 5], [5, 65], [90, 65]]}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[20, 10], [70, 15], [60, 60], [25, 50]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[10, 35], [85, 35]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[30, 20], [50, 20], [40, 45]], \"amount\": 0}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[35, 30], [45, 40]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[0, 0], [1, 1]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[5, 5], [90, 5], [5, 65], [90, 65]]}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb16x",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[20, 10], [70, 15], [60, 60], [25, 50]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[10, 35], [85, 35]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[30, 20], [50, 20], [40, 45]], \"amount\": 0}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[35, 30], [45, 40]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[0, 0], [1, 1]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[5, 5], [90, 5], [5, 65], [90, 65]]}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb32",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[20, 10], [70, 15], [60, 60], [25, 50]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[10, 35], [85, 35]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[30, 20], [50, 20], [40, 45]], \"amount\": 0}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[35, 30], [45, 40]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[0, 0], [1, 1]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[5, 5], [90, 5], [5, 65], [90, 65]]}]"
+],
+[
+"lq.apply",
+"@img",
+"cmyk8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[20, 10], [70, 15], [60, 60], [25, 50]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[10, 35], [85, 35]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[30, 20], [50, 20], [40, 45]], \"amount\": 0}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[35, 30], [45, 40]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[0, 0], [1, 1]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[5, 5], [90, 5], [5, 65], [90, 65]]}]"
+],
+[
+"lq.apply",
+"@img",
+"gray16",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[20, 10], [70, 15], [60, 60], [25, 50]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[10, 35], [85, 35]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[30, 20], [50, 20], [40, 45]], \"amount\": 0}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[35, 30], [45, 40]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[0, 0], [1, 1]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[5, 5], [90, 5], [5, 65], [90, 65]]}]"
+],
+[
+"lq.apply",
+"@img",
+"lab32x",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[20, 10], [70, 15], [60, 60], [25, 50]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[10, 35], [85, 35]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[30, 20], [50, 20], [40, 45]], \"amount\": 0}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[35, 30], [45, 40]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[0, 0], [1, 1]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[5, 5], [90, 5], [5, 65], [90, 65]]}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb8",
+"10,5,80,60",
+"1",
+"[{\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[20, 10], [70, 15], [60, 60], [25, 50]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[10, 35], [85, 35]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[30, 20], [50, 20], [40, 45]], \"amount\": 0}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[35, 30], [45, 40]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[0, 0], [1, 1]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[5, 5], [90, 5], [5, 65], [90, 65]]}]"
+],
+[
+"lq.apply",
+"@odd",
+"rgb32",
+"0,0,97,71",
+"3",
+"[{\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[20, 10], [70, 15], [60, 60], [25, 50]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[10, 35], [85, 35]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[30, 20], [50, 20], [40, 45]], \"amount\": 0}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[35, 30], [45, 40]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[0, 0], [1, 1]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[5, 5], [90, 5], [5, 65], [90, 65]]}]"
+],
+[
+"lq.proxy",
+"@img",
+"rgb8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[20, 10], [70, 15], [60, 60], [25, 50]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[10, 35], [85, 35]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[30, 20], [50, 20], [40, 45]], \"amount\": 0}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[35, 30], [45, 40]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[0, 0], [1, 1]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[5, 5], [90, 5], [5, 65], [90, 65]]}]",
+"40"
+],
+[
+"lq.proxy",
+"@img",
+"gray16x",
+"10,5,80,60",
+"2",
+"[{\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[20, 10], [70, 15], [60, 60], [25, 50]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[10, 35], [85, 35]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[30, 20], [50, 20], [40, 45]], \"amount\": 0}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[35, 30], [45, 40]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[0, 0], [1, 1]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[5, 5], [90, 5], [5, 65], [90, 65]]}]",
+"500"
+],
+[
+"lq.full",
+"@img",
+"rgb8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[20, 10], [70, 15], [60, 60], [25, 50]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[10, 35], [85, 35]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[30, 20], [50, 20], [40, 45]], \"amount\": 0}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[35, 30], [45, 40]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[0, 0], [1, 1]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[5, 5], [90, 5], [5, 65], [90, 65]]}]",
+"20,10,70,60"
+],
+[
+"lq.full",
+"@img",
+"cmyk16",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[20, 10], [70, 15], [60, 60], [25, 50]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[10, 35], [85, 35]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[30, 20], [50, 20], [40, 45]], \"amount\": 0}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[35, 30], [45, 40]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[0, 0], [1, 1]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[5, 5], [90, 5], [5, 65], [90, 65]]}]",
+"0,0,97,71"
+],
+[
+"lq.full",
+"@img",
+"rgb8x",
+"10,5,80,60",
+"1",
+"[{\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[20, 10], [70, 15], [60, 60], [25, 50]]}, {\"tool\": \"forwardWarp\", \"size\": 50, \"points\": [[10, 35], [85, 35]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[30, 20], [50, 20], [40, 45]], \"amount\": 0}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[35, 30], [45, 40]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[0, 0], [1, 1]]}, {\"tool\": \"lassoMask\", \"size\": 1, \"points\": [[5, 5], [90, 5], [5, 65], [90, 65]]}]",
+"0,0,200,200"
+],
+[
+"lq.field",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[1000000000000.0, 1000000000000.0], [-1000000000000.0, 40]]}, {\"tool\": \"forwardWarp\", \"size\": 1000000.0, \"points\": [[40, 30], [41, 30]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30, -1], [41, 30, 5]]}, {\"tool\": \"forwardWarp\", \"size\": 20, \"points\": [[30, 30]]}, {\"tool\": \"pucker\", \"size\": 20, \"points\": [[30, 30, 0.3, 9]]}, {\"tool\": \"bloat\", \"size\": 0.1, \"points\": [[30, 30]]}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[40, 30], [40, 30], [50, 30, 0]]}, {\"tool\": \"smooth\", \"size\": 20, \"points\": [[1]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"pressure\": 0}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"rate\": 0}, {\"tool\": \"pushLeft\", \"size\": 30, \"points\": [[40, 1e+300], [40, -1e+300]]}]"
+],
+[
+"lq.field",
+"10,5,80,60",
+"1",
+"[{\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[1000000000000.0, 1000000000000.0], [-1000000000000.0, 40]]}, {\"tool\": \"forwardWarp\", \"size\": 1000000.0, \"points\": [[40, 30], [41, 30]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30, -1], [41, 30, 5]]}, {\"tool\": \"forwardWarp\", \"size\": 20, \"points\": [[30, 30]]}, {\"tool\": \"pucker\", \"size\": 20, \"points\": [[30, 30, 0.3, 9]]}, {\"tool\": \"bloat\", \"size\": 0.1, \"points\": [[30, 30]]}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[40, 30], [40, 30], [50, 30, 0]]}, {\"tool\": \"smooth\", \"size\": 20, \"points\": [[1]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"pressure\": 0}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"rate\": 0}, {\"tool\": \"pushLeft\", \"size\": 30, \"points\": [[40, 1e+300], [40, -1e+300]]}]"
+],
+[
+"lq.field",
+"0,0,97,71",
+"3.5",
+"[{\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[1000000000000.0, 1000000000000.0], [-1000000000000.0, 40]]}, {\"tool\": \"forwardWarp\", \"size\": 1000000.0, \"points\": [[40, 30], [41, 30]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30, -1], [41, 30, 5]]}, {\"tool\": \"forwardWarp\", \"size\": 20, \"points\": [[30, 30]]}, {\"tool\": \"pucker\", \"size\": 20, \"points\": [[30, 30, 0.3, 9]]}, {\"tool\": \"bloat\", \"size\": 0.1, \"points\": [[30, 30]]}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[40, 30], [40, 30], [50, 30, 0]]}, {\"tool\": \"smooth\", \"size\": 20, \"points\": [[1]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"pressure\": 0}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"rate\": 0}, {\"tool\": \"pushLeft\", \"size\": 30, \"points\": [[40, 1e+300], [40, -1e+300]]}]"
+],
+[
+"lq.field",
+"-20,-10,120,90",
+"4",
+"[{\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[1000000000000.0, 1000000000000.0], [-1000000000000.0, 40]]}, {\"tool\": \"forwardWarp\", \"size\": 1000000.0, \"points\": [[40, 30], [41, 30]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30, -1], [41, 30, 5]]}, {\"tool\": \"forwardWarp\", \"size\": 20, \"points\": [[30, 30]]}, {\"tool\": \"pucker\", \"size\": 20, \"points\": [[30, 30, 0.3, 9]]}, {\"tool\": \"bloat\", \"size\": 0.1, \"points\": [[30, 30]]}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[40, 30], [40, 30], [50, 30, 0]]}, {\"tool\": \"smooth\", \"size\": 20, \"points\": [[1]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"pressure\": 0}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"rate\": 0}, {\"tool\": \"pushLeft\", \"size\": 30, \"points\": [[40, 1e+300], [40, -1e+300]]}]"
+],
+[
+"lq.field",
+"0,0,97,71",
+"100",
+"[{\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[1000000000000.0, 1000000000000.0], [-1000000000000.0, 40]]}, {\"tool\": \"forwardWarp\", \"size\": 1000000.0, \"points\": [[40, 30], [41, 30]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30, -1], [41, 30, 5]]}, {\"tool\": \"forwardWarp\", \"size\": 20, \"points\": [[30, 30]]}, {\"tool\": \"pucker\", \"size\": 20, \"points\": [[30, 30, 0.3, 9]]}, {\"tool\": \"bloat\", \"size\": 0.1, \"points\": [[30, 30]]}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[40, 30], [40, 30], [50, 30, 0]]}, {\"tool\": \"smooth\", \"size\": 20, \"points\": [[1]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"pressure\": 0}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"rate\": 0}, {\"tool\": \"pushLeft\", \"size\": 30, \"points\": [[40, 1e+300], [40, -1e+300]]}]"
+],
+[
+"lq.field",
+"0,0,97,71",
+"0.5",
+"[{\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[1000000000000.0, 1000000000000.0], [-1000000000000.0, 40]]}, {\"tool\": \"forwardWarp\", \"size\": 1000000.0, \"points\": [[40, 30], [41, 30]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30, -1], [41, 30, 5]]}, {\"tool\": \"forwardWarp\", \"size\": 20, \"points\": [[30, 30]]}, {\"tool\": \"pucker\", \"size\": 20, \"points\": [[30, 30, 0.3, 9]]}, {\"tool\": \"bloat\", \"size\": 0.1, \"points\": [[30, 30]]}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[40, 30], [40, 30], [50, 30, 0]]}, {\"tool\": \"smooth\", \"size\": 20, \"points\": [[1]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"pressure\": 0}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"rate\": 0}, {\"tool\": \"pushLeft\", \"size\": 30, \"points\": [[40, 1e+300], [40, -1e+300]]}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[1000000000000.0, 1000000000000.0], [-1000000000000.0, 40]]}, {\"tool\": \"forwardWarp\", \"size\": 1000000.0, \"points\": [[40, 30], [41, 30]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30, -1], [41, 30, 5]]}, {\"tool\": \"forwardWarp\", \"size\": 20, \"points\": [[30, 30]]}, {\"tool\": \"pucker\", \"size\": 20, \"points\": [[30, 30, 0.3, 9]]}, {\"tool\": \"bloat\", \"size\": 0.1, \"points\": [[30, 30]]}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[40, 30], [40, 30], [50, 30, 0]]}, {\"tool\": \"smooth\", \"size\": 20, \"points\": [[1]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"pressure\": 0}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"rate\": 0}, {\"tool\": \"pushLeft\", \"size\": 30, \"points\": [[40, 1e+300], [40, -1e+300]]}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb16x",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[1000000000000.0, 1000000000000.0], [-1000000000000.0, 40]]}, {\"tool\": \"forwardWarp\", \"size\": 1000000.0, \"points\": [[40, 30], [41, 30]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30, -1], [41, 30, 5]]}, {\"tool\": \"forwardWarp\", \"size\": 20, \"points\": [[30, 30]]}, {\"tool\": \"pucker\", \"size\": 20, \"points\": [[30, 30, 0.3, 9]]}, {\"tool\": \"bloat\", \"size\": 0.1, \"points\": [[30, 30]]}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[40, 30], [40, 30], [50, 30, 0]]}, {\"tool\": \"smooth\", \"size\": 20, \"points\": [[1]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"pressure\": 0}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"rate\": 0}, {\"tool\": \"pushLeft\", \"size\": 30, \"points\": [[40, 1e+300], [40, -1e+300]]}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb32",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[1000000000000.0, 1000000000000.0], [-1000000000000.0, 40]]}, {\"tool\": \"forwardWarp\", \"size\": 1000000.0, \"points\": [[40, 30], [41, 30]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30, -1], [41, 30, 5]]}, {\"tool\": \"forwardWarp\", \"size\": 20, \"points\": [[30, 30]]}, {\"tool\": \"pucker\", \"size\": 20, \"points\": [[30, 30, 0.3, 9]]}, {\"tool\": \"bloat\", \"size\": 0.1, \"points\": [[30, 30]]}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[40, 30], [40, 30], [50, 30, 0]]}, {\"tool\": \"smooth\", \"size\": 20, \"points\": [[1]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"pressure\": 0}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"rate\": 0}, {\"tool\": \"pushLeft\", \"size\": 30, \"points\": [[40, 1e+300], [40, -1e+300]]}]"
+],
+[
+"lq.apply",
+"@img",
+"cmyk8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[1000000000000.0, 1000000000000.0], [-1000000000000.0, 40]]}, {\"tool\": \"forwardWarp\", \"size\": 1000000.0, \"points\": [[40, 30], [41, 30]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30, -1], [41, 30, 5]]}, {\"tool\": \"forwardWarp\", \"size\": 20, \"points\": [[30, 30]]}, {\"tool\": \"pucker\", \"size\": 20, \"points\": [[30, 30, 0.3, 9]]}, {\"tool\": \"bloat\", \"size\": 0.1, \"points\": [[30, 30]]}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[40, 30], [40, 30], [50, 30, 0]]}, {\"tool\": \"smooth\", \"size\": 20, \"points\": [[1]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"pressure\": 0}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"rate\": 0}, {\"tool\": \"pushLeft\", \"size\": 30, \"points\": [[40, 1e+300], [40, -1e+300]]}]"
+],
+[
+"lq.apply",
+"@img",
+"gray16",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[1000000000000.0, 1000000000000.0], [-1000000000000.0, 40]]}, {\"tool\": \"forwardWarp\", \"size\": 1000000.0, \"points\": [[40, 30], [41, 30]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30, -1], [41, 30, 5]]}, {\"tool\": \"forwardWarp\", \"size\": 20, \"points\": [[30, 30]]}, {\"tool\": \"pucker\", \"size\": 20, \"points\": [[30, 30, 0.3, 9]]}, {\"tool\": \"bloat\", \"size\": 0.1, \"points\": [[30, 30]]}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[40, 30], [40, 30], [50, 30, 0]]}, {\"tool\": \"smooth\", \"size\": 20, \"points\": [[1]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"pressure\": 0}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"rate\": 0}, {\"tool\": \"pushLeft\", \"size\": 30, \"points\": [[40, 1e+300], [40, -1e+300]]}]"
+],
+[
+"lq.apply",
+"@img",
+"lab32x",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[1000000000000.0, 1000000000000.0], [-1000000000000.0, 40]]}, {\"tool\": \"forwardWarp\", \"size\": 1000000.0, \"points\": [[40, 30], [41, 30]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30, -1], [41, 30, 5]]}, {\"tool\": \"forwardWarp\", \"size\": 20, \"points\": [[30, 30]]}, {\"tool\": \"pucker\", \"size\": 20, \"points\": [[30, 30, 0.3, 9]]}, {\"tool\": \"bloat\", \"size\": 0.1, \"points\": [[30, 30]]}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[40, 30], [40, 30], [50, 30, 0]]}, {\"tool\": \"smooth\", \"size\": 20, \"points\": [[1]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"pressure\": 0}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"rate\": 0}, {\"tool\": \"pushLeft\", \"size\": 30, \"points\": [[40, 1e+300], [40, -1e+300]]}]"
+],
+[
+"lq.apply",
+"@img",
+"rgb8",
+"10,5,80,60",
+"1",
+"[{\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[1000000000000.0, 1000000000000.0], [-1000000000000.0, 40]]}, {\"tool\": \"forwardWarp\", \"size\": 1000000.0, \"points\": [[40, 30], [41, 30]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30, -1], [41, 30, 5]]}, {\"tool\": \"forwardWarp\", \"size\": 20, \"points\": [[30, 30]]}, {\"tool\": \"pucker\", \"size\": 20, \"points\": [[30, 30, 0.3, 9]]}, {\"tool\": \"bloat\", \"size\": 0.1, \"points\": [[30, 30]]}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[40, 30], [40, 30], [50, 30, 0]]}, {\"tool\": \"smooth\", \"size\": 20, \"points\": [[1]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"pressure\": 0}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"rate\": 0}, {\"tool\": \"pushLeft\", \"size\": 30, \"points\": [[40, 1e+300], [40, -1e+300]]}]"
+],
+[
+"lq.apply",
+"@odd",
+"rgb32",
+"0,0,97,71",
+"3",
+"[{\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[1000000000000.0, 1000000000000.0], [-1000000000000.0, 40]]}, {\"tool\": \"forwardWarp\", \"size\": 1000000.0, \"points\": [[40, 30], [41, 30]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30, -1], [41, 30, 5]]}, {\"tool\": \"forwardWarp\", \"size\": 20, \"points\": [[30, 30]]}, {\"tool\": \"pucker\", \"size\": 20, \"points\": [[30, 30, 0.3, 9]]}, {\"tool\": \"bloat\", \"size\": 0.1, \"points\": [[30, 30]]}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[40, 30], [40, 30], [50, 30, 0]]}, {\"tool\": \"smooth\", \"size\": 20, \"points\": [[1]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"pressure\": 0}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"rate\": 0}, {\"tool\": \"pushLeft\", \"size\": 30, \"points\": [[40, 1e+300], [40, -1e+300]]}]"
+],
+[
+"lq.proxy",
+"@img",
+"rgb8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[1000000000000.0, 1000000000000.0], [-1000000000000.0, 40]]}, {\"tool\": \"forwardWarp\", \"size\": 1000000.0, \"points\": [[40, 30], [41, 30]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30, -1], [41, 30, 5]]}, {\"tool\": \"forwardWarp\", \"size\": 20, \"points\": [[30, 30]]}, {\"tool\": \"pucker\", \"size\": 20, \"points\": [[30, 30, 0.3, 9]]}, {\"tool\": \"bloat\", \"size\": 0.1, \"points\": [[30, 30]]}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[40, 30], [40, 30], [50, 30, 0]]}, {\"tool\": \"smooth\", \"size\": 20, \"points\": [[1]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"pressure\": 0}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"rate\": 0}, {\"tool\": \"pushLeft\", \"size\": 30, \"points\": [[40, 1e+300], [40, -1e+300]]}]",
+"40"
+],
+[
+"lq.proxy",
+"@img",
+"gray16x",
+"10,5,80,60",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[1000000000000.0, 1000000000000.0], [-1000000000000.0, 40]]}, {\"tool\": \"forwardWarp\", \"size\": 1000000.0, \"points\": [[40, 30], [41, 30]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30, -1], [41, 30, 5]]}, {\"tool\": \"forwardWarp\", \"size\": 20, \"points\": [[30, 30]]}, {\"tool\": \"pucker\", \"size\": 20, \"points\": [[30, 30, 0.3, 9]]}, {\"tool\": \"bloat\", \"size\": 0.1, \"points\": [[30, 30]]}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[40, 30], [40, 30], [50, 30, 0]]}, {\"tool\": \"smooth\", \"size\": 20, \"points\": [[1]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"pressure\": 0}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"rate\": 0}, {\"tool\": \"pushLeft\", \"size\": 30, \"points\": [[40, 1e+300], [40, -1e+300]]}]",
+"500"
+],
+[
+"lq.full",
+"@img",
+"rgb8",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[1000000000000.0, 1000000000000.0], [-1000000000000.0, 40]]}, {\"tool\": \"forwardWarp\", \"size\": 1000000.0, \"points\": [[40, 30], [41, 30]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30, -1], [41, 30, 5]]}, {\"tool\": \"forwardWarp\", \"size\": 20, \"points\": [[30, 30]]}, {\"tool\": \"pucker\", \"size\": 20, \"points\": [[30, 30, 0.3, 9]]}, {\"tool\": \"bloat\", \"size\": 0.1, \"points\": [[30, 30]]}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[40, 30], [40, 30], [50, 30, 0]]}, {\"tool\": \"smooth\", \"size\": 20, \"points\": [[1]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"pressure\": 0}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"rate\": 0}, {\"tool\": \"pushLeft\", \"size\": 30, \"points\": [[40, 1e+300], [40, -1e+300]]}]",
+"20,10,70,60"
+],
+[
+"lq.full",
+"@img",
+"cmyk16",
+"0,0,97,71",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[1000000000000.0, 1000000000000.0], [-1000000000000.0, 40]]}, {\"tool\": \"forwardWarp\", \"size\": 1000000.0, \"points\": [[40, 30], [41, 30]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30, -1], [41, 30, 5]]}, {\"tool\": \"forwardWarp\", \"size\": 20, \"points\": [[30, 30]]}, {\"tool\": \"pucker\", \"size\": 20, \"points\": [[30, 30, 0.3, 9]]}, {\"tool\": \"bloat\", \"size\": 0.1, \"points\": [[30, 30]]}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[40, 30], [40, 30], [50, 30, 0]]}, {\"tool\": \"smooth\", \"size\": 20, \"points\": [[1]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"pressure\": 0}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"rate\": 0}, {\"tool\": \"pushLeft\", \"size\": 30, \"points\": [[40, 1e+300], [40, -1e+300]]}]",
+"0,0,97,71"
+],
+[
+"lq.full",
+"@img",
+"rgb8x",
+"10,5,80,60",
+"1",
+"[{\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[1000000000000.0, 1000000000000.0], [-1000000000000.0, 40]]}, {\"tool\": \"forwardWarp\", \"size\": 1000000.0, \"points\": [[40, 30], [41, 30]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30, -1], [41, 30, 5]]}, {\"tool\": \"forwardWarp\", \"size\": 20, \"points\": [[30, 30]]}, {\"tool\": \"pucker\", \"size\": 20, \"points\": [[30, 30, 0.3, 9]]}, {\"tool\": \"bloat\", \"size\": 0.1, \"points\": [[30, 30]]}, {\"tool\": \"forwardWarp\", \"size\": 30, \"points\": [[40, 30], [40, 30], [50, 30, 0]]}, {\"tool\": \"smooth\", \"size\": 20, \"points\": [[1]]}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"pressure\": 0}, {\"tool\": \"twirlCw\", \"size\": 20, \"points\": [[40, 30]], \"rate\": 0}, {\"tool\": \"pushLeft\", \"size\": 30, \"points\": [[40, 1e+300], [40, -1e+300]]}]",
+"0,0,200,200"
+],
+[
+"lq.apply",
+"@tex",
+"rgb8",
+"0,0,700,530",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 200, \"points\": [[100, 260], [600, 280]]}, {\"tool\": \"twirlCw\", \"size\": 300, \"points\": [[350, 265], [350, 265], [352, 266]], \"rate\": 100}, {\"tool\": \"bloat\", \"size\": 120, \"points\": [[550, 100], [550, 100]]}]"
+],
+[
+"lq.apply",
+"@tex",
+"rgb16",
+"100,50,650,500",
+"4",
+"[{\"tool\": \"forwardWarp\", \"size\": 200, \"points\": [[100, 260], [600, 280]]}, {\"tool\": \"twirlCw\", \"size\": 300, \"points\": [[350, 265], [350, 265], [352, 266]], \"rate\": 100}, {\"tool\": \"bloat\", \"size\": 120, \"points\": [[550, 100], [550, 100]]}]"
+],
+[
+"lq.proxy",
+"@tex",
+"rgb8",
+"0,0,700,530",
+"2",
+"[{\"tool\": \"forwardWarp\", \"size\": 200, \"points\": [[100, 260], [600, 280]]}, {\"tool\": \"twirlCw\", \"size\": 300, \"points\": [[350, 265], [350, 265], [352, 266]], \"rate\": 100}, {\"tool\": \"bloat\", \"size\": 120, \"points\": [[550, 100], [550, 100]]}]",
+"128"
+]
+]

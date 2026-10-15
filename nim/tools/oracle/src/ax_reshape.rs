@@ -3,7 +3,7 @@
 //! nim/PORTING.md).
 
 use crate::axio;
-use photocraft_algo::{magnetic, seam};
+use photocraft_algo::{liquify as lq, magnetic, seam};
 use photocraft_geom::Rect;
 
 fn opt_mask(path: &str) -> Option<Vec<f32>> {
@@ -87,6 +87,68 @@ pub fn run(args: &[String]) -> bool {
             }
             println!("cached {}", t.cached_pixels());
             std::fs::write(out, b"").unwrap();
+        }
+        "lq.field" | "lq.apply" | "lq.proxy" | "lq.full" => {
+            // lq.field bounds cell strokes | lq.apply img fmt bounds cell strokes
+            // | lq.proxy img fmt bounds cell strokes max_side | lq.full img fmt bounds cell strokes region
+            let k = if a[1] == "lq.field" { 2 } else { 4 };
+            let bounds = axio::rect(a[k]);
+            let cell: f64 = a[k + 1].parse().unwrap();
+            let strokes: Vec<lq::LiquifyStroke> = serde_json::from_str(a[k + 2]).unwrap();
+            let mut field = lq::LiquifyField::new(bounds, cell);
+            for st in &strokes {
+                let r = field.apply_stroke(st);
+                println!("dirty {} {} {} {} {:?}", r.x0, r.y0, r.x1, r.y1, st.validate().is_ok());
+            }
+            let b = |v: f64| v.to_bits().to_string();
+            println!("field {} {} {} {} {}", field.w, field.h, b(field.cell), field.max_displacement().to_bits(), field.is_identity());
+            if a[1] == "lq.field" {
+                let mut line = Vec::new();
+                for j in 0..=12 {
+                    for i in 0..=12 {
+                        let (x, y) = (f64::from(bounds.x0) - 10.0 + f64::from(bounds.width() + 20) * f64::from(i) / 12.0, f64::from(bounds.y0) - 10.0 + f64::from(bounds.height() + 20) * f64::from(j) / 12.0);
+                        let d = field.sample(x, y);
+                        line.push(format!("{} {} {}", b(d[0]), b(d[1]), field.freeze_at(x, y).to_bits()));
+                    }
+                }
+                println!("{}", line.join(" "));
+                let fo: Vec<String> = [-0.5, 0.0, 0.1, 0.5, 0.9, 1.0, 2.0, f64::NAN].iter().flat_map(|t| [0.0, 0.3, 1.0, f64::NAN, 7.0].map(|d| b(lq::falloff(*t, d)))).collect();
+                println!("falloff {}", fo.join(" "));
+                let mut v = Vec::new();
+                for (d, fr) in field.d.iter().zip(&field.freeze) {
+                    v.extend_from_slice(&[d[0], d[1], *fr]);
+                }
+                axio::write_f32(out, field.w, field.h, 3, &v);
+            } else {
+                let im = axio::read(a[2]);
+                let src = crate::ax_retouch::surface(a[3], &im);
+                let full = Rect::new(0, 0, im.w as i32, im.h as i32);
+                match a[1] {
+                    "lq.apply" => axio::dump_surface(out, &lq::apply_liquify(&src, &field), full),
+                    "lq.proxy" => {
+                        let p = lq::ProxyImage::new(&src, bounds, a[k + 3].parse().unwrap());
+                        println!("proxy {} {} {} {}", p.w, p.h, b(p.scale), p.bounds.x0);
+                        let mut o = vec![[0u8; 4]; p.w * p.h];
+                        p.render(&field, [0, 0, p.w, p.h], &mut o);
+                        let mut o2 = vec![[7u8; 4]; p.w * p.h];
+                        p.render(&field, p.proxy_rect(Rect::new(bounds.x0 + 5, bounds.y0 + 3, bounds.x0 + 30, bounds.y0 + 20)), &mut o2);
+                        println!("rect {:?}", p.proxy_rect(Rect::new(bounds.x0 + 5, bounds.y0 + 3, bounds.x0 + 30, bounds.y0 + 20)));
+                        let mut v: Vec<u8> = o.iter().flatten().copied().collect();
+                        v.extend(o2.iter().flatten().copied());
+                        v.extend(p.px.iter().flatten().flat_map(|x| x.to_le_bytes()));
+                        axio::write_u8(out, v.len(), 1, 1, &v);
+                    }
+                    _ => {
+                        let region = axio::rect(a[k + 3]);
+                        let ob = bounds.intersect(&field.bounds);
+                        let mut o = vec![[3u8; 4]; ob.width() as usize * ob.height() as usize];
+                        let mut scratch = Vec::new();
+                        println!("{}", lq::ProxyImage::render_full_resolution(&src, &field, bounds, region, &mut o, &mut scratch));
+                        let v: Vec<u8> = o.iter().flatten().copied().collect();
+                        axio::write_u8(out, v.len(), 1, 1, &v);
+                    }
+                }
+            }
         }
         _ => return false,
     }

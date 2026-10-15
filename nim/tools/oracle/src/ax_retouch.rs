@@ -6,7 +6,7 @@ use photocraft_color::{BlendMode, ColorMode, PixelFormat, SampleType};
 use photocraft_geom::Rect;
 use photocraft_raster::Surface;
 
-fn fmt(s: &str) -> PixelFormat {
+pub(crate) fn fmt(s: &str) -> PixelFormat {
     let (mode, rest) = if let Some(r) = s.strip_prefix("cmyk") {
         (ColorMode::Cmyk, r)
     } else if let Some(r) = s.strip_prefix("gray") {
@@ -26,7 +26,7 @@ fn fmt(s: &str) -> PixelFormat {
 }
 
 /// The RGBA float image as a surface in format `f`.
-fn surface(f: &str, b: &axio::Buf) -> Surface {
+pub(crate) fn surface(f: &str, b: &axio::Buf) -> Surface {
     let mut s = Surface::new(PixelFormat::new(ColorMode::Rgb, SampleType::F32, true));
     s.write_region(Rect::new(0, 0, b.w as i32, b.h as i32), &b.f);
     s.convert(fmt(f))

@@ -5,9 +5,9 @@
 ##   algocheck gen <dir>                 writes the shared input buffers
 ##   algocheck <command> <args…> <out>   runs one command (as `photocraft-oracle <command> …`)
 
-import std/[os, strutils, options, math, tables, sequtils]
+import std/[os, strutils, options, math, tables, sequtils, json]
 import photocraft/[geom, raster]
-import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch, poisson, nonlocal, remove, perspective, scancrop, redeye, seam, magnetic]
+import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch, poisson, nonlocal, remove, perspective, scancrop, redeye, seam, magnetic, liquify]
 import photocraft/color as pcolor
 import photocraft/color/blend
 
@@ -963,6 +963,65 @@ proc reshapeCmd(a: seq[string]): bool =
   of "cs.skin":
     let b = readBuf(a[2])
     writeF32(o, b.w, b.h, 1, skinMask(b.w, b.h, b.ch, b.f))
+  of "lq.field", "lq.apply", "lq.proxy", "lq.full":
+    let k = (if a[1] == "lq.field": 2 else: 4)
+    let bounds = rectArg(a[k])
+    let cell = parseFloat(a[k + 1])
+    var strokes: seq[LiquifyStroke]
+    for j in parseJson(a[k + 2]): strokes.add strokeFromJson(j)
+    var field = newLiquifyField(bounds, cell)
+    for st in strokes:
+      let r = field.applyStroke(st)
+      echo "dirty ", r.x0, " ", r.y0, " ", r.x1, " ", r.y1, " ", st.validate().isNone
+    echo "field ", field.w, " ", field.h, " ", b64(field.cell), " ", cast[uint32](field.maxDisplacement), " ", field.isIdentity
+    if a[1] == "lq.field":
+      var line: seq[string]
+      for j in 0 .. 12:
+        for i in 0 .. 12:
+          let (x, y) = (float64(bounds.x0) - 10.0 + float64(bounds.width + 20) * float64(i) / 12.0,
+                        float64(bounds.y0) - 10.0 + float64(bounds.height + 20) * float64(j) / 12.0)
+          let d = field.sample(x, y)
+          line.add b64(d[0]) & " " & b64(d[1]) & " " & $cast[uint32](field.freezeAt(x, y))
+      echo line.join(" ")
+      var fo: seq[string]
+      for t in [-0.5, 0.0, 0.1, 0.5, 0.9, 1.0, 2.0, NaN]:
+        for d in [0.0, 0.3, 1.0, NaN, 7.0]: fo.add b64(falloff(t, d))
+      echo "falloff ", fo.join(" ")
+      var v: seq[float32]
+      for q in 0 ..< field.d.len: v.add [field.d[q][0], field.d[q][1], field.freeze[q]]
+      writeF32(o, field.w, field.h, 3, v)
+    else:
+      let im = readBuf(a[2])
+      let src = surfaceArg(a[3], im)
+      let full = rect(0, 0, im.w, im.h)
+      case a[1]
+      of "lq.apply": dumpSurface(o, applyLiquify(src, field), full)
+      of "lq.proxy":
+        let p = newProxyImage(src, bounds, parseInt(a[k + 3]))
+        echo "proxy ", p.w, " ", p.h, " ", b64(p.scale), " ", p.bounds.x0
+        var o1 = newSeq[array[4, uint8]](p.w * p.h)
+        p.render(field, [0, 0, p.w, p.h], o1)
+        var o2 = newSeqWith(p.w * p.h, [7'u8, 7, 7, 7])
+        let pr = p.proxyRect(rect(bounds.x0 + 5, bounds.y0 + 3, bounds.x0 + 30, bounds.y0 + 20))
+        p.render(field, pr, o2)
+        echo "rect [", pr[0], ", ", pr[1], ", ", pr[2], ", ", pr[3], "]"
+        var v: seq[uint8]
+        for q in o1: v.add q
+        for q in o2: v.add q
+        for q in p.px:
+          for x in q:
+            let bits = cast[uint32](x)
+            for sh in 0 .. 3: v.add uint8((bits shr (8 * sh)) and 0xFF)
+        writeU8(o, v.len, 1, 1, v)
+      else:
+        let region = rectArg(a[k + 3])
+        let ob = bounds.intersect(field.bounds)
+        var o1 = newSeqWith(ob.width * ob.height, [3'u8, 3, 3, 3])
+        var scratch: seq[array[4, float32]]
+        echo renderFullResolution(src, field, bounds, region, o1, scratch)
+        var v: seq[uint8]
+        for q in o1: v.add q
+        writeU8(o, v.len, 1, 1, v)
   of "ml.run":
     let im = readBuf(a[2])
     let px = rgba8(im)

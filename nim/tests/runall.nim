@@ -23,3 +23,4 @@ import t_algo_select
 import t_algo_retouch
 import t_algo_fill
 import t_algo_reshape
+import t_algo_liquify
