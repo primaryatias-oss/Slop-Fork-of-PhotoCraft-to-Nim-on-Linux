@@ -28,3 +28,4 @@ import t_algo_render2
 import t_algo_pyramid
 import t_algo_lens
 import t_algo_vanishing
+import t_algo_wideangle

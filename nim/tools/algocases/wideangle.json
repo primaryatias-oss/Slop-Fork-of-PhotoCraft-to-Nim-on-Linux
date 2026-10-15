@@ -1,0 +1,155 @@
+[
+[
+"wa.solve",
+"0,0,700,530",
+"{}"
+],
+[
+"wa.solve",
+"0,0,700,350",
+"{}"
+],
+[
+"wa.solve",
+"100,50,400,500",
+"{}"
+],
+[
+"wa.solve",
+"0,0,700,530",
+"{\"model\": \"fisheye\", \"focalLength\": 10, \"constraints\": [{\"a\": [60, 40], \"b\": [600, 60]}, {\"a\": [100, 480], \"b\": [620, 470], \"orientation\": \"horizontal\"}, {\"a\": [40, 80], \"b\": [60, 500], \"orientation\": \"vertical\"}]}"
+],
+[
+"wa.solve",
+"0,0,700,350",
+"{\"model\": \"fisheye\", \"focalLength\": 10, \"constraints\": [{\"a\": [60, 40], \"b\": [600, 60]}, {\"a\": [100, 480], \"b\": [620, 470], \"orientation\": \"horizontal\"}, {\"a\": [40, 80], \"b\": [60, 500], \"orientation\": \"vertical\"}]}"
+],
+[
+"wa.solve",
+"100,50,400,500",
+"{\"model\": \"fisheye\", \"focalLength\": 10, \"constraints\": [{\"a\": [60, 40], \"b\": [600, 60]}, {\"a\": [100, 480], \"b\": [620, 470], \"orientation\": \"horizontal\"}, {\"a\": [40, 80], \"b\": [60, 500], \"orientation\": \"vertical\"}]}"
+],
+[
+"wa.solve",
+"0,0,700,530",
+"{\"model\": \"perspective\", \"focalLength\": 16, \"cropFactor\": 1.5, \"scale\": 90, \"constraints\": [{\"a\": [100, 100], \"b\": [600, 120]}, {\"a\": [300, 30], \"b\": [320, 500]}]}"
+],
+[
+"wa.solve",
+"0,0,700,350",
+"{\"model\": \"perspective\", \"focalLength\": 16, \"cropFactor\": 1.5, \"scale\": 90, \"constraints\": [{\"a\": [100, 100], \"b\": [600, 120]}, {\"a\": [300, 30], \"b\": [320, 500]}]}"
+],
+[
+"wa.solve",
+"100,50,400,500",
+"{\"model\": \"perspective\", \"focalLength\": 16, \"cropFactor\": 1.5, \"scale\": 90, \"constraints\": [{\"a\": [100, 100], \"b\": [600, 120]}, {\"a\": [300, 30], \"b\": [320, 500]}]}"
+],
+[
+"wa.solve",
+"0,0,700,530",
+"{\"model\": \"auto\", \"focalLength\": 14, \"constraints\": [{\"a\": [10, 260], \"b\": [690, 270], \"orientation\": \"horizontal\"}]}"
+],
+[
+"wa.solve",
+"0,0,700,350",
+"{\"model\": \"auto\", \"focalLength\": 14, \"constraints\": [{\"a\": [10, 260], \"b\": [690, 270], \"orientation\": \"horizontal\"}]}"
+],
+[
+"wa.solve",
+"100,50,400,500",
+"{\"model\": \"auto\", \"focalLength\": 14, \"constraints\": [{\"a\": [10, 260], \"b\": [690, 270], \"orientation\": \"horizontal\"}]}"
+],
+[
+"wa.solve",
+"0,0,700,530",
+"{\"model\": \"fullSpherical\", \"constraints\": [{\"a\": [50, 200], \"b\": [650, 210]}]}"
+],
+[
+"wa.solve",
+"0,0,700,350",
+"{\"model\": \"fullSpherical\", \"constraints\": [{\"a\": [50, 200], \"b\": [650, 210]}]}"
+],
+[
+"wa.solve",
+"100,50,400,500",
+"{\"model\": \"fullSpherical\", \"constraints\": [{\"a\": [50, 200], \"b\": [650, 210]}]}"
+],
+[
+"wa.solve",
+"0,0,700,530",
+"{\"model\": \"fisheye\", \"focalLength\": 0, \"scale\": 130, \"constraints\": [{\"a\": [350, 265], \"b\": [350, 265]}, {\"a\": [0, 0], \"b\": [700, 530]}]}"
+],
+[
+"wa.solve",
+"0,0,700,350",
+"{\"model\": \"fisheye\", \"focalLength\": 0, \"scale\": 130, \"constraints\": [{\"a\": [350, 265], \"b\": [350, 265]}, {\"a\": [0, 0], \"b\": [700, 530]}]}"
+],
+[
+"wa.solve",
+"100,50,400,500",
+"{\"model\": \"fisheye\", \"focalLength\": 0, \"scale\": 130, \"constraints\": [{\"a\": [350, 265], \"b\": [350, 265]}, {\"a\": [0, 0], \"b\": [700, 530]}]}"
+],
+[
+"wa.solve",
+"0,0,700,530",
+"{\"model\": \"auto\", \"focalLength\": -5, \"cropFactor\": 0, \"scale\": 0}"
+],
+[
+"wa.solve",
+"0,0,700,350",
+"{\"model\": \"auto\", \"focalLength\": -5, \"cropFactor\": 0, \"scale\": 0}"
+],
+[
+"wa.solve",
+"100,50,400,500",
+"{\"model\": \"auto\", \"focalLength\": -5, \"cropFactor\": 0, \"scale\": 0}"
+],
+[
+"wa.apply",
+"@tex",
+"rgb8",
+"0,0,700,530",
+"{}",
+"bicubic"
+],
+[
+"wa.apply",
+"@tex",
+"rgb16",
+"0,0,700,530",
+"{\"model\": \"fisheye\", \"focalLength\": 10, \"constraints\": [{\"a\": [60, 40], \"b\": [600, 60]}, {\"a\": [100, 480], \"b\": [620, 470], \"orientation\": \"horizontal\"}, {\"a\": [40, 80], \"b\": [60, 500], \"orientation\": \"vertical\"}]}",
+"bilinear"
+],
+[
+"wa.apply",
+"@tex",
+"rgb32",
+"0,0,700,530",
+"{\"model\": \"perspective\", \"focalLength\": 16, \"cropFactor\": 1.5, \"scale\": 90, \"constraints\": [{\"a\": [100, 100], \"b\": [600, 120]}, {\"a\": [300, 30], \"b\": [320, 500]}]}",
+"nearest"
+],
+[
+"wa.apply",
+"@tex",
+"cmyk8",
+"0,0,700,530",
+"{\"model\": \"auto\", \"focalLength\": 14, \"constraints\": [{\"a\": [10, 260], \"b\": [690, 270], \"orientation\": \"horizontal\"}]}",
+"bicubic"
+],
+[
+"wa.apply",
+"@tex",
+"gray16",
+"0,0,700,530",
+"{\"model\": \"fullSpherical\", \"constraints\": [{\"a\": [50, 200], \"b\": [650, 210]}]}",
+"bilinear"
+],
+[
+"wa.apply",
+"@img",
+"rgb8",
+"0,0,97,71",
+"{\"model\": \"fisheye\", \"focalLength\": 8, \"constraints\": [{\"a\": [5, 10], \"b\": [90, 12]}]}",
+"bicubic"
+]
+]

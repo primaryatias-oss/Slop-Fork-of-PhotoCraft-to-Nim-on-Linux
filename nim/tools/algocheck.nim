@@ -7,7 +7,7 @@
 
 import std/[os, strutils, options, math, tables, sequtils, json]
 import photocraft/[geom, raster]
-import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch, poisson, nonlocal, remove, perspective, scancrop, redeye, seam, magnetic, liquify, render2, pyramid, lens, vanishing]
+import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch, poisson, nonlocal, remove, perspective, scancrop, redeye, seam, magnetic, liquify, render2, pyramid, lens, vanishing, wideangle, transform]
 import photocraft/color as pcolor
 import photocraft/color/blend
 
@@ -1242,6 +1242,38 @@ proc photoCmd(a: seq[string]): bool =
         echo "clone ", cloneStroke(scene, surf, [f(1), f(2)], pts, f(3), f(4), float32(f(5)))
     v.add surf.readRegion(full)
     writeF32(o, v.len, 1, 1, v)
+  of "wa.solve", "wa.apply":
+    let k = (if a[1] == "wa.solve": 2 else: 4)
+    let frame = rectArg(a[k])
+    let p = wideAngleFromJson(parseJson(a[k + 1]))
+    let cam = newCamera(p, frame)
+    let modelName = (case cam.model
+      of wmAuto: "Auto"
+      of wmFisheye: "Fisheye"
+      of wmPerspective: "Perspective"
+      of wmFullSpherical: "FullSpherical")
+    echo "camera ", modelName, " ", b64(cam.f), " ", b64(cam.c[0]), " ", b64(cam.c[1]), " ", b64(cam.size[0]), " ", b64(cam.size[1])
+    for (x, y) in [(0.0, 0.0), (float64(frame.x1), float64(frame.y1) / 2.0), (cam.c[0] + 0.3, cam.c[1] - 7.0)]:
+      let r = cam.ray(x, y)
+      let back = cam.pixel(r)
+      echo "ray ", b64(r[0]), " ", b64(r[1]), " ", b64(r[2]), " back ",
+           (if back.isSome: "Some((\"" & b64(back.get[0]) & "\", \"" & b64(back.get[1]) & "\"))" else: "None")
+    if a[1] == "wa.solve":
+      let m = solve(p, frame)
+      echo "mesh ", m.nx, " ", m.ny, " ", b64(m.residual)
+      var vs: seq[string]
+      for (ov, sv) in m.verts: vs.add b64(ov[0]) & " " & b64(ov[1]) & " " & b64(sv[0]) & " " & b64(sv[1])
+      echo vs.join(" ")
+      for cv in m.curves:
+        var cs: seq[string]
+        for q in cv: cs.add b64(q[0]) & " " & b64(q[1])
+        echo "curve ", cs.join(" ")
+      writeFile(o, "")
+    else:
+      let im = readBuf(a[2])
+      let src = surfaceArg(a[3], im)
+      let r = wideangle.apply(src, frame, p, parseInterp(a[6]))
+      dumpSurface(o, r, rect(0, 0, im.w, im.h))
   of "lc.misc":
     for f in [-5.0, 0.0, 12.0, 14.0, 17.5, 18.5, 24.0, 35.0, 49.9, 85.0, 120.0, 200.0, 999.0, NaN, Inf]:
       let p = genericProfile(f)

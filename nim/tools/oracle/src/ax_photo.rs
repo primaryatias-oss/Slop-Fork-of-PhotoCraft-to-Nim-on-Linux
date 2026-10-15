@@ -2,7 +2,7 @@
 //! land, features, Photomerge, lens and camera models (see nim/PORTING.md).
 
 use crate::axio;
-use photocraft_algo::{lens, pyramid as py, vanishing as vp};
+use photocraft_algo::{lens, pyramid as py, vanishing as vp, wideangle as wa};
 use photocraft_geom::Rect;
 
 fn luma(b: &axio::Buf) -> Vec<f32> {
@@ -182,6 +182,36 @@ pub fn run(args: &[String]) -> bool {
             }
             v.extend(surf.read_region(full));
             axio::write_f32(out, v.len(), 1, 1, &v);
+        }
+        "wa.solve" | "wa.apply" => {
+            // wa.solve frame spec | wa.apply img fmt frame spec interp
+            let k = if a[1] == "wa.solve" { 2 } else { 4 };
+            let frame = axio::rect(a[k]);
+            let p: wa::WideAngle = serde_json::from_str(a[k + 1]).unwrap();
+            let b = |v: f64| v.to_bits().to_string();
+            let cam = wa::Camera::new(&p, frame);
+            println!("camera {:?} {} {} {} {} {}", cam.model, b(cam.f), b(cam.c[0]), b(cam.c[1]), b(cam.size[0]), b(cam.size[1]));
+            for (x, y) in [(0.0, 0.0), (f64::from(frame.x1), f64::from(frame.y1) / 2.0), (cam.c[0] + 0.3, cam.c[1] - 7.0)] {
+                let r = cam.ray(x, y);
+                println!("ray {} {} {} back {:?}", b(r[0]), b(r[1]), b(r[2]), cam.pixel(r).map(|q| (b(q[0]), b(q[1]))));
+            }
+            if a[1] == "wa.solve" {
+                let m = wa::solve(&p, frame);
+                println!("mesh {} {} {}", m.nx, m.ny, b(m.residual));
+                let vs: Vec<String> = m.verts.iter().map(|(o, s)| format!("{} {} {} {}", b(o[0]), b(o[1]), b(s[0]), b(s[1]))).collect();
+                println!("{}", vs.join(" "));
+                for cv in &m.curves {
+                    let c: Vec<String> = cv.iter().map(|q| format!("{} {}", b(q[0]), b(q[1]))).collect();
+                    println!("curve {}", c.join(" "));
+                }
+                std::fs::write(out, b"").unwrap();
+            } else {
+                let im = axio::read(a[2]);
+                let src = crate::ax_retouch::surface(a[3], &im);
+                let interp = photocraft_algo::transform::Interp::parse(a[6]);
+                let o = wa::apply(&src, frame, &p, interp);
+                axio::dump_surface(out, &o, Rect::new(0, 0, im.w as i32, im.h as i32));
+            }
         }
         "lc.misc" => {
             let b = |v: f64| v.to_bits().to_string();
