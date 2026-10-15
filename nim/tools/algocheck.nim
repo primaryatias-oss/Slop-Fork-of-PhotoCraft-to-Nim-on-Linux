@@ -7,7 +7,7 @@
 
 import std/[os, strutils, options, math, tables, sequtils, json]
 import photocraft/[geom, raster]
-import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch, poisson, nonlocal, remove, perspective, scancrop, redeye, seam, magnetic, liquify, render2, pyramid, lens, vanishing, wideangle, transform]
+import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch, poisson, nonlocal, remove, perspective, scancrop, redeye, seam, magnetic, liquify, render2, pyramid, lens, vanishing, wideangle, transform, puppet]
 import photocraft/color as pcolor
 import photocraft/color/blend
 
@@ -277,6 +277,22 @@ proc gen(dir: string) =
       if x > 270 and y < 30: v[3] = 0
       for c in 0 .. 3: edge8[(y * mw + x) * 4 + c] = v[c]
   writeU8(dir / "edge8.pcim", mw, mh, 4, edge8)
+  # Shapes on transparency (Puppet Warp): a blob, a ring and a speck, with soft edges.
+  let (pw2, ph2) = (240, 180)
+  var shapes = newSeq[float32](pw2 * ph2 * 4)
+  for y in 0 ..< ph2:
+    for x in 0 ..< pw2:
+      let d1 = hypot(float64(x) - 70.0, (float64(y) - 90.0) * 1.6) - 45.0
+      let d2 = abs(hypot(float64(x) - 170.0, float64(y) - 80.0) - 35.0) - 9.0
+      let d3 = hypot(float64(x) - 215.0, float64(y) - 160.0) - 3.0
+      let d = min(min(d1, d2), d3)
+      let a = clamp(0.5 - d, 0.0, 1.0)
+      let k = (y * pw2 + x) * 4
+      shapes[k] = 0.2'f32 + 0.6'f32 * float32(x) / float32(pw2)
+      shapes[k + 1] = 0.5'f32
+      shapes[k + 2] = 0.8'f32 - 0.5'f32 * float32(y) / float32(ph2)
+      shapes[k + 3] = float32(a)
+  writeF32(dir / "shapes.pcim", pw2, ph2, 4, shapes)
   # A focus stack: three shots of one scene, each sharp in its own band and blurred elsewhere,
   # the third partly transparent.
   let (fw, fh) = (120, 90)
@@ -1274,6 +1290,53 @@ proc photoCmd(a: seq[string]): bool =
       let src = surfaceArg(a[3], im)
       let r = wideangle.apply(src, frame, p, parseInterp(a[6]))
       dumpSurface(o, r, rect(0, 0, im.w, im.h))
+  of "pp.mesh", "pp.solve", "pp.apply":
+    let im = readBuf(a[2])
+    let src = surfaceArg(a[3], im)
+    let bounds = rectArg(a[4])
+    proc pts(v: openArray[array[2, float64]]): string =
+      var parts: seq[string]
+      for p in v: parts.add b64(p[0]) & " " & b64(p[1])
+      parts.join(" ")
+    proc ints(v: openArray[int]): string =
+      var parts: seq[string]
+      for x in v: parts.add $x
+      "[" & parts.join(", ") & "]"
+    proc trisStr(v: openArray[array[3, int]]): string =
+      var parts: seq[string]
+      for t in v: parts.add "[" & $t[0] & ", " & $t[1] & ", " & $t[2] & "]"
+      "[" & parts.join(", ") & "]"
+    case a[1]
+    of "pp.mesh":
+      let m = buildMesh(src, bounds, parsePuppetDensity(a[5]).get, parseFloat(a[6]))
+      echo "mesh ", m.verts.len, " ", m.tris.len, " ", b64(m.spacing)
+      echo pts(m.verts)
+      echo trisStr(m.tris)
+    of "pp.solve":
+      let w = puppetWarpFromJson(parseJson(a[5]))
+      let it = parseInt(a[6])
+      let (solver, v, order) = deform(src, bounds, w, it)
+      echo "mesh ", solver.mesh.verts.len, " ", solver.mesh.tris.len
+      echo pts(v)
+      echo ints(order)
+      var dst: seq[array[2, float64]]
+      var rot: seq[Option[float64]]
+      for p in w.pins:
+        dst.add p.dst
+        rot.add p.rotate
+      let (_, energies) = solver.solve(dst, rot, w.mode, 3, some(v))
+      var es: seq[string]
+      for e in energies: es.add b64(e)
+      echo "energy ", b64(solver.energy(v, dst, rot)), " ", es.join(" ")
+      echo "identity ", w.isIdentity
+    else:
+      let w = puppetWarpFromJson(parseJson(a[5]))
+      let r = puppetWarp(src, bounds, w, parseInterp(a[6]))
+      if r.isSome:
+        dumpSurface(o, r.get, rect(0, 0, im.w, im.h))
+        return true
+      echo "none"
+    writeFile(o, "")
   of "lc.misc":
     for f in [-5.0, 0.0, 12.0, 14.0, 17.5, 18.5, 24.0, 35.0, 49.9, 85.0, 120.0, 200.0, 999.0, NaN, Inf]:
       let p = genericProfile(f)

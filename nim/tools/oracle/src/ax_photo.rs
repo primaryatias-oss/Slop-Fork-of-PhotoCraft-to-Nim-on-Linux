@@ -2,7 +2,7 @@
 //! land, features, Photomerge, lens and camera models (see nim/PORTING.md).
 
 use crate::axio;
-use photocraft_algo::{lens, pyramid as py, vanishing as vp, wideangle as wa};
+use photocraft_algo::{lens, puppet, pyramid as py, vanishing as vp, wideangle as wa};
 use photocraft_geom::Rect;
 
 fn luma(b: &axio::Buf) -> Vec<f32> {
@@ -212,6 +212,48 @@ pub fn run(args: &[String]) -> bool {
                 let o = wa::apply(&src, frame, &p, interp);
                 axio::dump_surface(out, &o, Rect::new(0, 0, im.w as i32, im.h as i32));
             }
+        }
+        "pp.mesh" | "pp.solve" | "pp.apply" => {
+            // pp.mesh img fmt bounds density expansion | pp.solve img fmt bounds warp iterations
+            // | pp.apply img fmt bounds warp interp
+            let im = axio::read(a[2]);
+            let src = crate::ax_retouch::surface(a[3], &im);
+            let bounds = axio::rect(a[4]);
+            let b = |v: f64| v.to_bits().to_string();
+            let pts = |v: &[[f64; 2]]| v.iter().map(|p| format!("{} {}", b(p[0]), b(p[1]))).collect::<Vec<_>>().join(" ");
+            match a[1] {
+                "pp.mesh" => {
+                    let m = puppet::build_mesh(&src, bounds, puppet::PuppetDensity::parse(a[5]).unwrap(), a[6].parse().unwrap());
+                    println!("mesh {} {} {}", m.verts.len(), m.tris.len(), b(m.spacing));
+                    println!("{}", pts(&m.verts));
+                    println!("{:?}", m.tris);
+                }
+                "pp.solve" => {
+                    let w: puppet::PuppetWarp = serde_json::from_str(a[5]).unwrap();
+                    let it: usize = a[6].parse().unwrap();
+                    let (solver, v, order) = puppet::deform(&src, bounds, &w, it);
+                    println!("mesh {} {}", solver.mesh.verts.len(), solver.mesh.tris.len());
+                    println!("{}", pts(&v));
+                    println!("{:?}", order);
+                    let dst: Vec<[f64; 2]> = w.pins.iter().map(|p| p.dst).collect();
+                    let rot: Vec<Option<f64>> = w.pins.iter().map(|p| p.rotate).collect();
+                    let (_, energies) = solver.solve(&dst, &rot, w.mode, 3, Some(&v));
+                    println!("energy {} {}", b(solver.energy(&v, &dst, &rot)), energies.iter().map(|e| b(*e)).collect::<Vec<_>>().join(" "));
+                    println!("identity {}", w.is_identity());
+                }
+                _ => {
+                    let w: puppet::PuppetWarp = serde_json::from_str(a[5]).unwrap();
+                    let interp = photocraft_algo::transform::Interp::parse(a[6]);
+                    match puppet::puppet_warp(&src, bounds, &w, interp) {
+                        Some(o) => {
+                            axio::dump_surface(out, &o, Rect::new(0, 0, im.w as i32, im.h as i32));
+                            return true;
+                        }
+                        None => println!("none"),
+                    }
+                }
+            }
+            std::fs::write(out, b"").unwrap();
         }
         "lc.misc" => {
             let b = |v: f64| v.to_bits().to_string();
