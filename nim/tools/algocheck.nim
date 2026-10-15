@@ -7,7 +7,7 @@
 
 import std/[os, strutils, options, math, tables, sequtils, json]
 import photocraft/[geom, raster]
-import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch, poisson, nonlocal, remove, perspective, scancrop, redeye, seam, magnetic, liquify, render2]
+import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch, poisson, nonlocal, remove, perspective, scancrop, redeye, seam, magnetic, liquify, render2, pyramid]
 import photocraft/color as pcolor
 import photocraft/color/blend
 
@@ -277,6 +277,38 @@ proc gen(dir: string) =
       if x > 270 and y < 30: v[3] = 0
       for c in 0 .. 3: edge8[(y * mw + x) * 4 + c] = v[c]
   writeU8(dir / "edge8.pcim", mw, mh, 4, edge8)
+  # A focus stack: three shots of one scene, each sharp in its own band and blurred elsewhere,
+  # the third partly transparent.
+  let (fw, fh) = (120, 90)
+  var scene2 = newSeq[array[3, float32]](fw * fh)
+  for y in 0 ..< fh:
+    for x in 0 ..< fw:
+      let n = float32(hashU(uint32(x), uint32(y), 29) and 0xFF) / 255'f32
+      let ck = (if ((x div 3) + (y div 3)) mod 2 == 0: 0.25'f32 else: 0.75'f32)
+      scene2[y * fw + x] = [ck * 0.8'f32 + 0.2'f32 * n, 0.3'f32 + 0.4'f32 * float32(x) / float32(fw), ck * 0.5'f32 + 0.1'f32 * n]
+  var blurred = newSeq[array[3, float32]](fw * fh)
+  for y in 0 ..< fh:
+    for x in 0 ..< fw:
+      var s = [0'f32, 0, 0]
+      var cnt = 0'f32
+      for dy in -3 .. 3:
+        for dx in -3 .. 3:
+          let (xx, yy) = (clamp(x + dx, 0, fw - 1), clamp(y + dy, 0, fh - 1))
+          for c in 0 .. 2: s[c] += scene2[yy * fw + xx][c]
+          cnt += 1
+      blurred[y * fw + x] = [s[0] / cnt, s[1] / cnt, s[2] / cnt]
+  for k in 0 .. 2:
+    var shot = newSeq[float32](fw * fh * 4)
+    for y in 0 ..< fh:
+      for x in 0 ..< fw:
+        let sharp = x div 40 == k
+        let p = (if sharp: scene2[y * fw + x] else: blurred[y * fw + x])
+        let i = (y * fw + x) * 4
+        shot[i] = p[0]
+        shot[i + 1] = p[1]
+        shot[i + 2] = p[2]
+        shot[i + 3] = (if k == 2 and y < 20: 0'f32 elif k == 2 and y < 30: 0.4'f32 else: 1'f32)
+    writeF32(dir / ("fs" & $k & ".pcim"), fw, fh, 4, shot)
 
 # ---------------------------------------------------------------- selection
 
@@ -1094,8 +1126,78 @@ proc reshapeCmd(a: seq[string]): bool =
   else: return false
   true
 
+# ---------------------------------------------------------------- photo merge
+
+proc lumaOf(b: Buf): seq[float32] =
+  for i in 0 ..< b.f.len div b.ch:
+    result.add (if b.ch >= 3: 0.2126'f32 * b.f[i * b.ch] + 0.7152'f32 * b.f[i * b.ch + 1] + 0.0722'f32 * b.f[i * b.ch + 2] else: b.f[i * b.ch])
+
+proc alphaOf(b: Buf): seq[float32] =
+  for i in 0 ..< b.f.len div b.ch:
+    result.add (if b.ch == 4 or b.ch == 2: b.f[i * b.ch + b.ch - 1] else: 1'f32)
+
+proc photoCmd(a: seq[string]): bool =
+  let o = a[^1]
+  case a[1]
+  of "py.lap":
+    let b = readBuf(a[2])
+    let pyr = laplacian(b.w, b.h, b.ch, b.f, parseInt(a[3]))
+    let g = gaussian(b.w, b.h, b.ch, b.f, parseInt(a[3]))
+    var v: seq[float32]
+    for l in pyr & g:
+      echo "level ", l.w, " ", l.h
+      v.add l.px
+    v.add collapse(pyr, b.ch)
+    echo "auto ", autoLevels(b.w, b.h), " stack ", stackLevels(b.w, b.h)
+    writeF32(o, v.len, 1, 1, v)
+  of "py.blend", "py.fuse", "py.stackw", "py.panow":
+    var imgs: seq[Buf]
+    case a[1]
+    of "py.blend":
+      var k = 3
+      while k < a.len - 1:
+        imgs.add readBuf(a[k])
+        k += 2
+    of "py.fuse":
+      for p in a[6 ..< a.len - 1]: imgs.add readBuf(p)
+    else:
+      for p in a[2 ..< a.len - 1]: imgs.add readBuf(p)
+    let (w, h, ch) = (imgs[0].w, imgs[0].h, imgs[0].ch)
+    var px: seq[seq[float32]]
+    for b in imgs: px.add b.f
+    var r: seq[float32]
+    case a[1]
+    of "py.blend":
+      var wts: seq[seq[float32]]
+      var k = 4
+      while k < a.len - 1:
+        wts.add readBuf(a[k]).f
+        k += 2
+      r = blend(w, h, ch, px, wts, parseInt(a[2]))
+    of "py.fuse":
+      let p = StackFusion(energyRadius: parseInt(a[3]), halo: f(a[4]), guide: parseInt(a[5]),
+                          levels: (if a[2] == "-": none(int) else: some(parseInt(a[2]))))
+      var l, al: seq[seq[float32]]
+      for b in imgs:
+        l.add lumaOf(b)
+        al.add alphaOf(b)
+      r = fuseStack(w, h, ch, px, l, al, p)
+    of "py.stackw":
+      var l, al: seq[seq[float32]]
+      for b in imgs:
+        l.add lumaOf(b)
+        al.add alphaOf(b)
+      for s in stackWeights(w, h, l, al): r.add s
+    else:
+      var al: seq[seq[float32]]
+      for b in imgs: al.add alphaOf(b)
+      for s in panoramaWeights(w, h, al): r.add s
+    writeF32(o, r.len, 1, 1, r)
+  else: return false
+  true
+
 when isMainModule:
   let a = @[getAppFilename()] & commandLineParams()
   if a.len < 2: quit("usage: algocheck gen <dir> | <command> <args…> <out>")
   if a[1] == "gen": gen(a[2])
-  elif not (selectionCmd(a) or toneCmd(a) or hdrCmd(a) or exifCmd(a) or quantizeCmd(a) or retouchCmd(a) or fillCmd(a) or warpCmd(a) or reshapeCmd(a)): quit("unknown command " & a[1])
+  elif not (selectionCmd(a) or toneCmd(a) or hdrCmd(a) or exifCmd(a) or quantizeCmd(a) or retouchCmd(a) or fillCmd(a) or warpCmd(a) or reshapeCmd(a) or photoCmd(a)): quit("unknown command " & a[1])

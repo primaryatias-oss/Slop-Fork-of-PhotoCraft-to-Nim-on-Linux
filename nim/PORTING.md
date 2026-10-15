@@ -116,8 +116,9 @@ response, ghosts, tone mapping), EXIF, Indexed Color/Bitmap (`quantize`), Magic 
 Trap, gradient/bucket tools, retouch kernels (dodge, burn, sponge, local blur/sharpen), Poisson
 blending (`poisson`), non-local patch completion (`nonlocal`), the Remove Tool (`remove`, `holes`),
 Perspective Warp, Crop and Straighten Photos (`scancrop`), Red Eye, Content-Aware Scale (`seam`),
-Magnetic Lasso, Liquify, Render › Flame / Picture Frame / Tree (`render2`). Non-filter APIs are
-checked with `tools/algocheck.py` (`tools/algocases/*.json`, 2635 command runs identical). 2869 of 2870 filter runs identical to Rust (`tools/filtercases.json`, 410 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
+Magnetic Lasso, Liquify, Render › Flame / Picture Frame / Tree (`render2`), Auto-Blend pyramids and
+focus-stack fusion (`pyramid`). Non-filter APIs are checked with `tools/algocheck.py`
+(`tools/algocases/*.json`, 2697 command runs identical). 2869 of 2870 filter runs identical to Rust (`tools/filtercases.json`, 410 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
 | io (PSD/PSB ↔ document, layered TIFF, multi-part EXR, flat formats, facade) | ported, tested; see "io notes" below |
 | io: OpenRaster, Paint.NET | ported, tested |
 | io: SVG, camera raw, Affinity | pending (the facade reports "unsupported" until they land; SVG needs a usvg-style normalizer) |

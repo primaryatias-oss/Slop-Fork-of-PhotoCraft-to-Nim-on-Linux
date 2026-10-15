@@ -210,29 +210,29 @@ proc composite*(surface: var Surface; prims: openArray[Prim]; clip: Rect; select
 
 # ---------------------------------------------------------------- randomness
 
-type Rng* = object
+type RenderRng* = object
   ## Small deterministic PRNG (SplitMix64).
   state: uint64
 
-proc newRng*(seed: uint32; salt: uint64): Rng =
-  Rng(state: (uint64(seed) shl 32) xor (salt * 0x9E37_79B9_7F4A_7C15'u64) xor 0x2545_F491_4F6C_DD1D'u64)
+proc newRenderRng*(seed: uint32; salt: uint64): RenderRng =
+  RenderRng(state: (uint64(seed) shl 32) xor (salt * 0x9E37_79B9_7F4A_7C15'u64) xor 0x2545_F491_4F6C_DD1D'u64)
 
-proc nextU64*(r: var Rng): uint64 =
+proc nextU64*(r: var RenderRng): uint64 =
   r.state += 0x9E37_79B9_7F4A_7C15'u64
   var z = r.state
   z = (z xor (z shr 30)) * 0xBF58_476D_1CE4_E5B9'u64
   z = (z xor (z shr 27)) * 0x94D0_49BB_1331_11EB'u64
   z xor (z shr 31)
 
-proc f*(r: var Rng): float32 =
+proc f*(r: var RenderRng): float32 =
   ## Uniform in [0, 1).
   float32(r.nextU64() shr 40) / float32(1'u64 shl 24)
 
-proc range*(r: var Rng; a, b: float32): float32 =
+proc range*(r: var RenderRng; a, b: float32): float32 =
   ## Uniform in [a, b).
   a + (b - a) * r.f()
 
-proc sym*(r: var Rng): float32 =
+proc sym*(r: var RenderRng): float32 =
   ## Uniform in [-1, 1).
   r.f() * 2'f32 - 1'f32
 
@@ -243,7 +243,7 @@ proc asI64f(v: float32): int64 {.inline.} =
   else: int64(v)
 
 proc latticeSym(i: int64; seed: uint64): float32 {.inline.} =
-  var r = Rng(state: (cast[uint64](i) * 0xD6E8_FEB8_6659_FD93'u64) xor seed)
+  var r = RenderRng(state: (cast[uint64](i) * 0xD6E8_FEB8_6659_FD93'u64) xor seed)
   r.sym()
 
 proc noise1(x: float32; seed: uint64): float32 =
@@ -366,7 +366,7 @@ proc flameColour(t: float32; custom: Option[array[4, float32]]): array[4, float3
 
 proc roundUsize(v: float32): int = asIdx(round(v))
 
-proc drawFlame(o: var seq[Prim]; spine: Spine; width: float32; spec: FlameSpec; rng: var Rng) =
+proc drawFlame(o: var seq[Prim]; spine: Spine; width: float32; spec: FlameSpec; rng: var RenderRng) =
   ## One flame: its spine (base → tip), how wide it is, and its random stream.
   let len = spine.len
   if len < 1'f32: return
@@ -436,11 +436,11 @@ proc drawFlame(o: var seq[Prim]; spine: Spine; width: float32; spec: FlameSpec; 
 
 proc flame*(spec: FlameSpec; paths: openArray[seq[(float32, float32)]]): seq[Prim] =
   ## Builds flame primitives. `paths` are flattened polylines in document pixels.
-  var rng = newRng(spec.seed, 0xF1A3)
+  var rng = newRenderRng(spec.seed, 0xF1A3)
   let length = clamp(spec.length, 1'f32, 1000'f32)
   let width = clamp(spec.width, 1'f32, 1000'f32)
   let interval = clamp(spec.interval, 1'f32, 1000'f32)
-  proc pickLen(rng: var Rng; v: float32): float32 =
+  proc pickLen(rng: var RenderRng; v: float32): float32 =
     if spec.randomizeLength or v > 0: length * rng.range(1'f32 - rmax(v, 0.4'f32), 1'f32 + rmax(v, 0.4'f32) * 0.5'f32) else: length
   for path in paths:
     if path.len == 0: continue
@@ -600,7 +600,7 @@ proc defaultTreeSpec*(): TreeSpec =
 type TreeCtx = object
   kind: TreeKind
   spec: TreeSpec
-  rng: Rng
+  rng: RenderRng
   branches: seq[Prim]
   leaves: seq[(float32, Prim)]
   bark, leaf: array[3, float32]
@@ -712,7 +712,7 @@ proc tree*(spec: TreeSpec; canvas: Rect): seq[Prim] =
   let bark = (if spec.customBranchColor: [spec.branchesColor[0], spec.branchesColor[1], spec.branchesColor[2]] else: kind.bark)
   let thick = clamp(spec.branchesThickness, 50'f32, 200'f32) / 100'f32
   let bh = clamp(spec.branchesHeight, 50'f32, 300'f32) / 100'f32
-  var t = TreeCtx(kind: kind, spec: spec, rng: newRng(spec.seed, 0x7EE'u64 + uint64(spec.baseTreeType)), bark: bark, leaf: leaf,
+  var t = TreeCtx(kind: kind, spec: spec, rng: newRenderRng(spec.seed, 0x7EE'u64 + uint64(spec.baseTreeType)), bark: bark, leaf: leaf,
                   light: (cos(la), sin(la)), centre: (base[0], base[1] - h * 0.65'f32),
                   leafPx: rmax(h * 0.012'f32 * clamp(spec.leavesSize, 0'f32, 200'f32) / 100'f32, 0.6'f32))
   let up = -FracPi2
@@ -890,7 +890,7 @@ proc pictureFrame*(spec: FrameSpec; canvas: Rect): seq[Prim] =
   let total = b.len
   let count = asIdx(rmax(round(total / spacing), 4'f32))
   let step = total / float32(count)
-  var rng = newRng(spec.seed, 0xF8A3E'u64 + uint64(spec.frame))
+  var rng = newRenderRng(spec.seed, 0xF8A3E'u64 + uint64(spec.frame))
   let (vine, fl, lf) = (spec.vineColor, spec.flowerColor, spec.leafColor)
   let style = FrameStyles[int(clamp(spec.frame, 1'u32, uint32(FrameStyles.len)) - 1)]
   let lines = int(clamp(spec.lines, 1'u32, 5'u32))
