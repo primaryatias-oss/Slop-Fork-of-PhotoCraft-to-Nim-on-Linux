@@ -1,701 +1,136 @@
 [
-{
-"filter": "addNoise",
-"amount": 30,
-"distribution": "gaussian",
-"monochromatic": false,
-"seed": 3
-},
-{
-"filter": "median",
-"radius": 3
-},
-{
-"filter": "dustAndScratches",
-"radius": 2,
-"threshold": 10
-},
-{
-"filter": "custom",
-"kernel": [
-0,
--1,
-0,
--1,
-5,
--1,
-0,
--1,
-0
-],
-"scale": 1,
-"offset": 0
-},
-{
-"filter": "hsbHsl",
-"input": "rgb",
-"output": "hsl"
-},
-{
-"filter": "colorToAlpha",
-"color": [
-1,
-1,
-1,
-1
-],
-"transparencyThreshold": 0,
-"opacityThreshold": 1
-},
-{
-"filter": "deInterlace",
-"eliminateEven": true,
-"interpolate": true
-},
-{
-"filter": "ntscColors"
-},
-{
-"filter": "diffuse",
-"mode": "anisotropic",
-"seed": 2
-},
-{
-"filter": "extrude",
-"kind": "pyramids",
-"size": 12,
-"depth": 20,
-"levelBased": true,
-"solidFront": false,
-"maskIncomplete": false,
-"seed": 1
-},
-{
-"filter": "tiles",
-"count": 6,
-"maxOffset": 20,
-"fill": "inverse",
-"foreground": [
-1,
-0,
-0,
-1
-],
-"background": [
-0,
-0,
-1,
-1
-],
-"seed": 4
-},
-{
-"filter": "traceContour",
-"level": 128,
-"upper": true
-},
-{
-"filter": "wind",
-"method": "stagger",
-"fromRight": true,
-"seed": 5
-},
-{
-"filter": "gaussianBlur",
-"radius": 0.5
-},
-{
-"filter": "gaussianBlur",
-"radius": 3
-},
-{
-"filter": "gaussianBlur",
-"radius": 12.5
-},
-{
-"filter": "gaussianBlur",
-"radius": 80
-},
-{
-"filter": "boxBlur",
-"radius": 2
-},
-{
-"filter": "boxBlur",
-"radius": 9
-},
-{
-"filter": "boxBlur",
-"radius": 150
-},
-{
-"filter": "motionBlur",
-"angle": 0,
-"distance": 10
-},
-{
-"filter": "motionBlur",
-"angle": 33,
-"distance": 45.5
-},
-{
-"filter": "motionBlur",
-"angle": -71,
-"distance": 0.3
-},
-{
-"filter": "motionBlur",
-"angle": 125,
-"distance": 900
-},
-{
-"filter": "radialBlur",
-"amount": 10,
-"method": "spin",
-"quality": "draft",
-"centerX": 0.5,
-"centerY": 0.5
-},
-{
-"filter": "radialBlur",
-"amount": 40,
-"method": "zoom",
-"quality": "good",
-"centerX": 0.2,
-"centerY": 0.7
-},
-{
-"filter": "radialBlur",
-"amount": 100,
-"method": "spin",
-"quality": "best",
-"centerX": -0.3,
-"centerY": 1.2
-},
-{
-"filter": "radialBlur",
-"amount": 75,
-"method": "zoom",
-"quality": "best",
-"centerX": 0.6,
-"centerY": 0.1
-},
-{
-"filter": "surfaceBlur",
-"radius": 3,
-"threshold": 15
-},
-{
-"filter": "surfaceBlur",
-"radius": 12,
-"threshold": 40
-},
-{
-"filter": "surfaceBlur",
-"radius": 20,
-"threshold": 5
-},
-{
-"filter": "unsharpMask",
-"amount": 150,
-"radius": 2,
-"threshold": 3
-},
-{
-"filter": "smartSharpen",
-"amount": 80,
-"radius": 1.5,
-"reduceNoise": 30
-},
-{
-"filter": "highPass",
-"radius": 6
-},
-{
-"filter": "smartBlur",
-"radius": 5,
-"threshold": 25,
-"quality": "high",
-"mode": "normal"
-},
-{
-"filter": "smartBlur",
-"radius": 3,
-"threshold": 10,
-"quality": "low",
-"mode": "edgeOnly"
-},
-{
-"filter": "smartBlur",
-"radius": 3,
-"threshold": 10,
-"quality": "medium",
-"mode": "overlayEdge"
-},
-{
-"radius": 12,
-"blades": 6,
-"curvature": 30,
-"rotation": 15,
-"focalDistance": 100,
-"invertDepth": false,
-"brightness": 40,
-"threshold": 200,
-"noise": 0,
-"distribution": "uniform",
-"monochromatic": false,
-"seed": 3,
-"filter": "lensBlur",
-"depth": "none"
-},
-{
-"filter": "lensBlur",
-"radius": 20,
-"blades": 3,
-"curvature": 0,
-"rotation": 0,
-"depth": "transparency",
-"focalDistance": 0,
-"invertDepth": true,
-"brightness": 0,
-"threshold": 255,
-"noise": 20,
-"distribution": "gaussian",
-"monochromatic": true,
-"seed": 9
-},
-{
-"filter": "shapeBlur",
-"radius": 8,
-"shape": "circle"
-},
-{
-"filter": "shapeBlur",
-"radius": 12,
-"shape": "ring"
-},
-{
-"filter": "shapeBlur",
-"radius": 5,
-"shape": "square"
-},
-{
-"filter": "shapeBlur",
-"radius": 9,
-"shape": "diamond"
-},
-{
-"filter": "shapeBlur",
-"radius": 9,
-"shape": "triangle"
-},
-{
-"filter": "shapeBlur",
-"radius": 10,
-"shape": "hexagon"
-},
-{
-"filter": "shapeBlur",
-"radius": 14,
-"shape": "star"
-},
-{
-"filter": "shapeBlur",
-"radius": 11,
-"shape": "heart"
-},
-{
-"filter": "shapeBlur",
-"radius": 7,
-"shape": "cross"
-},
-{
-"filter": "tiltShift",
-"blur": 15,
-"centerX": 0.5,
-"centerY": 0.45,
-"angle": 10,
-"focus": 0.1,
-"transition": 0.2
-},
-{
-"filter": "tiltShift",
-"blur": 60,
-"centerX": 0.3,
-"centerY": 0.6,
-"angle": -35,
-"focus": 0,
-"transition": 0.05
-},
-{
-"filter": "irisBlur",
-"pins": [
-{
-"x": 0.5,
-"y": 0.5,
-"radiusX": 0.3,
-"radiusY": 0.2,
-"angle": 20,
-"roundness": 0,
-"feather": 0.5,
-"blur": 12
-}
-]
-},
-{
-"filter": "irisBlur",
-"pins": [
-{
-"x": 0.3,
-"y": 0.4,
-"radiusX": 0.2,
-"radiusY": 0.25,
-"angle": 0,
-"roundness": 60,
-"feather": 0.2,
-"blur": 25
-},
-{
-"x": 0.8,
-"y": 0.7,
-"radiusX": 0.1,
-"radiusY": 0.1,
-"angle": 45,
-"roundness": 100,
-"feather": 0.9,
-"blur": 6
-}
-]
-},
-{
-"filter": "fieldBlur",
-"pins": [
-{
-"x": 0.2,
-"y": 0.2,
-"blur": 2
-},
-{
-"x": 0.8,
-"y": 0.8,
-"blur": 30
-}
-]
-},
-{
-"filter": "spinBlur",
-"pins": [
-{
-"x": 0.5,
-"y": 0.5,
-"radiusX": 0.4,
-"radiusY": 0.3,
-"angle": 15,
-"blurAngle": 30
-}
-]
-},
-{
-"filter": "spinBlur",
-"pins": [
-{
-"x": 0.3,
-"y": 0.3,
-"radiusX": 0.2,
-"radiusY": 0.2,
-"angle": 0,
-"blurAngle": 180
-},
-{
-"x": 0.7,
-"y": 0.6,
-"radiusX": 0.3,
-"radiusY": 0.15,
-"angle": -20,
-"blurAngle": 5
-}
-]
-},
-{
-"filter": "pathBlur",
-"paths": [
-{
-"points": [
-[
-0.1,
-0.5
-],
-[
-0.5,
-0.3
-],
-[
-0.9,
-0.6
-]
-],
-"speed": 20,
-"taper": 30
-}
-]
-},
-{
-"filter": "pathBlur",
-"paths": [
-{
-"points": [
-[
-0.2,
-0.2
-],
-[
-0.8,
-0.8
-]
-],
-"speed": -60,
-"taper": 0
-},
-{
-"points": [
-[
-0.9,
-0.1
-],
-[
-0.1,
-0.9
-]
-],
-"speed": 8,
-"taper": 100
-}
-]
-},
-{
-"filter": "minimum",
-"radius": 3,
-"preserve": "squareness"
-},
-{
-"filter": "maximum",
-"radius": 2.6,
-"preserve": "squareness"
-},
-{
-"filter": "minimum",
-"radius": 5,
-"preserve": "roundness"
-},
-{
-"filter": "maximum",
-"radius": 7.5,
-"preserve": "roundness"
-},
-{
-"filter": "offset",
-"horizontal": 25,
-"vertical": -13,
-"undefined": "wrap"
-},
-{
-"filter": "offset",
-"horizontal": -40,
-"vertical": 7,
-"undefined": "repeat"
-},
-{
-"filter": "offset",
-"horizontal": 3,
-"vertical": 90,
-"undefined": "transparent"
-},
-{
-"filter": "mosaic",
-"cellSize": 7
-},
-{
-"filter": "mosaic",
-"cellSize": 33.4
-},
-{
-"filter": "emboss",
-"angle": 135,
-"height": 3,
-"amount": 120
-},
-{
-"filter": "emboss",
-"angle": -30,
-"height": 8,
-"amount": 300
-},
-{
-"filter": "findEdges"
-},
-{
-"filter": "solarize"
-},
-{
-"filter": "invert"
-},
-{
-"filter": "desaturate"
-},
-{
-"filter": "twirl",
-"angle": 120
-},
-{
-"filter": "twirl",
-"angle": -700
-},
-{
-"filter": "pinch",
-"amount": 60
-},
-{
-"filter": "pinch",
-"amount": -100
-},
-{
-"filter": "spherize",
-"amount": 80,
-"mode": "normal"
-},
-{
-"filter": "spherize",
-"amount": -50,
-"mode": "horizontalOnly"
-},
-{
-"filter": "spherize",
-"amount": 100,
-"mode": "verticalOnly"
-},
-{
-"filter": "wave",
-"generators": 5,
-"wavelengthMin": 10,
-"wavelengthMax": 120,
-"amplitudeMin": 5,
-"amplitudeMax": 35,
-"waveType": "sine",
-"undefined": "wrap",
-"seed": 4
-},
-{
-"filter": "wave",
-"generators": 2,
-"wavelengthMin": 30,
-"wavelengthMax": 40,
-"amplitudeMin": 1,
-"amplitudeMax": 12,
-"waveType": "triangle",
-"undefined": "repeat",
-"seed": 11
-},
-{
-"filter": "wave",
-"generators": 9,
-"wavelengthMin": 5,
-"wavelengthMax": 80,
-"amplitudeMin": 3,
-"amplitudeMax": 20,
-"waveType": "square",
-"undefined": "transparent",
-"seed": 1
-},
-{
-"filter": "ripple",
-"amount": 150,
-"size": "small"
-},
-{
-"filter": "ripple",
-"amount": -400,
-"size": "medium"
-},
-{
-"filter": "ripple",
-"amount": 90,
-"size": "large"
-},
-{
-"filter": "polarCoordinates",
-"mode": "rectangularToPolar"
-},
-{
-"filter": "polarCoordinates",
-"mode": "polarToRectangular"
-},
-{
-"filter": "displace",
-"horizontal": 10,
-"vertical": 10,
-"stretch": true,
-"undefined": "wrap"
-},
-{
-"filter": "shear",
-"points": [
-[
-0,
-0
-],
-[
-0.3,
-0.4
-],
-[
-0.7,
--0.3
-],
-[
-1,
-0
-]
-],
-"undefined": "wrap"
-},
-{
-"filter": "shear",
-"points": [
-[
-1,
-0.5
-],
-[
-0,
--0.2
-],
-[
-0.5,
-0.5
-],
-[
-0.5000001,
-0.1
-]
-],
-"undefined": "transparent"
-},
-{
-"filter": "zigZag",
-"amount": 40,
-"ridges": 5,
-"style": "pondRipples"
-},
-{
-"filter": "zigZag",
-"amount": -70,
-"ridges": 12,
-"style": "aroundCenter"
-},
-{
-"filter": "zigZag",
-"amount": 100,
-"ridges": 1,
-"style": "outFromCenter"
-}
+  {"filter": "addNoise", "amount": 30, "distribution": "gaussian", "monochromatic": false, "seed": 3},
+  {"filter": "median", "radius": 3},
+  {"filter": "dustAndScratches", "radius": 2, "threshold": 10},
+  {"filter": "custom", "kernel": [0, -1, 0, -1, 5, -1, 0, -1, 0], "scale": 1, "offset": 0},
+  {"filter": "hsbHsl", "input": "rgb", "output": "hsl"},
+  {"filter": "colorToAlpha", "color": [1, 1, 1, 1], "transparencyThreshold": 0, "opacityThreshold": 1},
+  {"filter": "deInterlace", "eliminateEven": true, "interpolate": true},
+  {"filter": "ntscColors"},
+  {"filter": "diffuse", "mode": "anisotropic", "seed": 2},
+  {"filter": "extrude", "kind": "pyramids", "size": 12, "depth": 20, "levelBased": true, "solidFront": false, "maskIncomplete": false, "seed": 1},
+  {"filter": "tiles", "count": 6, "maxOffset": 20, "fill": "inverse", "foreground": [1, 0, 0, 1], "background": [0, 0, 1, 1], "seed": 4},
+  {"filter": "traceContour", "level": 128, "upper": true},
+  {"filter": "wind", "method": "stagger", "fromRight": true, "seed": 5},
+  {"filter": "gaussianBlur", "radius": 0.5},
+  {"filter": "gaussianBlur", "radius": 3},
+  {"filter": "gaussianBlur", "radius": 12.5},
+  {"filter": "gaussianBlur", "radius": 80},
+  {"filter": "boxBlur", "radius": 2},
+  {"filter": "boxBlur", "radius": 9},
+  {"filter": "boxBlur", "radius": 150},
+  {"filter": "motionBlur", "angle": 0, "distance": 10},
+  {"filter": "motionBlur", "angle": 33, "distance": 45.5},
+  {"filter": "motionBlur", "angle": -71, "distance": 0.3},
+  {"filter": "motionBlur", "angle": 125, "distance": 900},
+  {"filter": "radialBlur", "amount": 10, "method": "spin", "quality": "draft", "centerX": 0.5, "centerY": 0.5},
+  {"filter": "radialBlur", "amount": 40, "method": "zoom", "quality": "good", "centerX": 0.2, "centerY": 0.7},
+  {"filter": "radialBlur", "amount": 100, "method": "spin", "quality": "best", "centerX": -0.3, "centerY": 1.2},
+  {"filter": "radialBlur", "amount": 75, "method": "zoom", "quality": "best", "centerX": 0.6, "centerY": 0.1},
+  {"filter": "surfaceBlur", "radius": 3, "threshold": 15},
+  {"filter": "surfaceBlur", "radius": 12, "threshold": 40},
+  {"filter": "surfaceBlur", "radius": 20, "threshold": 5},
+  {"filter": "unsharpMask", "amount": 150, "radius": 2, "threshold": 3},
+  {"filter": "smartSharpen", "amount": 80, "radius": 1.5, "reduceNoise": 30},
+  {"filter": "highPass", "radius": 6},
+  {"filter": "smartBlur", "radius": 5, "threshold": 25, "quality": "high", "mode": "normal"},
+  {"filter": "smartBlur", "radius": 3, "threshold": 10, "quality": "low", "mode": "edgeOnly"},
+  {"filter": "smartBlur", "radius": 3, "threshold": 10, "quality": "medium", "mode": "overlayEdge"},
+  {"radius": 12, "blades": 6, "curvature": 30, "rotation": 15, "focalDistance": 100, "invertDepth": false, "brightness": 40, "threshold": 200, "noise": 0, "distribution": "uniform", "monochromatic": false, "seed": 3, "filter": "lensBlur", "depth": "none"},
+  {"filter": "lensBlur", "radius": 20, "blades": 3, "curvature": 0, "rotation": 0, "depth": "transparency", "focalDistance": 0, "invertDepth": true, "brightness": 0, "threshold": 255, "noise": 20, "distribution": "gaussian", "monochromatic": true, "seed": 9},
+  {"filter": "shapeBlur", "radius": 8, "shape": "circle"},
+  {"filter": "shapeBlur", "radius": 12, "shape": "ring"},
+  {"filter": "shapeBlur", "radius": 5, "shape": "square"},
+  {"filter": "shapeBlur", "radius": 9, "shape": "diamond"},
+  {"filter": "shapeBlur", "radius": 9, "shape": "triangle"},
+  {"filter": "shapeBlur", "radius": 10, "shape": "hexagon"},
+  {"filter": "shapeBlur", "radius": 14, "shape": "star"},
+  {"filter": "shapeBlur", "radius": 11, "shape": "heart"},
+  {"filter": "shapeBlur", "radius": 7, "shape": "cross"},
+  {"filter": "tiltShift", "blur": 15, "centerX": 0.5, "centerY": 0.45, "angle": 10, "focus": 0.1, "transition": 0.2},
+  {"filter": "tiltShift", "blur": 60, "centerX": 0.3, "centerY": 0.6, "angle": -35, "focus": 0, "transition": 0.05},
+  {"filter": "irisBlur", "pins": [{"x": 0.5, "y": 0.5, "radiusX": 0.3, "radiusY": 0.2, "angle": 20, "roundness": 0, "feather": 0.5, "blur": 12}]},
+  {"filter": "irisBlur", "pins": [{"x": 0.3, "y": 0.4, "radiusX": 0.2, "radiusY": 0.25, "angle": 0, "roundness": 60, "feather": 0.2, "blur": 25}, {"x": 0.8, "y": 0.7, "radiusX": 0.1, "radiusY": 0.1, "angle": 45, "roundness": 100, "feather": 0.9, "blur": 6}]},
+  {"filter": "fieldBlur", "pins": [{"x": 0.2, "y": 0.2, "blur": 2}, {"x": 0.8, "y": 0.8, "blur": 30}]},
+  {"filter": "spinBlur", "pins": [{"x": 0.5, "y": 0.5, "radiusX": 0.4, "radiusY": 0.3, "angle": 15, "blurAngle": 30}]},
+  {"filter": "spinBlur", "pins": [{"x": 0.3, "y": 0.3, "radiusX": 0.2, "radiusY": 0.2, "angle": 0, "blurAngle": 180}, {"x": 0.7, "y": 0.6, "radiusX": 0.3, "radiusY": 0.15, "angle": -20, "blurAngle": 5}]},
+  {"filter": "pathBlur", "paths": [{"points": [[0.1, 0.5], [0.5, 0.3], [0.9, 0.6]], "speed": 20, "taper": 30}]},
+  {"filter": "pathBlur", "paths": [{"points": [[0.2, 0.2], [0.8, 0.8]], "speed": -60, "taper": 0}, {"points": [[0.9, 0.1], [0.1, 0.9]], "speed": 8, "taper": 100}]},
+  {"filter": "minimum", "radius": 3, "preserve": "squareness"},
+  {"filter": "maximum", "radius": 2.6, "preserve": "squareness"},
+  {"filter": "minimum", "radius": 5, "preserve": "roundness"},
+  {"filter": "maximum", "radius": 7.5, "preserve": "roundness"},
+  {"filter": "offset", "horizontal": 25, "vertical": -13, "undefined": "wrap"},
+  {"filter": "offset", "horizontal": -40, "vertical": 7, "undefined": "repeat"},
+  {"filter": "offset", "horizontal": 3, "vertical": 90, "undefined": "transparent"},
+  {"filter": "mosaic", "cellSize": 7},
+  {"filter": "mosaic", "cellSize": 33.4},
+  {"filter": "emboss", "angle": 135, "height": 3, "amount": 120},
+  {"filter": "emboss", "angle": -30, "height": 8, "amount": 300},
+  {"filter": "findEdges"},
+  {"filter": "solarize"},
+  {"filter": "invert"},
+  {"filter": "desaturate"},
+  {"filter": "twirl", "angle": 120},
+  {"filter": "twirl", "angle": -700},
+  {"filter": "pinch", "amount": 60},
+  {"filter": "pinch", "amount": -100},
+  {"filter": "spherize", "amount": 80, "mode": "normal"},
+  {"filter": "spherize", "amount": -50, "mode": "horizontalOnly"},
+  {"filter": "spherize", "amount": 100, "mode": "verticalOnly"},
+  {"filter": "wave", "generators": 5, "wavelengthMin": 10, "wavelengthMax": 120, "amplitudeMin": 5, "amplitudeMax": 35, "waveType": "sine", "undefined": "wrap", "seed": 4},
+  {"filter": "wave", "generators": 2, "wavelengthMin": 30, "wavelengthMax": 40, "amplitudeMin": 1, "amplitudeMax": 12, "waveType": "triangle", "undefined": "repeat", "seed": 11},
+  {"filter": "wave", "generators": 9, "wavelengthMin": 5, "wavelengthMax": 80, "amplitudeMin": 3, "amplitudeMax": 20, "waveType": "square", "undefined": "transparent", "seed": 1},
+  {"filter": "ripple", "amount": 150, "size": "small"},
+  {"filter": "ripple", "amount": -400, "size": "medium"},
+  {"filter": "ripple", "amount": 90, "size": "large"},
+  {"filter": "polarCoordinates", "mode": "rectangularToPolar"},
+  {"filter": "polarCoordinates", "mode": "polarToRectangular"},
+  {"filter": "displace", "horizontal": 10, "vertical": 10, "stretch": true, "undefined": "wrap"},
+  {"filter": "shear", "points": [[0, 0], [0.3, 0.4], [0.7, -0.3], [1, 0]], "undefined": "wrap"},
+  {"filter": "shear", "points": [[1, 0.5], [0, -0.2], [0.5, 0.5], [0.5000001, 0.1]], "undefined": "transparent"},
+  {"filter": "zigZag", "amount": 40, "ridges": 5, "style": "pondRipples"},
+  {"filter": "zigZag", "amount": -70, "ridges": 12, "style": "aroundCenter"},
+  {"filter": "zigZag", "amount": 100, "ridges": 1, "style": "outFromCenter"},
+  {"filter": "colorHalftone", "maxRadius": 8, "angles": [108, 162, 90, 45]},
+  {"filter": "colorHalftone", "maxRadius": 4, "angles": [0, 30, 60, 90]},
+  {"filter": "colorHalftone", "maxRadius": 20, "angles": [15, 75, 0, 45]},
+  {"filter": "crystallize", "cellSize": 10, "seed": 1},
+  {"filter": "crystallize", "cellSize": 37, "seed": 9},
+  {"filter": "crystallize", "cellSize": 3, "seed": 2},
+  {"filter": "facet"},
+  {"filter": "fragment"},
+  {"filter": "pointillize", "cellSize": 9, "seed": 3, "background": [1, 1, 1, 1]},
+  {"filter": "pointillize", "cellSize": 20, "seed": 5, "background": [0.2, 0.4, 0.9, 0.5]},
+  {"filter": "mezzotint", "kind": "fineDots", "seed": 7},
+  {"filter": "mezzotint", "kind": "mediumDots", "seed": 7},
+  {"filter": "mezzotint", "kind": "grainyDots", "seed": 7},
+  {"filter": "mezzotint", "kind": "coarseDots", "seed": 7},
+  {"filter": "mezzotint", "kind": "shortLines", "seed": 7},
+  {"filter": "mezzotint", "kind": "mediumLines", "seed": 7},
+  {"filter": "mezzotint", "kind": "longLines", "seed": 7},
+  {"filter": "mezzotint", "kind": "shortStrokes", "seed": 7},
+  {"filter": "mezzotint", "kind": "mediumStrokes", "seed": 7},
+  {"filter": "mezzotint", "kind": "longStrokes", "seed": 7},
+  {"filter": "oilPaint", "stylization": 2.5, "cleanliness": 5, "scale": 1, "bristleDetail": 3, "lighting": true, "angle": -60, "shine": 1},
+  {"filter": "oilPaint", "stylization": 8, "cleanliness": 1, "scale": 5, "bristleDetail": 9, "lighting": false, "angle": 0, "shine": 0},
+  {"filter": "oilPaint", "stylization": 0.5, "cleanliness": 9, "scale": 0.3, "bristleDetail": 0, "lighting": true, "angle": 120, "shine": 10},
+  {"filter": "fibers", "variance": 16, "strength": 4, "seed": 7, "foreground": [0, 0, 0, 1], "background": [1, 1, 1, 1]},
+  {"filter": "fibers", "variance": 60, "strength": 50, "seed": 1, "foreground": [0.8, 0.2, 0.1, 1], "background": [0.1, 0.3, 0.9, 1]},
+  {"filter": "lensFlare", "brightness": 120, "centerX": 0.3, "centerY": 0.35, "lens": "zoom"},
+  {"filter": "lensFlare", "brightness": 120, "centerX": 0.3, "centerY": 0.35, "lens": "prime35"},
+  {"filter": "lensFlare", "brightness": 120, "centerX": 0.3, "centerY": 0.35, "lens": "prime105"},
+  {"filter": "lensFlare", "brightness": 120, "centerX": 0.3, "centerY": 0.35, "lens": "moviePrime"},
+  {"filter": "lightingEffects", "lights": [{"kind": "spot", "x": 0.3, "y": 0.25, "z": 0.6, "targetX": 0.5, "targetY": 0.55, "angle": 135, "elevation": 45, "color": [1, 0.9, 0.8], "intensity": 75, "cone": 45, "hotspot": 50, "radius": 0.8}, {"kind": "point", "x": 0.7, "y": 0.6, "z": 0.6, "targetX": 0.5, "targetY": 0.55, "angle": 135, "elevation": 45, "color": [1, 0.9, 0.8], "intensity": 75, "cone": 45, "hotspot": 50, "radius": 0.5}, {"kind": "infinite", "x": 0.3, "y": 0.25, "z": 0.6, "targetX": 0.5, "targetY": 0.55, "angle": 30, "elevation": 60, "color": [1, 0.9, 0.8], "intensity": -40, "cone": 45, "hotspot": 50, "radius": 0.8}], "gloss": 20, "metallic": -30, "exposure": 10, "ambience": 15, "texture": "none", "height": 50, "whiteIsHigh": true},
+  {"filter": "lightingEffects", "lights": [{"kind": "spot", "x": 0.3, "y": 0.25, "z": 0.6, "targetX": 0.5, "targetY": 0.55, "angle": 135, "elevation": 45, "color": [1, 0.9, 0.8], "intensity": 75, "cone": 45, "hotspot": 50, "radius": 0.8}, {"kind": "point", "x": 0.7, "y": 0.6, "z": 0.6, "targetX": 0.5, "targetY": 0.55, "angle": 135, "elevation": 45, "color": [1, 0.9, 0.8], "intensity": 75, "cone": 45, "hotspot": 50, "radius": 0.5}, {"kind": "infinite", "x": 0.3, "y": 0.25, "z": 0.6, "targetX": 0.5, "targetY": 0.55, "angle": 30, "elevation": 60, "color": [1, 0.9, 0.8], "intensity": -40, "cone": 45, "hotspot": 50, "radius": 0.8}], "gloss": 20, "metallic": -30, "exposure": 10, "ambience": 15, "texture": "red", "height": 50, "whiteIsHigh": true},
+  {"filter": "lightingEffects", "lights": [{"kind": "spot", "x": 0.3, "y": 0.25, "z": 0.6, "targetX": 0.5, "targetY": 0.55, "angle": 135, "elevation": 45, "color": [1, 0.9, 0.8], "intensity": 75, "cone": 45, "hotspot": 50, "radius": 0.8}, {"kind": "point", "x": 0.7, "y": 0.6, "z": 0.6, "targetX": 0.5, "targetY": 0.55, "angle": 135, "elevation": 45, "color": [1, 0.9, 0.8], "intensity": 75, "cone": 45, "hotspot": 50, "radius": 0.5}, {"kind": "infinite", "x": 0.3, "y": 0.25, "z": 0.6, "targetX": 0.5, "targetY": 0.55, "angle": 30, "elevation": 60, "color": [1, 0.9, 0.8], "intensity": -40, "cone": 45, "hotspot": 50, "radius": 0.8}], "gloss": 20, "metallic": -30, "exposure": 10, "ambience": 15, "texture": "green", "height": 50, "whiteIsHigh": true},
+  {"filter": "lightingEffects", "lights": [{"kind": "spot", "x": 0.3, "y": 0.25, "z": 0.6, "targetX": 0.5, "targetY": 0.55, "angle": 135, "elevation": 45, "color": [1, 0.9, 0.8], "intensity": 75, "cone": 45, "hotspot": 50, "radius": 0.8}, {"kind": "point", "x": 0.7, "y": 0.6, "z": 0.6, "targetX": 0.5, "targetY": 0.55, "angle": 135, "elevation": 45, "color": [1, 0.9, 0.8], "intensity": 75, "cone": 45, "hotspot": 50, "radius": 0.5}, {"kind": "infinite", "x": 0.3, "y": 0.25, "z": 0.6, "targetX": 0.5, "targetY": 0.55, "angle": 30, "elevation": 60, "color": [1, 0.9, 0.8], "intensity": -40, "cone": 45, "hotspot": 50, "radius": 0.8}], "gloss": 20, "metallic": -30, "exposure": 10, "ambience": 15, "texture": "blue", "height": 50, "whiteIsHigh": false},
+  {"filter": "lightingEffects", "lights": [{"kind": "spot", "x": 0.3, "y": 0.25, "z": 0.6, "targetX": 0.5, "targetY": 0.55, "angle": 135, "elevation": 45, "color": [1, 0.9, 0.8], "intensity": 75, "cone": 45, "hotspot": 50, "radius": 0.8}, {"kind": "point", "x": 0.7, "y": 0.6, "z": 0.6, "targetX": 0.5, "targetY": 0.55, "angle": 135, "elevation": 45, "color": [1, 0.9, 0.8], "intensity": 75, "cone": 45, "hotspot": 50, "radius": 0.5}, {"kind": "infinite", "x": 0.3, "y": 0.25, "z": 0.6, "targetX": 0.5, "targetY": 0.55, "angle": 30, "elevation": 60, "color": [1, 0.9, 0.8], "intensity": -40, "cone": 45, "hotspot": 50, "radius": 0.8}], "gloss": 20, "metallic": -30, "exposure": 10, "ambience": 15, "texture": "alpha", "height": 50, "whiteIsHigh": true},
+  {"filter": "lightingEffects", "lights": [{"kind": "spot", "x": 0.3, "y": 0.25, "z": 0.6, "targetX": 0.5, "targetY": 0.55, "angle": 135, "elevation": 45, "color": [1, 0.9, 0.8], "intensity": 75, "cone": 45, "hotspot": 50, "radius": 0.8}, {"kind": "point", "x": 0.7, "y": 0.6, "z": 0.6, "targetX": 0.5, "targetY": 0.55, "angle": 135, "elevation": 45, "color": [1, 0.9, 0.8], "intensity": 75, "cone": 45, "hotspot": 50, "radius": 0.5}, {"kind": "infinite", "x": 0.3, "y": 0.25, "z": 0.6, "targetX": 0.5, "targetY": 0.55, "angle": 30, "elevation": 60, "color": [1, 0.9, 0.8], "intensity": -40, "cone": 45, "hotspot": 50, "radius": 0.8}], "gloss": 20, "metallic": -30, "exposure": 10, "ambience": 15, "texture": "luminance", "height": 50, "whiteIsHigh": true},
+  {"filter": "relight", "angle": 45, "elevation": 30, "intensity": 70, "ambient": 20, "warmth": 40, "softness": 30},
+  {"filter": "relight", "angle": 200, "elevation": 80, "intensity": 100, "ambient": 0, "warmth": -80, "softness": 90},
+  {"filter": "relight", "angle": 0, "elevation": 0, "intensity": 0, "ambient": 50, "warmth": 0, "softness": 10},
+  {"filter": "reduceNoise", "strength": 6, "preserveDetails": 60, "reduceColorNoise": 45, "sharpenDetails": 25, "removeJpegArtifact": false},
+  {"filter": "reduceNoise", "strength": 10, "preserveDetails": 0, "reduceColorNoise": 100, "sharpenDetails": 0, "removeJpegArtifact": true},
+  {"filter": "reduceNoise", "strength": 0, "preserveDetails": 0, "reduceColorNoise": 0, "sharpenDetails": 80, "removeJpegArtifact": true}
 ]

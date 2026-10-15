@@ -7,7 +7,7 @@ import std/[math, options]
 import ../geom
 import params, image, fxutil, noise
 
-const
+let   # run-time: Nim folds float32 constant arithmetic in float64
   Pi32 = float32(PI)
   Tau32 = float32(TAU)
 

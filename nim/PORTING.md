@@ -60,6 +60,9 @@ own nimcache (`.nimcache/<name>`), so different test files can compile at the sa
 
 ## Nim pitfalls met so far
 
+* Nim folds arithmetic on `float32` constants in float64 (a `const X = float32(PI / 4)` keeps
+  the unrounded value, and `1 - X` is folded before rounding), unlike Rust's f32 constant
+  folding. Keep float32 constants that take part in arithmetic as module-level `let`s.
 * Rust's `f32::cbrt`/`f64::cbrt` are not glibc's (they come from Rust's bundled `libm`); use
   `photocraft/rmath.cbrt`. Every other libm function the port uses matches glibc bit for bit
   (checked on 200k inputs each). Rust's `powi(n)` at run time is repeated multiplication
@@ -91,7 +94,7 @@ See the bottom of this file (updated as crates land) and `git log`.
 | doc, ops, vector | ported, tested |
 | compose | ported, tested (GPU compositor intentionally not ported: SDL3 textures display the CPU result) |
 | format (.pcraft, zstd, BLAKE3, autosave/recovery) | ported, tested; files interchange with the Rust build both ways |
-| algo | in progress: foundation, resample, transform, warp; filter dispatcher (`algo/filters`: halos, tiled apply, selection mixing, registry); blur family (`blur`, `sharpen`, `blur2`, `gallery`, `radial_plan`: Gaussian/Box with the separable fast path, Motion with the FFT fast path, Radial, Surface, Unsharp Mask, Smart Sharpen, High Pass, Smart/Lens/Shape Blur, Tilt-Shift, Iris, Field, Spin, Path); noise, median, custom, HSB/HSL, color to alpha, video, stylize part 2. 397 of 399 filter runs identical to Rust (`tools/filtercases.json` × 7 documents); the two others differ by ≤1.5e-8 (FFT motion blur, f32) and 1 level on 31 samples (HSB/HSL, Lab 16-bit) |
+| algo | in progress: foundation, resample, transform, warp; filter dispatcher (`algo/filters`: halos, tiled apply, selection mixing, registry); blur family (`blur`, `sharpen`, `blur2`, `gallery`, `radial_plan`: Gaussian/Box with the separable fast path, Motion with the FFT fast path, Radial, Surface, Unsharp Mask, Smart Sharpen, High Pass, Smart/Lens/Shape Blur, Tilt-Shift, Iris, Field, Spin, Path); noise, median, custom, HSB/HSL, color to alpha, video, stylize part 2; Other, Stylize, Distort, Pixelate, Oil Paint, Render (clouds, fibers, lens flare, lighting), Relight, Reduce Noise. 937 of 938 filter runs identical to Rust (`tools/filtercases.json`, 134 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
 | io (PSD/PSB ↔ document, layered TIFF, multi-part EXR, flat formats, facade) | ported, tested; see "io notes" below |
 | io: OpenRaster, Paint.NET | ported, tested |
 | io: SVG, camera raw, Affinity | pending (the facade reports "unsupported" until they land; SVG needs a usvg-style normalizer) |

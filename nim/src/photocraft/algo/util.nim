@@ -167,3 +167,23 @@ proc remEuclidF*[T: SomeFloat](a, b: T): T {.inline.} =
 proc signum*[T: SomeFloat](x: T): T {.inline.} =
   ## Rust `f32::signum`: ±1 by the sign bit (also for ±0), NaN for NaN.
   if x != x: x else: copySign(T(1), x)
+proc powi*[T: SomeFloat](x: T; n: int): T =
+  ## Rust's run-time `powi` as LLVM expands it (binary powering, `Res * CurSquare` order).
+  var val = abs(n)
+  var res: T
+  var have = false
+  var cur = x
+  while val != 0:
+    if (val and 1) != 0:
+      if have: res = res * cur
+      else:
+        res = cur
+        have = true
+    cur = cur * cur
+    val = val shr 1
+  if not have: res = T(1)
+  if n < 0: T(1) / res else: res
+proc newSeqWithValue*[T](n: int; v: T): seq[T] =
+  ## `vec![v; n]`.
+  result = newSeq[T](max(n, 0))
+  for x in result.mitems: x = v

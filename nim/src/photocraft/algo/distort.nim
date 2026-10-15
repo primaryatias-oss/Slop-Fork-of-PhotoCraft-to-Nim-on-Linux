@@ -6,7 +6,7 @@ import std/[math, algorithm]
 import ../geom
 import params, image, util, noise, other
 
-const
+let   # run-time: Nim folds float32 constant arithmetic in float64
   Pi32 = float32(PI)
   Tau32 = float32(TAU)
 
