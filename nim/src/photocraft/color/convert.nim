@@ -7,6 +7,7 @@
 ## formulas; gray is treated as sGray (gray `v` = sRGB `(v, v, v)`).
 
 import std/[math, options, hashes]
+import ../rmath
 import ../cms
 
 type
@@ -132,7 +133,7 @@ proc srgbToLab*(rgb: array[3, float32]): array[3, float32] =
   let lin = [srgbToLinear(rgb[0]), srgbToLinear(rgb[1]), srgbToLinear(rgb[2])]
   let xyz = mat3Mul(SrgbToXyzD50, lin)
   proc f(t: float32): float32 =
-    if t > pow(6.0'f32 / 29.0'f32, 3.0'f32): cbrt(t) else: t / (3.0'f32 * pow(6.0'f32 / 29.0'f32, 2.0'f32)) + 4.0'f32 / 29.0'f32
+    if t > pow(6.0'f32 / 29.0'f32, 3.0'f32): rmath.cbrt(t) else: t / (3.0'f32 * pow(6.0'f32 / 29.0'f32, 2.0'f32)) + 4.0'f32 / 29.0'f32
   let fx = f(xyz[0] / D50f[0])
   let fy = f(xyz[1] / D50f[1])
   let fz = f(xyz[2] / D50f[2])

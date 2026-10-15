@@ -4,6 +4,7 @@
 ## and the Bradford cone response matrix published by Lam (1985).
 
 import std/[math, options]
+import ../rmath
 
 type
   Vec3* = array[3, float64]
@@ -73,7 +74,7 @@ const
   Kappa = 24389.0 / 27.0
 
 proc labF(t: float64): float64 {.inline.} =
-  if t > Eps: cbrt(t) else: (Kappa * t + 16.0) / 116.0
+  if t > Eps: rmath.cbrt(t) else: (Kappa * t + 16.0) / 116.0
 
 proc labFinv(f: float64): float64 {.inline.} =
   let f3 = f * f * f
@@ -96,7 +97,7 @@ proc xyzToLabF32*(xyz: array[3, float32]): array[3, float32] {.inline.} =
   const W = [0.9642'f32, 1.0, 0.8249]
   const E = float32(216.0 / 24389.0)
   const K = float32(24389.0 / 27.0)
-  template f(t: float32): float32 = (if t > E: cbrt(t) else: (K * t + 16.0'f32) / 116.0'f32)
+  template f(t: float32): float32 = (if t > E: rmath.cbrt(t) else: (K * t + 16.0'f32) / 116.0'f32)
   let fx = f(xyz[0] / W[0])
   let fy = f(xyz[1] / W[1])
   let fz = f(xyz[2] / W[2])

@@ -2,5 +2,5 @@
 ## module registers every ported filter with the dispatcher in `algo/filters` (`apply`,
 ## `outputArea`, `kernel`).
 
-import algo/[filters, basic_filters, blur_filters]
+import algo/[filters, basic_filters, blur_filters, fx_filters]
 export filters

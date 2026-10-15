@@ -471,5 +471,231 @@
 "taper": 100
 }
 ]
+},
+{
+"filter": "minimum",
+"radius": 3,
+"preserve": "squareness"
+},
+{
+"filter": "maximum",
+"radius": 2.6,
+"preserve": "squareness"
+},
+{
+"filter": "minimum",
+"radius": 5,
+"preserve": "roundness"
+},
+{
+"filter": "maximum",
+"radius": 7.5,
+"preserve": "roundness"
+},
+{
+"filter": "offset",
+"horizontal": 25,
+"vertical": -13,
+"undefined": "wrap"
+},
+{
+"filter": "offset",
+"horizontal": -40,
+"vertical": 7,
+"undefined": "repeat"
+},
+{
+"filter": "offset",
+"horizontal": 3,
+"vertical": 90,
+"undefined": "transparent"
+},
+{
+"filter": "mosaic",
+"cellSize": 7
+},
+{
+"filter": "mosaic",
+"cellSize": 33.4
+},
+{
+"filter": "emboss",
+"angle": 135,
+"height": 3,
+"amount": 120
+},
+{
+"filter": "emboss",
+"angle": -30,
+"height": 8,
+"amount": 300
+},
+{
+"filter": "findEdges"
+},
+{
+"filter": "solarize"
+},
+{
+"filter": "invert"
+},
+{
+"filter": "desaturate"
+},
+{
+"filter": "twirl",
+"angle": 120
+},
+{
+"filter": "twirl",
+"angle": -700
+},
+{
+"filter": "pinch",
+"amount": 60
+},
+{
+"filter": "pinch",
+"amount": -100
+},
+{
+"filter": "spherize",
+"amount": 80,
+"mode": "normal"
+},
+{
+"filter": "spherize",
+"amount": -50,
+"mode": "horizontalOnly"
+},
+{
+"filter": "spherize",
+"amount": 100,
+"mode": "verticalOnly"
+},
+{
+"filter": "wave",
+"generators": 5,
+"wavelengthMin": 10,
+"wavelengthMax": 120,
+"amplitudeMin": 5,
+"amplitudeMax": 35,
+"waveType": "sine",
+"undefined": "wrap",
+"seed": 4
+},
+{
+"filter": "wave",
+"generators": 2,
+"wavelengthMin": 30,
+"wavelengthMax": 40,
+"amplitudeMin": 1,
+"amplitudeMax": 12,
+"waveType": "triangle",
+"undefined": "repeat",
+"seed": 11
+},
+{
+"filter": "wave",
+"generators": 9,
+"wavelengthMin": 5,
+"wavelengthMax": 80,
+"amplitudeMin": 3,
+"amplitudeMax": 20,
+"waveType": "square",
+"undefined": "transparent",
+"seed": 1
+},
+{
+"filter": "ripple",
+"amount": 150,
+"size": "small"
+},
+{
+"filter": "ripple",
+"amount": -400,
+"size": "medium"
+},
+{
+"filter": "ripple",
+"amount": 90,
+"size": "large"
+},
+{
+"filter": "polarCoordinates",
+"mode": "rectangularToPolar"
+},
+{
+"filter": "polarCoordinates",
+"mode": "polarToRectangular"
+},
+{
+"filter": "displace",
+"horizontal": 10,
+"vertical": 10,
+"stretch": true,
+"undefined": "wrap"
+},
+{
+"filter": "shear",
+"points": [
+[
+0,
+0
+],
+[
+0.3,
+0.4
+],
+[
+0.7,
+-0.3
+],
+[
+1,
+0
+]
+],
+"undefined": "wrap"
+},
+{
+"filter": "shear",
+"points": [
+[
+1,
+0.5
+],
+[
+0,
+-0.2
+],
+[
+0.5,
+0.5
+],
+[
+0.5000001,
+0.1
+]
+],
+"undefined": "transparent"
+},
+{
+"filter": "zigZag",
+"amount": 40,
+"ridges": 5,
+"style": "pondRipples"
+},
+{
+"filter": "zigZag",
+"amount": -70,
+"ridges": 12,
+"style": "aroundCenter"
+},
+{
+"filter": "zigZag",
+"amount": 100,
+"ridges": 1,
+"style": "outFromCenter"
 }
 ]

@@ -151,3 +151,19 @@ proc totalCmp*(a, b: float32): int =
   x = x xor int32(cast[uint32](x shr 31) shr 1)
   y = y xor int32(cast[uint32](y shr 31) shr 1)
   cmp(x, y)
+
+# ---------------------------------------------------------------- Rust float semantics
+
+proc rmax*[T: SomeFloat](a, b: T): T {.inline.} =
+  ## Rust `f32::max`/`f64::max`: a NaN operand is ignored.
+  if a != a: b elif b != b: a else: max(a, b)
+proc rmin*[T: SomeFloat](a, b: T): T {.inline.} =
+  ## Rust `f32::min`/`f64::min`: a NaN operand is ignored.
+  if a != a: b elif b != b: a else: min(a, b)
+proc remEuclidF*[T: SomeFloat](a, b: T): T {.inline.} =
+  ## Rust `f32::rem_euclid`.
+  let r = a mod b
+  if r < 0: r + abs(b) else: r
+proc signum*[T: SomeFloat](x: T): T {.inline.} =
+  ## Rust `f32::signum`: ±1 by the sign bit (also for ±0), NaN for NaN.
+  if x != x: x else: copySign(T(1), x)

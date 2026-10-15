@@ -60,6 +60,11 @@ own nimcache (`.nimcache/<name>`), so different test files can compile at the sa
 
 ## Nim pitfalls met so far
 
+* Rust's `f32::cbrt`/`f64::cbrt` are not glibc's (they come from Rust's bundled `libm`); use
+  `photocraft/rmath.cbrt`. Every other libm function the port uses matches glibc bit for bit
+  (checked on 200k inputs each). Rust's `powi(n)` at run time is repeated multiplication
+  (`x * x * x`), but a constant-folded `powi` equals `pow`.
+
 * Closures cannot capture `openArray`/`var` parameters. Use a `template`, a top-level `proc` that
   takes the data as a parameter, or copy (`let vals = @values`). `nim check` does not catch this;
   only a real compile (`nim r`/`nim c`) does.

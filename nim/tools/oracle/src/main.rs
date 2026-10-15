@@ -263,6 +263,15 @@ fn main() {
             let sc: Vec<String> = photocraft_text::scripts::Script::ALL.iter().map(|s| format!("{:?}", photocraft_text::scripts::system_candidates(*s).len())).collect();
             println!("{}", sc.join(" "));
         }
+        "labcheck" => {
+            // Lab round trip of one pixel through the raster conversions (bits), for the port.
+            let px: Vec<f32> = args[2..5].iter().map(|v| v.parse().unwrap()).collect();
+            let fmt = photocraft_color::PixelFormat::new(ColorMode::Lab, SampleType::F32, false);
+            let rgba = photocraft_raster::to_rgba(&fmt, &px);
+            let g = 0.299 * rgba[0] + 0.587 * rgba[1] + 0.114 * rgba[2];
+            let back = photocraft_raster::from_rgba(&fmt, [g, g, g, 1.0]);
+            println!("{:?} {:?} {} {:?}", px.iter().map(|v| v.to_bits()).collect::<Vec<_>>(), rgba.iter().map(|v| v.to_bits()).collect::<Vec<_>>(), g.to_bits(), back.iter().map(|v| v.to_bits()).collect::<Vec<_>>());
+        }
         "filter" => {
             let mut d = photocraft_format::load_from_bytes(&std::fs::read(&args[2]).unwrap()).unwrap();
             let p: photocraft_algo::FilterParams = serde_json::from_str(&args[3]).unwrap();

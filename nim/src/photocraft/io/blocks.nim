@@ -3,6 +3,7 @@
 ## transforms, and the gradient baking used for Photoshop's interpolation methods.
 
 import std/[options, math, algorithm]
+import ../rmath
 import ../geom, ../geom/warp, ../color, ../doc, ../psd, ../algo/util
 
 # ---------------------------------------------------------------- gradient baking
@@ -24,17 +25,19 @@ proc enc(c0: float32): float32 =
 
 proc toOklab(rgb: array[3, float32]): array[3, float32] =
   let (r, g, b) = (lin(rgb[0]), lin(rgb[1]), lin(rgb[2]))
-  let l = cbrt(0.412_221_46'f32 * r + 0.536_332_55'f32 * g + 0.051_445_995'f32 * b)
-  let m = cbrt(0.211_903_5'f32 * r + 0.680_699_5'f32 * g + 0.107_396_96'f32 * b)
-  let s = cbrt(0.088_302_46'f32 * r + 0.281_718_85'f32 * g + 0.629_978_7'f32 * b)
+  let l = rmath.cbrt(0.412_221_46'f32 * r + 0.536_332_55'f32 * g + 0.051_445_995'f32 * b)
+  let m = rmath.cbrt(0.211_903_5'f32 * r + 0.680_699_5'f32 * g + 0.107_396_96'f32 * b)
+  let s = rmath.cbrt(0.088_302_46'f32 * r + 0.281_718_85'f32 * g + 0.629_978_7'f32 * b)
   [0.210_454_26'f32 * l + 0.793_617_8'f32 * m - 0.004_072_047'f32 * s,
    1.977_998_5'f32 * l - 2.428_592_2'f32 * m + 0.450_593_7'f32 * s,
    0.025_904_037'f32 * l + 0.782_771_77'f32 * m - 0.808_675_77'f32 * s]
 
+proc cube(v: float32): float32 {.inline.} = v * v * v   # Rust `powi(3)`: two roundings
+
 proc fromOklab(p: array[3, float32]): array[3, float32] =
-  let l = pow(p[0] + 0.396_337_78'f32 * p[1] + 0.215_803_76'f32 * p[2], 3)
-  let m = pow(p[0] - 0.105_561_346'f32 * p[1] - 0.063_854_17'f32 * p[2], 3)
-  let s = pow(p[0] - 0.089_484_18'f32 * p[1] - 1.291_485_5'f32 * p[2], 3)
+  let l = cube(p[0] + 0.396_337_78'f32 * p[1] + 0.215_803_76'f32 * p[2])
+  let m = cube(p[0] - 0.105_561_346'f32 * p[1] - 0.063_854_17'f32 * p[2])
+  let s = cube(p[0] - 0.089_484_18'f32 * p[1] - 1.291_485_5'f32 * p[2])
   [enc(4.076_741_7'f32 * l - 3.307_711_6'f32 * m + 0.230_969_94'f32 * s),
    enc(-1.268_438'f32 * l + 2.609_757_4'f32 * m - 0.341_319_38'f32 * s),
    enc(-0.004_196_086_3'f32 * l - 0.703_418_6'f32 * m + 1.707_614_7'f32 * s)]

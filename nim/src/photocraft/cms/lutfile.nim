@@ -4,6 +4,7 @@
 ## Every table is normalised to `LutFile`: `size`³ RGB triplets in 0..1, **red varying fastest**.
 
 import std/[strutils, math, options, strformat]
+import ../rmath
 
 type
   LutFile* = object
@@ -131,7 +132,7 @@ proc parse3dl*(text: string): LutFile =
       try: v.add parseFloat(s)
       except ValueError: discard
     if v.len == 3: rows.add [v[0], v[1], v[2]]
-  let n = int(round(cbrt(float64(rows.len))))
+  let n = int(round(rmath.cbrt(float64(rows.len))))
   if n < 2 or n * n * n != rows.len: raise lutErr($rows.len & " rows is not a cube")
   var mx = 0.0
   for r in rows:
