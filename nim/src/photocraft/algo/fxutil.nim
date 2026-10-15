@@ -88,17 +88,23 @@ proc boxBlurN*(buf: var openArray[float32]; w, h, n, r: int) =
   boxRowsN(buf, w, n, r, scratch)
   boxColsN(buf, w, h, n, r, scratch)
 
+const MaxBoxRadius* = 1 shl 16
+  ## Box radii are capped here: far beyond any real blur, it keeps absurd sigmas (only reachable
+  ## through hand-written params) from looping for hours. Results are Rust's below it.
+
 proc gaussBoxRadii*(sigma: float32): array[3, int] =
-  ## Radii of three box blurs approximating a gaussian of `sigma`.
+  ## Radii of three box blurs approximating a gaussian of `sigma` (Kovesi 2010), with Rust's
+  ## i32 arithmetic (saturating casts, NaN → 0) so odd sigmas give the same radii.
   let n = 3'f32
   let wIdeal = sqrt(12 * sigma * sigma / n + 1)
-  var wl = int(floor(wIdeal))
+  var wl = asI32(floor(float64(wIdeal)))
   if wl mod 2 == 0: dec wl
   wl = max(wl, 1)
   let wu = wl + 2
-  let m = int(clamp(round((12 * sigma * sigma - n * float32(wl * wl) - 4 * n * float32(wl) - 3 * n) /
-                          (-4 * float32(wl) - 4)), 0'f32, n))
-  for i in 0 .. 2: result[i] = (if i < m: (wl - 1) div 2 else: (wu - 1) div 2)
+  let sq = cast[int32](uint32((wl * wl) and 0xFFFF_FFFF))
+  let m = asUsize(float64(clamp(round((12 * sigma * sigma - n * float32(sq) - 4 * n * float32(wl) - 3 * n) /
+                                      (-4 * float32(wl) - 4)), 0'f32, n)))
+  for i in 0 .. 2: result[i] = min((if i < m: (wl - 1) div 2 else: (wu - 1) div 2), MaxBoxRadius)
   if result == [0, 0, 0]: result[0] = 1
 
 proc gaussBlurN*(buf: var openArray[float32]; w, h, n: int; sigma: float32) =

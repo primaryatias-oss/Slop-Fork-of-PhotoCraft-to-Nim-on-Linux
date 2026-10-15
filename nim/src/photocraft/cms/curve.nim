@@ -5,6 +5,7 @@
 ## values. Sampled tables clamp their input to `[0, 1]`.
 
 import std/math
+import ../rmath
 
 type
   CurveKind* = enum ckIdentity, ckGamma, ckParametric, ckTable
@@ -121,7 +122,7 @@ proc tableEval(t: seq[float32]; x: float32): float32 {.inline.} =
   of 1: t[0]
   else:
     let pos = clamp(x, 0.0'f32, 1.0'f32) * float32(n - 1)
-    let i = min(int(pos), n - 2)
+    let i = min(asIdx(pos), n - 2)
     let f = pos - float32(i)
     t[i] + (t[i + 1] - t[i]) * f
 

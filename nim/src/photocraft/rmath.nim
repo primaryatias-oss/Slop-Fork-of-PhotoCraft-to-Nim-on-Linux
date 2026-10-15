@@ -117,3 +117,23 @@ proc cbrt*(x: float64): float64 =
     if abs((cast[float64](cvt4) - y1) - dy) < cast[float64](0x3c30000000000000'u64) or abs(zz) == 1.0:
       cvt3 = (cvt3 + (1'u64 shl 15)) and 0xffffffffffff0000'u64
   cast[float64](cvt3)
+
+# ---------------------------------------------------------------- Rust `as` casts from f32
+
+proc asIdx*(v: float32): int {.inline.} =
+  ## Rust `v as usize` (64-bit, capped at `high(int)`): NaN and negatives → 0.
+  if v != v or v <= 0: 0
+  elif v >= 9.2e18'f32: high(int)
+  else: int(v)
+
+proc asU8*(v: float32): uint8 {.inline.} =
+  ## Rust `v as u8`: saturating, NaN → 0.
+  if v != v or v <= 0: 0'u8
+  elif v >= 255: 255'u8
+  else: uint8(v)
+
+proc asU16*(v: float32): uint16 {.inline.} =
+  ## Rust `v as u16`: saturating, NaN → 0.
+  if v != v or v <= 0: 0'u16
+  elif v >= 65535: 65535'u16
+  else: uint16(v)

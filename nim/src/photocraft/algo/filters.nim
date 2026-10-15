@@ -36,6 +36,9 @@ type
 
   FilterUnavailable* = object of CatchableError
     ## The filter's module is not part of this build.
+  FilterTooLarge* = object of CatchableError
+    ## The halo would make a tile's source window absurdly large (hand-written params far outside
+    ## the documented ranges); Rust runs out of memory there.
 
 var
   kernels*: array[FilterKind, KernelProc]
@@ -51,6 +54,7 @@ proc registerFastPath*(f: FastPathProc) = fastPaths.add f
 const
   Tile* = 256
   ResultBudget = 256 shl 20
+  MaxWindowSamples = 1 shl 28 ## samples in one tile's source window (1 GiB of f32)
 
 proc ceilI(v: float32): int =
   ## `f32::ceil() as i32` (saturating, NaN → 0).
@@ -193,6 +197,10 @@ proc applyTiledWith*(surface: Surface; p: FilterParams; area, bounds: Rect; sele
       if ctl.cancelled:
         results.add (t, newSeq[float32]())
         continue
+      if shared.isNone:
+        let win = t.inflate(h.radius)
+        if win.width * win.height * fmt.channels > MaxWindowSamples:
+          raise newException(FilterTooLarge, p.label & " reads too far around each pixel (" & $h.radius & " px)")
       let src =
         if shared.isSome: shared.get
         elif extent.isSome: readClamped(surface, t.inflate(h.radius), extent.get)

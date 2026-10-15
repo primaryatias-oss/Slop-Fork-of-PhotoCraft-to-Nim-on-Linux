@@ -1,6 +1,7 @@
 ## 3D lookup tables for applying a display transform (and half-float helpers).
 
 import std/math
+import ../rmath
 import ./pipeline, ./transform, ./profile
 
 type
@@ -30,7 +31,7 @@ proc sample*(l: Lut3d; rgb: array[3, float32]): array[3, float32] =
   let n = l.size
   proc loc(v: float32): (int, float32) =
     let p = clamp(v, 0.0'f32, 1.0'f32) * float32(n - 1)
-    let i = min(int(p), n - 2)
+    let i = min(asIdx(p), n - 2)
     (i, p - float32(i))
   let (r0, fr) = loc(rgb[0])
   let (g0, fg) = loc(rgb[1])
@@ -80,4 +81,4 @@ proc f16ToF32*(h: uint16): float32 =
 
 proc toRgba8*(l: Lut3d): seq[uint8] =
   for p in l.data:
-    for v in p: result.add uint8(clamp(v, 0.0'f32, 1.0'f32) * 255.0'f32 + 0.5'f32)
+    for v in p: result.add asU8(clamp(v, 0.0'f32, 1.0'f32) * 255.0'f32 + 0.5'f32)

@@ -94,7 +94,7 @@ See the bottom of this file (updated as crates land) and `git log`.
 | doc, ops, vector | ported, tested |
 | compose | ported, tested (GPU compositor intentionally not ported: SDL3 textures display the CPU result) |
 | format (.pcraft, zstd, BLAKE3, autosave/recovery) | ported, tested; files interchange with the Rust build both ways |
-| algo | in progress: foundation, resample, transform, warp; filter dispatcher (`algo/filters`: halos, tiled apply, selection mixing, registry); blur family (`blur`, `sharpen`, `blur2`, `gallery`, `radial_plan`: Gaussian/Box with the separable fast path, Motion with the FFT fast path, Radial, Surface, Unsharp Mask, Smart Sharpen, High Pass, Smart/Lens/Shape Blur, Tilt-Shift, Iris, Field, Spin, Path); noise, median, custom, HSB/HSL, color to alpha, video, stylize part 2; Other, Stylize, Distort, Pixelate, Oil Paint, Render (clouds, fibers, lens flare, lighting), Relight, Reduce Noise. 937 of 938 filter runs identical to Rust (`tools/filtercases.json`, 134 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
+| algo | in progress: foundation, resample, transform, warp; filter dispatcher (`algo/filters`: halos, tiled apply, selection mixing, registry); blur family (`blur`, `sharpen`, `blur2`, `gallery`, `radial_plan`: Gaussian/Box with the separable fast path, Motion with the FFT fast path, Radial, Surface, Unsharp Mask, Smart Sharpen, High Pass, Smart/Lens/Shape Blur, Tilt-Shift, Iris, Field, Spin, Path); noise, median, custom, HSB/HSL, color to alpha, video, stylize part 2; Other, Stylize, Distort, Pixelate, Oil Paint, Render (clouds, fibers, lens flare, lighting), Relight, Reduce Noise, Filter Gallery (`artistic_fx`, all 47 effects). 2869 of 2870 filter runs identical to Rust (`tools/filtercases.json`, 410 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
 | io (PSD/PSB ↔ document, layered TIFF, multi-part EXR, flat formats, facade) | ported, tested; see "io notes" below |
 | io: OpenRaster, Paint.NET | ported, tested |
 | io: SVG, camera raw, Affinity | pending (the facade reports "unsupported" until they land; SVG needs a usvg-style normalizer) |
@@ -125,6 +125,12 @@ by document JSON + tile hashes (`.pcraft`), raw float renders, or output bytes.
   `registerFastPath`); `photocraft/algo` imports them all.
 * Halo radii use Rust's release-build i32 arithmetic (wrapping), so absurd radii give the same
   (empty) areas as Rust instead of huge allocations.
+* Box radii (`fxutil.gaussBoxRadii`, Filter Gallery line blurs and Kuwahara) are capped at
+  `MaxBoxRadius` (65536): Rust loops for hours on such radii (only reachable through hand-written
+  params); below the cap results are Rust's. A tile whose source window would exceed 2^28 samples
+  raises `FilterTooLarge` where Rust runs out of memory.
+* Float → index casts on pixel values use `rmath.asIdx`/`asU8`/`asU16` (Rust `as`: NaN → 0,
+  saturating); a bare `int(NaN)` in a CLUT lookup overflowed on NaN colours.
 * Motion Blur's FFT path is taken under the same conditions as Rust (including the core count
   from `countProcessors`, rayon's default); its f64 FFT is the port's own, so 32-bit float
   results can differ in the last bits.

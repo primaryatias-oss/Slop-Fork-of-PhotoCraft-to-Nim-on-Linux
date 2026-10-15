@@ -5,6 +5,8 @@
 ## Kasson et al. 1995); 4-input tables interpolate linearly along the first input between
 ## two tetrahedral evaluations; other input counts use multilinear interpolation.
 
+import ../rmath
+
 const MaxChannels* = 15 ## Maximum number of input or output channels of a CLUT.
 
 type
@@ -57,7 +59,7 @@ proc locate(c: Clut; d: int; v: float32): (int, float32, int) {.inline.} =
   let n = c.grid[d]
   if n < 2: return (0, 0.0'f32, 0)
   let p = clamp(v, 0.0'f32, 1.0'f32) * float32(n - 1)
-  let i = min(int(p), n - 2)
+  let i = min(asIdx(p), n - 2)
   (i * c.strides[d], p - float32(i), c.strides[d])
 
 proc tetra*(c: Clut; base: int; s: array[3, int]; r: array[3, float32]; outp: var openArray[float32]) {.inline.} =

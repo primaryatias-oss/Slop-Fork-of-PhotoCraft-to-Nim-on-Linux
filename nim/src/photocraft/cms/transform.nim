@@ -2,6 +2,7 @@
 ## compensation, soft-proofing chains, and fast lookup-table evaluation of pixel buffers.
 
 import std/[options, tables, math, hashes]
+import ../rmath
 import ./curve, ./clut, ./math as cmath, ./pipeline, ./profile, ./write, ./builtin
 
 type
@@ -47,7 +48,7 @@ proc hash*(o: TransformOptions): Hash = hash((ord(o.intent), o.bpc, o.preciseFlo
 
 proc postEval(t: seq[float32]; x: float32): float32 {.inline.} =
   let u = sqrt(sqrt(clamp(x, 0.0'f32, 1.0'f32))) * float32(OutTable - 1)
-  let i = min(int(u), OutTable - 2)
+  let i = min(asIdx(u), OutTable - 2)
   let f = u - float32(i)
   t[i] + (t[i + 1] - t[i]) * f
 
@@ -71,7 +72,7 @@ proc shaperCore(cs: seq[Curve]; matrix: Option[(int, int, seq[float64], seq[floa
 proc table1(t: seq[float32]; x: float32): float32 {.inline.} =
   let n = t.len - 1
   let p = x * float32(n)
-  let i = min(int(max(floor(p), 0.0'f32)), n - 1)
+  let i = min(asIdx(floor(p)), n - 1)
   let f = p - float32(i)
   t[i] + (t[i + 1] - t[i]) * f
 
@@ -337,7 +338,7 @@ proc apply*(t: Transform; buf: var openArray[float32]; stride: int) =
     else: t.evalFast(buf.toOpenArray(s, s + stride - 1), o)
     for k in 0 ..< t.outputs: buf[s + k] = o[k]
 
-proc q8(v: float32): uint8 {.inline.} = uint8(clamp(v, 0.0'f32, 1.0'f32) * 255.0'f32 + 0.5'f32)
+proc q8(v: float32): uint8 {.inline.} = asU8(clamp(v, 0.0'f32, 1.0'f32) * 255.0'f32 + 0.5'f32)
 
 proc convertU8*(t: Transform; src: openArray[uint8]; ss: int; dst: var openArray[uint8]; ds: int; copyExtra: bool) =
   ## Converts 8-bit pixels (see `convertF32` for the layout).
@@ -413,7 +414,7 @@ proc convertU16*(t: Transform; src: openArray[uint16]; ss: int; dst: var openArr
     let dp = px * ds
     for k in 0 ..< t.inputs: inp[k] = float32(src[sp + k]) / 65535.0'f32
     t.evalFast(inp, outv)
-    for k in 0 ..< t.outputs: dst[dp + k] = uint16(clamp(outv[k], 0.0'f32, 1.0'f32) * 65535.0'f32 + 0.5'f32)
+    for k in 0 ..< t.outputs: dst[dp + k] = asU16(clamp(outv[k], 0.0'f32, 1.0'f32) * 65535.0'f32 + 0.5'f32)
     for e in 0 ..< extra: dst[dp + t.outputs + e] = src[sp + t.inputs + e]
 
 # ------------------------------------------------------------ cache

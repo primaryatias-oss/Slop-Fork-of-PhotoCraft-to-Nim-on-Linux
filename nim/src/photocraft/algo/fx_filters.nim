@@ -2,7 +2,7 @@
 
 import std/[options, math]
 import ../geom
-import filters, other, stylize, distort, pixelate, oil, render, relight, denoise
+import filters, other, stylize, distort, pixelate, oil, render, relight, denoise, artistic_fx
 
 registerKernel(fltMinimum, proc(p: FilterParams; src: Image; o: Rect; ctx: Ctx): seq[float32] =
   minMaxPreserve(src, o, p.radius, false, p.preserve))
@@ -72,3 +72,6 @@ registerKernel(fltReduceNoise, proc(p: FilterParams; src: Image; o: Rect; ctx: C
   reduceNoise(src, o, ctx, DenoiseSpec(strength: p.strength, preserve: p.preserveDetails, color: p.reduceColorNoise,
               sharpen: p.sharpenDetails, jpeg: p.removeJpegArtifact)))
 registerHalo(fltReduceNoise, proc(p: FilterParams; bounds: Rect): Halo = reachHalo(denoise.reach()))
+registerKernel(fltFilterGallery, proc(p: FilterParams; src: Image; o: Rect; ctx: Ctx): seq[float32] =
+  artistic_fx.run(p.effects, src, o, ctx))
+registerHalo(fltFilterGallery, proc(p: FilterParams; bounds: Rect): Halo = radiusHalo(artistic_fx.reach(p.effects)))
