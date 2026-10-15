@@ -111,8 +111,11 @@ See the bottom of this file (updated as crates land) and `git log`.
 ranges, modify incl. the cosine-series feather, polygon, marquee tiles, combines), histogram, tone
 (Shadows/Highlights, Replace/Match Color, HDR Toning), HDR merge (exposures, MTB, Debevec–Malik
 response, ghosts, tone mapping), EXIF, Indexed Color/Bitmap (`quantize`), Magic Eraser, stack modes,
-Trap, gradient/bucket tools, retouch kernels (dodge, burn, sponge, local blur/sharpen). Non-filter
-APIs are checked with `tools/algocheck.py` (`tools/algocases/*.json`, 1813 command runs identical). 2869 of 2870 filter runs identical to Rust (`tools/filtercases.json`, 410 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
+Trap, gradient/bucket tools, retouch kernels (dodge, burn, sponge, local blur/sharpen), Poisson
+blending (`poisson`), non-local patch completion (`nonlocal`), the Remove Tool (`remove`, `holes`),
+Perspective Warp, Crop and Straighten Photos (`scancrop`), Red Eye, Content-Aware Scale (`seam`),
+Magnetic Lasso. Non-filter APIs are checked with `tools/algocheck.py` (`tools/algocases/*.json`,
+2375 command runs identical). 2869 of 2870 filter runs identical to Rust (`tools/filtercases.json`, 410 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
 | io (PSD/PSB ↔ document, layered TIFF, multi-part EXR, flat formats, facade) | ported, tested; see "io notes" below |
 | io: OpenRaster, Paint.NET | ported, tested |
 | io: SVG, camera raw, Affinity | pending (the facade reports "unsupported" until they land; SVG needs a usvg-style normalizer) |

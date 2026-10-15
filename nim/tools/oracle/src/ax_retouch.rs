@@ -200,3 +200,69 @@ pub fn run(args: &[String]) -> bool {
     }
     true
 }
+
+fn holes(path: &str) -> (usize, usize, Vec<bool>) {
+    let b = axio::read(path);
+    let m = b.f.iter().map(|v| *v >= 0.5).collect();
+    (b.w, b.h, m)
+}
+
+pub fn run_fill(args: &[String]) -> bool {
+    use photocraft_algo::{nonlocal, poisson, remove};
+    use photocraft_raster::Interrupt;
+    let a: Vec<&str> = args.iter().map(|s| s.as_str()).collect();
+    let out = *a.last().unwrap();
+    let mb = |m: &[bool]| -> Vec<f32> { m.iter().map(|v| if *v { 1.0 } else { 0.0 }).collect() };
+    match a[1] {
+        "pf.holes" => {
+            let (w, h, m) = holes(a[2]);
+            let r: usize = a[3].parse().unwrap();
+            println!("{}", remove::hole_radius(w, h, &m));
+            let mut v = mb(&remove::close_loops(w, h, &m));
+            v.extend(mb(&remove::dilate(w, h, &m, r)));
+            axio::write_f32(out, w, h * 2, 1, &v);
+        }
+        "pf.membrane" => {
+            let b = axio::read(a[2]);
+            let (_, _, m) = holes(a[3]);
+            axio::write_f32(out, b.w, b.h, b.ch, &poisson::membrane_fill(b.w, b.h, b.ch, &b.f, &m));
+        }
+        "pf.clone" => {
+            let (s, d) = (axio::read(a[2]), axio::read(a[3]));
+            let (_, _, m) = holes(a[4]);
+            axio::write_f32(out, s.w, s.h, s.ch, &poisson::seamless_clone(s.w, s.h, s.ch, &s.f, &d.f, &m));
+        }
+        "pf.reference" => {
+            let b = axio::read(a[2]);
+            let (_, _, m) = holes(a[3]);
+            let mut v: Vec<f32> = b.f.chunks_exact(b.ch).map(|p| p[0]).collect();
+            poisson::solve_membrane_reference(b.w, b.h, &m, &mut v, f(a[4]), a[5].parse().unwrap());
+            axio::write_f32(out, b.w, b.h, 1, &v);
+        }
+        "pf.complete" => {
+            // img mask seed radius lambda iters passes
+            let b = axio::read(a[2]);
+            let (_, _, m) = holes(a[3]);
+            let p = nonlocal::Params {
+                seed: a[4].parse().unwrap(),
+                patch_radius: a[5].parse().unwrap(),
+                lambda: f(a[6]),
+                max_iters: a[7].parse().unwrap(),
+                pm_passes: a[8].parse().unwrap(),
+                ..Default::default()
+            };
+            match nonlocal::complete_with(b.w, b.h, b.ch, &b.f, &m, &p, &Interrupt::NONE).unwrap() {
+                Some(v) => axio::write_f32(out, b.w, b.h, b.ch, &v),
+                None => println!("none"),
+            }
+        }
+        "pf.remove" => {
+            let b = axio::read(a[2]);
+            let (_, _, m) = holes(a[3]);
+            let v = remove::remove_with(b.w, b.h, b.ch, &b.f, &m, a[4].parse().unwrap(), &Interrupt::NONE).unwrap();
+            axio::write_f32(out, b.w, b.h, b.ch, &v);
+        }
+        _ => return false,
+    }
+    true
+}

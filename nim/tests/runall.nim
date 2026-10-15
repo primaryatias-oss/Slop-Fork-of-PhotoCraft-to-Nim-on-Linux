@@ -21,3 +21,5 @@ import t_algo_blur
 import t_algo_fx
 import t_algo_select
 import t_algo_retouch
+import t_algo_fill
+import t_algo_reshape

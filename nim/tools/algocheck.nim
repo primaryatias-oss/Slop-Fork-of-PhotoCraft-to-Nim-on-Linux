@@ -5,9 +5,9 @@
 ##   algocheck gen <dir>                 writes the shared input buffers
 ##   algocheck <command> <args…> <out>   runs one command (as `photocraft-oracle <command> …`)
 
-import std/[os, strutils, options, math, tables]
+import std/[os, strutils, options, math, tables, sequtils]
 import photocraft/[geom, raster]
-import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch]
+import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch, poisson, nonlocal, remove, perspective, scancrop, redeye, seam, magnetic]
 import photocraft/color as pcolor
 import photocraft/color/blend
 
@@ -174,6 +174,109 @@ proc gen(dir: string) =
       let inside = (x - 300) * (x - 300) div 4 + (y - 260) * (y - 260) < 40000 or (x > 500 and x < 690 and y > 20 and y < 120)
       big[y * bw + x] = (if inside: 1'f32 else: 0'f32)
   writeF32(dir / "big.pcim", bw, bh, 1, big)
+  # A textured 700 × 530 image with a thin diagonal stroke (the Remove Tool's tiled path) and a
+  # small blob.
+  var tex = newSeq[float32](bw * bh * 4)
+  var stroke = newSeq[float32](bw * bh)
+  for y in 0 ..< bh:
+    for x in 0 ..< bw:
+      let n = float32(hashU(uint32(x), uint32(y), 11) and 0xFF) / 255'f32
+      let stripe = (if ((x + 2 * y) div 9) mod 2 == 0: 0.15'f32 else: 0'f32)
+      let k = (y * bw + x) * 4
+      tex[k] = 0.3'f32 + 0.4'f32 * float32(x) / float32(bw) + stripe + 0.1'f32 * n
+      tex[k + 1] = 0.5'f32 + 0.2'f32 * sin(float32(y) * 0.05'f32) - stripe
+      tex[k + 2] = 0.4'f32 + 0.2'f32 * n
+      tex[k + 3] = 1
+      let d = abs(float32(y) - 40'f32 - float32(x) * 0.6'f32)
+      if (d < 2.5'f32 and x > 20 and x < 680) or (x - 120) * (x - 120) + (y - 400) * (y - 400) < 100:
+        stroke[y * bw + x] = 1
+  writeF32(dir / "tex.pcim", bw, bh, 4, tex)
+  writeF32(dir / "stroke.pcim", bw, bh, 1, stroke)
+  # Flatbed scans: rotated textured photos on a near-white lid (Crop and Straighten Photos); the
+  # second is large enough to be downsampled and has dust specks.
+  proc scan(w, h: int; photos: openArray[(float64, float64, float64, float64, float64)]; dust: bool): seq[float32] =
+    result = newSeq[float32](w * h * 4)
+    for k in 0 ..< w * h:
+      result[k * 4] = 0.97'f32
+      result[k * 4 + 1] = 0.97'f32
+      result[k * 4 + 2] = 0.96'f32
+      result[k * 4 + 3] = 1
+      if dust and hashU(uint32(k mod w), uint32(k div w), 13) mod 4001 == 0:
+        result[k * 4] = 0.1'f32
+        result[k * 4 + 1] = 0.1'f32
+        result[k * 4 + 2] = 0.1'f32
+    for pk, (cx, cy, pw, ph, ang) in photos:
+      let (s, c) = (sin(ang * PI / 180.0), cos(ang * PI / 180.0))
+      for y in 0 ..< h:
+        for x in 0 ..< w:
+          let (dx, dy) = (float64(x) + 0.5 - cx, float64(y) + 0.5 - cy)
+          let (u, v) = (c * dx + s * dy, -s * dx + c * dy)
+          if abs(u) < pw / 2.0 and abs(v) < ph / 2.0:
+            let t = float32(sin(u * 0.05) * cos(v * 0.07))
+            let k = (y * w + x) * 4
+            result[k] = 0.3'f32 + 0.2'f32 * t
+            result[k + 1] = 0.2'f32 + 0.1'f32 * float32(pk)
+            result[k + 2] = 0.5'f32 - 0.2'f32 * t
+  writeF32(dir / "scan.pcim", 600, 440, 4, scan(600, 440, [(150.0, 120.0, 180.0, 120.0, 7.0), (450.0, 130.0, 160.0, 130.0, -12.0),
+                                                            (300.0, 330.0, 220.0, 110.0, 3.0)], false))
+  writeF32(dir / "scan2.pcim", 1700, 1000, 4, scan(1700, 1000, [(400.0, 300.0, 500.0, 380.0, 31.0), (1200.0, 320.0, 420.0, 300.0, -44.0),
+                                                                (500.0, 780.0, 300.0, 200.0, 89.0), (1300.0, 760.0, 600.0, 280.0, 0.0)], true))
+  # Faces with red pupils (Red Eye): two eyes with catchlights in pinkish skin, plus noise; and the
+  # red half-plane of the Rust tile-seam test.
+  let (ew, eh) = (96, 64)
+  var eye = newSeq[float32](ew * eh * 4)
+  for y in 0 ..< eh:
+    for x in 0 ..< ew:
+      let n = float32(hashU(uint32(x), uint32(y), 17) and 0xFF) / 255'f32
+      var p = [0.9'f32, 0.66'f32 + 0.05'f32 * n, 0.55'f32, 1'f32]
+      for (cx, cy, r) in [(30.0, 32.0, 10.0), (70.0, 30.0, 7.0)]:
+        let d = hypot(float64(x) - cx, float64(y) - cy)
+        if d <= 1.2: p = [1'f32, 1, 1, 1]
+        elif d <= r: p = [0.95'f32 - 0.1'f32 * n, 0.10'f32 + 0.05'f32 * n, 0.12'f32, 1]
+        elif d <= r + 4.0: p = [0.38'f32, 0.28'f32, 0.16'f32 + 0.05'f32 * n, 1]
+      let k = (y * ew + x) * 4
+      for c in 0 .. 3: eye[k + c] = p[c]
+  eye[(32 * ew + 36) * 4] = NaN
+  writeF32(dir / "eye.pcim", ew, eh, 4, eye)
+  var half = newSeq[float32](128 * 128 * 4)
+  for k in 0 ..< 128 * 128:
+    let p = (if k mod 128 < 64: [0.95'f32, 0.10, 0.10, 1] else: [0.38'f32, 0.28, 0.16, 1])
+    for c in 0 .. 3: half[k * 4 + c] = p[c]
+  writeF32(dir / "half.pcim", 128, 128, 4, half)
+  # A tall RGB image (Content-Aware Scale's proxy-height path) and its protect map.
+  let (tw, th) = (300, 2100)
+  var tall = newSeq[float32](tw * th * 3)
+  var tallProt = newSeq[float32](tw * th)
+  for y in 0 ..< th:
+    for x in 0 ..< tw:
+      let n = float32(hashU(uint32(x), uint32(y), 19) and 0xFF) / 255'f32
+      let k = (y * tw + x) * 3
+      tall[k] = 0.5'f32 + 0.3'f32 * sin(float32(x) * 0.07'f32 + float32(y) * 0.002'f32)
+      tall[k + 1] = (if (x - 150) * (x - 150) + (y mod 400 - 200) * (y mod 400 - 200) < 2500: 0.9'f32 else: 0.2'f32 + 0.05'f32 * n)
+      tall[k + 2] = float32(y) / float32(th)
+      tallProt[y * tw + x] = (if x in 40 ..< 70: 1'f32 elif x in 200 ..< 210: 0.4'f32 else: 0'f32)
+  writeF32(dir / "tall.pcim", tw, th, 3, tall)
+  writeF32(dir / "tallprot.pcim", tw, th, 1, tallProt)
+  var col = newSeq[float32](40 * 2)
+  for y in 0 ..< 40:
+    col[y * 2] = float32(y) / 40'f32
+    col[y * 2 + 1] = 1
+  writeF32(dir / "col.pcim", 1, 40, 2, col)
+  # An RGBA8 picture for the Magnetic Lasso: a dark disc, a tilted bar and a faint step over a noisy
+  # gradient, with a transparent hole.
+  let (mw, mh) = (300, 200)
+  var edge8 = newSeq[uint8](mw * mh * 4)
+  for y in 0 ..< mh:
+    for x in 0 ..< mw:
+      let n = int(hashU(uint32(x), uint32(y), 23) and 15)
+      var v = [uint8(60 + x div 6 + n), uint8(90 + n), uint8(140 - y div 4), 255'u8]
+      if hypot(float64(x) - 90.5, float64(y) - 100.5) < 45: v = [uint8(20 + n), 25'u8, 30'u8, 255'u8]
+      let (u, t) = (float64(x - 210) * 0.94 + float64(y - 100) * 0.34, -float64(x - 210) * 0.34 + float64(y - 100) * 0.94)
+      if abs(u) < 12 and abs(t) < 70: v = [230'u8, uint8(200 + n), 180'u8, 255'u8]
+      if y > 170 and x > 120: v[0] = uint8(min(int(v[0]) + 12, 255))
+      if x > 270 and y < 30: v[3] = 0
+      for c in 0 .. 3: edge8[(y * mw + x) * 4 + c] = v[c]
+  writeU8(dir / "edge8.pcim", mw, mh, 4, edge8)
 
 # ---------------------------------------------------------------- selection
 
@@ -692,8 +795,214 @@ proc retouchCmd(a: seq[string]): bool =
   else: return false
   true
 
+# ---------------------------------------------------------------- poisson / nonlocal / remove
+
+proc holesArg(path: string): (int, int, seq[bool]) =
+  let b = readBuf(path)
+  var m = newSeq[bool](b.f.len)
+  for i, v in b.f: m[i] = v >= 0.5'f32
+  (b.w, b.h, m)
+
+proc mb(m: seq[bool]): seq[float32] =
+  for v in m: result.add (if v: 1'f32 else: 0'f32)
+
+proc fillCmd(a: seq[string]): bool =
+  let o = a[^1]
+  case a[1]
+  of "pf.holes":
+    let (w, h, m) = holesArg(a[2])
+    echo holeRadius(w, h, m)
+    var v = mb(closeLoops(w, h, m))
+    v.add mb(dilate(w, h, m, parseInt(a[3])))
+    writeF32(o, w, h * 2, 1, v)
+  of "pf.membrane":
+    let b = readBuf(a[2])
+    let (_, _, m) = holesArg(a[3])
+    writeF32(o, b.w, b.h, b.ch, membraneFill(b.w, b.h, b.ch, b.f, m))
+  of "pf.clone":
+    let (s, d) = (readBuf(a[2]), readBuf(a[3]))
+    let (_, _, m) = holesArg(a[4])
+    writeF32(o, s.w, s.h, s.ch, seamlessClone(s.w, s.h, s.ch, s.f, d.f, m))
+  of "pf.reference":
+    let b = readBuf(a[2])
+    let (_, _, m) = holesArg(a[3])
+    var v = newSeq[float32](b.w * b.h)
+    for k in 0 ..< v.len: v[k] = b.f[k * b.ch]
+    solveMembraneReference(b.w, b.h, m, v, f(a[4]), parseInt(a[5]))
+    writeF32(o, b.w, b.h, 1, v)
+  of "pf.complete":
+    let b = readBuf(a[2])
+    let (_, _, m) = holesArg(a[3])
+    var p = defaultParams()
+    p.seed = uint64(parseBiggestUInt(a[4]))
+    p.patchRadius = parseInt(a[5])
+    p.lambda = f(a[6])
+    p.maxIters = parseInt(a[7])
+    p.pmPasses = parseInt(a[8])
+    let r = completeWith(b.w, b.h, b.ch, b.f, m, p, NoInterrupt)
+    if r.isSome: writeF32(o, b.w, b.h, b.ch, r.get) else: echo "none"
+  of "pf.remove":
+    let b = readBuf(a[2])
+    let (_, _, m) = holesArg(a[3])
+    writeF32(o, b.w, b.h, b.ch, removeWith(b.w, b.h, b.ch, b.f, m, uint64(parseBiggestUInt(a[4])), NoInterrupt))
+  else: return false
+  true
+
+# ---------------------------------------------------------------- perspective / scan crop / red eye
+
+proc nums64(s: string): seq[float64] =
+  for t in s.split(','): result.add parseFloat(t.strip)
+
+proc planesArg(s: string): seq[Plane] =
+  let v = nums64(s)
+  proc q(o: int): Quad = [[v[o], v[o + 1]], [v[o + 2], v[o + 3]], [v[o + 4], v[o + 5]], [v[o + 6], v[o + 7]]]
+  for k in 0 ..< v.len div 16: result.add Plane(src: q(k * 16), dst: q(k * 16 + 8))
+
+proc b64(v: float64): string = $cast[uint64](v)
+
+proc quadLine(q: Quad): string =
+  var parts: seq[string]
+  for p in q: parts.add b64(p[0]) & " " & b64(p[1])
+  parts.join(" ")
+
+proc warpCmd(a: seq[string]): bool =
+  let o = a[^1]
+  case a[1]
+  of "pw.map":
+    let ps = planesArg(a[2])
+    let (x0, y0, x1, y1) = (parseFloat(a[3]), parseFloat(a[4]), parseFloat(a[5]), parseFloat(a[6]))
+    let n = parseInt(a[7])
+    let m = newPerspectiveMap(ps)
+    if m.isNone: echo "none"
+    else:
+      var line: seq[string]
+      for j in 0 .. n:
+        for i in 0 .. n:
+          let (x, y) = (x0 + (x1 - x0) * float64(i) / float64(n), y0 + (y1 - y0) * float64(j) / float64(n))
+          let (u, v) = m.get.map(x, y)
+          line.add b64(u)
+          line.add b64(v)
+      echo line.join(" ")
+    echo "identity ", isIdentity(ps)
+    for p in ps:
+      for (u, v) in [(0.0, 0.0), (0.3, 0.7), (1.0, 0.5), (1.5, -0.2)]:
+        for d in [false, true]:
+          let q = planePoint(p, u, v, d)
+          echo "pp ", b64(q[0]), " ", b64(q[1])
+    echo "unit ", quadLine(unitCorners())
+    writeFile(o, "")
+  of "pw.straighten":
+    var ps = planesArg(a[2])
+    for g in linkedCorners(ps):
+      var parts: seq[string]
+      for (p, c) in g: parts.add "(" & $p & ", " & $c & ")"
+      echo "group [", parts.join(", "), "]"
+    let m = parseStraighten(a[3])
+    if m.isNone: echo "bad mode" else: straighten(ps, m.get)
+    for p in ps:
+      echo "src ", quadLine(p.src)
+      echo "dst ", quadLine(p.dst)
+    writeFile(o, "")
+  of "sc.find":
+    let im = readBuf(a[2])
+    let found = findPhotos(im.w, im.h, rgba(im))
+    echo found.len
+    for p in found:
+      echo b64(p.center[0]), " ", b64(p.center[1]), " ", b64(p.width), " ", b64(p.height), " ", b64(p.angle), " ", b64(p.area)
+      echo "corners ", quadLine(p.corners)
+    writeFile(o, "")
+  of "re.apply":
+    let im = readBuf(a[2])
+    var px = rgba(im)
+    let n = redeye.apply(px, im.w, im.h, (parseInt(a[3]), parseInt(a[4])), (parseInt(a[5]), parseInt(a[6])), f(a[7]), f(a[8]))
+    echo n
+    writeF32(o, im.w, im.h, 4, flat4(px))
+  of "re.consts":
+    echo "halo ", haloRadius()
+    for v in [NaN, Inf, -5'f32, 0, 1, 37.5, 50, 100, 101, 400, 401, 1e30]:
+      let s = unclampedWindowSide(v)
+      echo cast[uint32](searchRadius(v)), " ", (if s.isSome: "Some(" & $s.get & ")" else: "None")
+    writeFile(o, "")
+  else: return false
+  true
+
+# ---------------------------------------------------------------- reshaping tools
+
+proc optMask(path: string): Option[seq[float32]] =
+  if path == "-": none(seq[float32]) else: some(readBuf(path).f)
+
+proc seqStr(v: openArray[int]): string =
+  var parts: seq[string]
+  for x in v: parts.add $x
+  "[" & parts.join(", ") & "]"
+
+proc reshapeCmd(a: seq[string]): bool =
+  let o = a[^1]
+  case a[1]
+  of "cs.energy":
+    let b = readBuf(a[2])
+    let e = energy(b.w, b.h, b.ch, b.f)
+    echo seqStr(findSeam(b.w, b.h, e))
+    writeF32(o, b.w, b.h, 1, e)
+  of "cs.width":
+    let b = readBuf(a[2])
+    let nw = max(parseInt(a[4]), 1)
+    let r = carveWidth(b.w, b.h, b.ch, b.f, optMask(a[3]), nw)
+    echo r.len
+    writeF32(o, nw, b.h, b.ch, r)
+  of "cs.carve":
+    let b = readBuf(a[2])
+    let (nw, nh) = (max(parseInt(a[4]), 1), max(parseInt(a[5]), 1))
+    let r = carve(b.w, b.h, b.ch, b.f, optMask(a[3]), nw, nh)
+    echo r.len
+    writeF32(o, nw, nh, b.ch, r)
+  of "cs.resize":
+    let b = readBuf(a[2])
+    let (nw, nh) = (parseInt(a[3]), parseInt(a[4]))
+    writeF32(o, nw, nh, b.ch, resizeBilinear(b.w, b.h, b.ch, b.f, nw, nh))
+  of "cs.skin":
+    let b = readBuf(a[2])
+    writeF32(o, b.w, b.h, 1, skinMask(b.w, b.h, b.ch, b.f))
+  of "ml.run":
+    let im = readBuf(a[2])
+    let px = rgba8(im)
+    let (ox, oy) = (parseInt(a[3]), parseInt(a[4]))
+    let bad = a[5] == "1"
+    let (w, h) = (im.w, im.h)
+    let fetch: Fetch = proc(r: Rect): seq[array[4, uint8]] =
+      if bad: return newSeqWith(3, [255'u8, 255, 255, 255])
+      for y in r.y0 ..< r.y1:
+        for x in r.x0 ..< r.x1: result.add px[(y - oy) * w + (x - ox)]
+    var t = newTracer(rect(ox, oy, ox + w, oy + h))
+    proc line(v: openArray[array[2, float64]]): string =
+      var parts: seq[string]
+      for p in v: parts.add b64(p[0]) & " " & b64(p[1])
+      parts.join(" ")
+    for op in a[6 ..< a.len - 1]:
+      let tk = op.splitWhitespace()
+      proc n(k: int): float64 = parseFloat(tk[k])
+      proc pts(start: int): seq[array[2, float64]] =
+        var k = start
+        while k + 1 < tk.len:
+          result.add [parseFloat(tk[k]), parseFloat(tk[k + 1])]
+          k += 2
+      case tk[0]
+      of "s":
+        let r = t.snap(fetch, [n(1), n(2)], Settings(width: n(3), contrast: float32(n(4))))
+        if r.isSome: echo "snap ", b64(r.get[0]), " ", b64(r.get[1]) else: echo "snap none"
+      of "t":
+        let r = t.trace(fetch, [n(1), n(2)], [n(3), n(4)], pts(7), Settings(width: n(5), contrast: float32(n(6))))
+        echo "trace ", r.len, " ", line(r)
+      of "simplify": echo "simplify ", line(simplify(pts(2), n(1)))
+      of "len": echo "len ", b64(magnetic.length(pts(1)))
+      else: quit("bad op")
+    echo "cached ", t.cachedPixels
+    writeFile(o, "")
+  else: return false
+  true
+
 when isMainModule:
   let a = @[getAppFilename()] & commandLineParams()
   if a.len < 2: quit("usage: algocheck gen <dir> | <command> <args…> <out>")
   if a[1] == "gen": gen(a[2])
-  elif not (selectionCmd(a) or toneCmd(a) or hdrCmd(a) or exifCmd(a) or quantizeCmd(a) or retouchCmd(a)): quit("unknown command " & a[1])
+  elif not (selectionCmd(a) or toneCmd(a) or hdrCmd(a) or exifCmd(a) or quantizeCmd(a) or retouchCmd(a) or fillCmd(a) or warpCmd(a) or reshapeCmd(a)): quit("unknown command " & a[1])

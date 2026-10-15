@@ -175,3 +175,6 @@ proc remEuclidF*[T: SomeFloat](a, b: T): T {.inline.} =
 proc signum*[T: SomeFloat](x: T): T {.inline.} =
   ## Rust `f32::signum`: ±1 by the sign bit (also for ±0), NaN for NaN.
   if x != x: x else: copySign(T(1), x)
+
+const F64Max* = 1.7976931348623157e308
+  ## Rust's `f64::MAX` (Nim's `high(float64)` is +∞).
