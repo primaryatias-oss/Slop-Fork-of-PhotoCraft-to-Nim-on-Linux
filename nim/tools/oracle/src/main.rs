@@ -235,6 +235,34 @@ fn main() {
             std::fs::write(format!("{out}/txt2.optical"), tp::build_txt2(&objs, txt2.as_deref())).unwrap();
             std::fs::write(format!("{out}/txt2.fresh"), tp::build_txt2(&objs, None)).unwrap();
         }
+        "spell" => {
+            // Spelling: one line per word (check, suggestions), then misspellings of the last arg.
+            let d = photocraft_text::spell::Dictionary::english();
+            let user = std::collections::HashSet::new();
+            println!("{}", d.len());
+            for w in &args[2..args.len() - 1] {
+                println!("{w} {} {:?}", d.check(w, &user), d.suggest(w, 5));
+            }
+            let t = &args[args.len() - 1];
+            for m in d.misspellings(t, &user) { println!("{} {} {}", m.start, m.end, m.word); }
+            println!("{:?}", photocraft_text::spell::words(t));
+        }
+        "glyphs" => {
+            // Glyphs panel: charmap of a family/weight/italic, category counts, one preview.
+            let mut e = if std::env::var("SYSTEM_FONTS").is_ok() { photocraft_text::TextEngine::with_system_fonts() } else { photocraft_text::TextEngine::new() };
+            let (w, it): (u16, bool) = (args[3].parse().unwrap(), args[4] == "1");
+            let cm = e.fonts.charmap(&args[2], w, it);
+            let sum: u64 = cm.iter().map(|c| *c as u64).sum();
+            println!("{} {} {:?}", cm.len(), sum, cm.iter().take(8).map(|c| *c as u32).collect::<Vec<_>>());
+            for cat in photocraft_text::glyphs::CATEGORIES { println!("{cat} {}", cm.iter().filter(|c| photocraft_text::glyphs::in_category(**c, cat)).count()); }
+            let mut st = photocraft_doc::text::CharStyle { font_family: args[2].clone(), weight: w, italic: it, ..Default::default() };
+            st.size_pt = 10.0;
+            let c = char::from_u32(args[5].parse().unwrap()).unwrap();
+            let (px, a) = photocraft_text::glyphs::preview(&mut e, &st, c, args[6].parse().unwrap());
+            println!("{px} {} {}", a.iter().map(|v| *v as u64).sum::<u64>(), a.iter().filter(|v| **v > 0).count());
+            let sc: Vec<String> = photocraft_text::scripts::Script::ALL.iter().map(|s| format!("{:?}", photocraft_text::scripts::system_candidates(*s).len())).collect();
+            println!("{}", sc.join(" "));
+        }
         "filter" => {
             let mut d = photocraft_format::load_from_bytes(&std::fs::read(&args[2]).unwrap()).unwrap();
             let p: photocraft_algo::FilterParams = serde_json::from_str(&args[3]).unwrap();
