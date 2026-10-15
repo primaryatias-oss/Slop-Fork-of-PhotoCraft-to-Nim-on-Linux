@@ -1,0 +1,351 @@
+[
+[
+"lc.misc"
+],
+[
+"lc.run",
+"@img",
+"rgb16x",
+"0,0,97,71",
+"{}"
+],
+[
+"lc.run",
+"@img",
+"rgb32",
+"10,5,80,60",
+"{}"
+],
+[
+"lc.run",
+"@tex",
+"cmyk8",
+"0,0,700,530",
+"{}"
+],
+[
+"lc.run",
+"@img",
+"gray16",
+"0,0,97,71",
+"{\"distortion\": 40}"
+],
+[
+"lc.run",
+"@img",
+"lab32",
+"10,5,80,60",
+"{\"distortion\": 40}"
+],
+[
+"lc.run",
+"@tex",
+"rgb8x",
+"0,0,700,530",
+"{\"distortion\": 40}"
+],
+[
+"lc.run",
+"@img",
+"cmyk16x",
+"0,0,97,71",
+"{\"distortion\": -60, \"scale\": 120}"
+],
+[
+"lc.run",
+"@img",
+"rgb8",
+"10,5,80,60",
+"{\"distortion\": -60, \"scale\": 120}"
+],
+[
+"lc.run",
+"@tex",
+"rgb16x",
+"0,0,700,530",
+"{\"distortion\": -60, \"scale\": 120}"
+],
+[
+"lc.run",
+"@img",
+"rgb32",
+"0,0,97,71",
+"{\"profile\": {\"name\": \"x\", \"k1\": -0.12, \"k2\": 0.03, \"p1\": 0.002, \"p2\": -0.001, \"vignette\": [-0.5, 0.1, 0.02], \"ca_red\": 0.001, \"ca_blue\": -0.0015}}"
+],
+[
+"lc.run",
+"@img",
+"cmyk8",
+"10,5,80,60",
+"{\"profile\": {\"name\": \"x\", \"k1\": -0.12, \"k2\": 0.03, \"p1\": 0.002, \"p2\": -0.001, \"vignette\": [-0.5, 0.1, 0.02], \"ca_red\": 0.001, \"ca_blue\": -0.0015}}"
+],
+[
+"lc.run",
+"@tex",
+"gray16",
+"0,0,700,530",
+"{\"profile\": {\"name\": \"x\", \"k1\": -0.12, \"k2\": 0.03, \"p1\": 0.002, \"p2\": -0.001, \"vignette\": [-0.5, 0.1, 0.02], \"ca_red\": 0.001, \"ca_blue\": -0.0015}}"
+],
+[
+"lc.run",
+"@img",
+"lab32",
+"0,0,97,71",
+"{\"profile\": {\"name\": \"x\", \"k1\": -0.12, \"k2\": 0.03, \"p1\": 0.002, \"p2\": -0.001, \"vignette\": [-0.5, 0.1, 0.02], \"ca_red\": 0.001, \"ca_blue\": -0.0015}, \"correctDistortion\": false, \"correctCa\": false}"
+],
+[
+"lc.run",
+"@img",
+"rgb8x",
+"10,5,80,60",
+"{\"profile\": {\"name\": \"x\", \"k1\": -0.12, \"k2\": 0.03, \"p1\": 0.002, \"p2\": -0.001, \"vignette\": [-0.5, 0.1, 0.02], \"ca_red\": 0.001, \"ca_blue\": -0.0015}, \"correctDistortion\": false, \"correctCa\": false}"
+],
+[
+"lc.run",
+"@tex",
+"cmyk16x",
+"0,0,700,530",
+"{\"profile\": {\"name\": \"x\", \"k1\": -0.12, \"k2\": 0.03, \"p1\": 0.002, \"p2\": -0.001, \"vignette\": [-0.5, 0.1, 0.02], \"ca_red\": 0.001, \"ca_blue\": -0.0015}, \"correctDistortion\": false, \"correctCa\": false}"
+],
+[
+"lc.run",
+"@img",
+"rgb8",
+"0,0,97,71",
+"{\"redCyan\": 80, \"blueYellow\": -60}"
+],
+[
+"lc.run",
+"@img",
+"rgb16x",
+"10,5,80,60",
+"{\"redCyan\": 80, \"blueYellow\": -60}"
+],
+[
+"lc.run",
+"@tex",
+"rgb32",
+"0,0,700,530",
+"{\"redCyan\": 80, \"blueYellow\": -60}"
+],
+[
+"lc.run",
+"@img",
+"cmyk8",
+"0,0,97,71",
+"{\"vignetteAmount\": 70, \"vignetteMidpoint\": 20}"
+],
+[
+"lc.run",
+"@img",
+"gray16",
+"10,5,80,60",
+"{\"vignetteAmount\": 70, \"vignetteMidpoint\": 20}"
+],
+[
+"lc.run",
+"@tex",
+"lab32",
+"0,0,700,530",
+"{\"vignetteAmount\": 70, \"vignetteMidpoint\": 20}"
+],
+[
+"lc.run",
+"@img",
+"rgb8x",
+"0,0,97,71",
+"{\"vignetteAmount\": -100, \"vignetteMidpoint\": 90}"
+],
+[
+"lc.run",
+"@img",
+"cmyk16x",
+"10,5,80,60",
+"{\"vignetteAmount\": -100, \"vignetteMidpoint\": 90}"
+],
+[
+"lc.run",
+"@tex",
+"rgb8",
+"0,0,700,530",
+"{\"vignetteAmount\": -100, \"vignetteMidpoint\": 90}"
+],
+[
+"lc.run",
+"@img",
+"rgb16x",
+"0,0,97,71",
+"{\"vertical\": 40}"
+],
+[
+"lc.run",
+"@img",
+"rgb32",
+"10,5,80,60",
+"{\"vertical\": 40}"
+],
+[
+"lc.run",
+"@tex",
+"cmyk8",
+"0,0,700,530",
+"{\"vertical\": 40}"
+],
+[
+"lc.run",
+"@img",
+"gray16",
+"0,0,97,71",
+"{\"horizontal\": -60, \"edge\": \"extension\"}"
+],
+[
+"lc.run",
+"@img",
+"lab32",
+"10,5,80,60",
+"{\"horizontal\": -60, \"edge\": \"extension\"}"
+],
+[
+"lc.run",
+"@tex",
+"rgb8x",
+"0,0,700,530",
+"{\"horizontal\": -60, \"edge\": \"extension\"}"
+],
+[
+"lc.run",
+"@img",
+"cmyk16x",
+"0,0,97,71",
+"{\"vertical\": -100, \"horizontal\": 100}"
+],
+[
+"lc.run",
+"@img",
+"rgb8",
+"10,5,80,60",
+"{\"vertical\": -100, \"horizontal\": 100}"
+],
+[
+"lc.run",
+"@tex",
+"rgb16x",
+"0,0,700,530",
+"{\"vertical\": -100, \"horizontal\": 100}"
+],
+[
+"lc.run",
+"@img",
+"rgb32",
+"0,0,97,71",
+"{\"angle\": 12.5, \"scale\": 80, \"edge\": {\"color\": [1, 0, 0, 1]}}"
+],
+[
+"lc.run",
+"@img",
+"cmyk8",
+"10,5,80,60",
+"{\"angle\": 12.5, \"scale\": 80, \"edge\": {\"color\": [1, 0, 0, 1]}}"
+],
+[
+"lc.run",
+"@tex",
+"gray16",
+"0,0,700,530",
+"{\"angle\": 12.5, \"scale\": 80, \"edge\": {\"color\": [1, 0, 0, 1]}}"
+],
+[
+"lc.run",
+"@img",
+"lab32",
+"0,0,97,71",
+"{\"angle\": -30, \"edge\": {\"color\": [0.2, 0.4, 0.9, 0.5]}}"
+],
+[
+"lc.run",
+"@img",
+"rgb8x",
+"10,5,80,60",
+"{\"angle\": -30, \"edge\": {\"color\": [0.2, 0.4, 0.9, 0.5]}}"
+],
+[
+"lc.run",
+"@tex",
+"cmyk16x",
+"0,0,700,530",
+"{\"angle\": -30, \"edge\": {\"color\": [0.2, 0.4, 0.9, 0.5]}}"
+],
+[
+"lc.run",
+"@img",
+"rgb8",
+"0,0,97,71",
+"{\"angle\": 90, \"scale\": 150, \"edge\": \"transparency\"}"
+],
+[
+"lc.run",
+"@img",
+"rgb16x",
+"10,5,80,60",
+"{\"angle\": 90, \"scale\": 150, \"edge\": \"transparency\"}"
+],
+[
+"lc.run",
+"@tex",
+"rgb32",
+"0,0,700,530",
+"{\"angle\": 90, \"scale\": 150, \"edge\": \"transparency\"}"
+],
+[
+"lc.run",
+"@img",
+"cmyk8",
+"0,0,97,71",
+"{\"distortion\": 100, \"redCyan\": 100, \"blueYellow\": 100, \"vignetteAmount\": 100, \"vertical\": 100, \"horizontal\": 100, \"angle\": 45, \"scale\": 50, \"edge\": \"extension\"}"
+],
+[
+"lc.run",
+"@img",
+"gray16",
+"10,5,80,60",
+"{\"distortion\": 100, \"redCyan\": 100, \"blueYellow\": 100, \"vignetteAmount\": 100, \"vertical\": 100, \"horizontal\": 100, \"angle\": 45, \"scale\": 50, \"edge\": \"extension\"}"
+],
+[
+"lc.run",
+"@tex",
+"lab32",
+"0,0,700,530",
+"{\"distortion\": 100, \"redCyan\": 100, \"blueYellow\": 100, \"vignetteAmount\": 100, \"vertical\": 100, \"horizontal\": 100, \"angle\": 45, \"scale\": 50, \"edge\": \"extension\"}"
+],
+[
+"lc.run",
+"@img",
+"rgb16x",
+"0,0,97,71",
+"{\"scale\": 10000, \"vignetteMidpoint\": -50}"
+],
+[
+"lc.run",
+"@img",
+"rgb32",
+"10,5,80,60",
+"{\"scale\": 10000, \"vignetteMidpoint\": -50}"
+],
+[
+"lc.run",
+"@tex",
+"cmyk8",
+"0,0,700,530",
+"{\"scale\": 10000, \"vignetteMidpoint\": -50}"
+],
+[
+"lc.run",
+"@odd",
+"rgb32",
+"0,0,97,71",
+"{\"distortion\": 30, \"redCyan\": 50}"
+],
+[
+"lc.remapall"
+]
+]

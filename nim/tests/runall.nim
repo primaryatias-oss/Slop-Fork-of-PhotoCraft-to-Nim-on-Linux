@@ -26,3 +26,4 @@ import t_algo_reshape
 import t_algo_liquify
 import t_algo_render2
 import t_algo_pyramid
+import t_algo_lens

@@ -7,7 +7,7 @@
 
 import std/[os, strutils, options, math, tables, sequtils, json]
 import photocraft/[geom, raster]
-import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch, poisson, nonlocal, remove, perspective, scancrop, redeye, seam, magnetic, liquify, render2, pyramid]
+import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch, poisson, nonlocal, remove, perspective, scancrop, redeye, seam, magnetic, liquify, render2, pyramid, lens]
 import photocraft/color as pcolor
 import photocraft/color/blend
 
@@ -1139,6 +1139,61 @@ proc alphaOf(b: Buf): seq[float32] =
 proc photoCmd(a: seq[string]): bool =
   let o = a[^1]
   case a[1]
+  of "lc.run":
+    let im = readBuf(a[2])
+    let src = surfaceArg(a[3], im)
+    let frame = rectArg(a[4])
+    let lc = lensCorrectionFromJson(parseJson(a[5]))
+    let m = newLensMap(lc, frame)
+    var line: seq[string]
+    for j in 0 .. 8:
+      for i in 0 .. 8:
+        let (x, y) = (float64(frame.x0) - 5.0 + float64(frame.width + 10) * float64(i) / 8.0,
+                      float64(frame.y0) - 5.0 + float64(frame.height + 10) * float64(j) / 8.0)
+        let s = m.sample(x, y)
+        if s.isSome:
+          let q = s.get
+          line.add b64(q.p[0]) & " " & b64(q.p[1]) & " " & b64(q.pr[0]) & " " & b64(q.pr[1]) & " " & b64(q.pb[0]) & " " &
+                   b64(q.pb[1]) & " " & $cast[uint32](q.gain)
+        else: line.add "none"
+    echo line.join(" ")
+    echo "auto ", b64(autoScale(lc, frame))
+    let full = rect(0, 0, im.w, im.h)
+    let os = correct(src, frame, lc)
+    echo "format PixelFormat { mode: ", os.format.mode, ", sample: ", os.format.sample, ", alpha: ", os.format.alpha, " }"
+    dumpSurface(o, os, full)
+  of "lc.remapall":
+    let bounds = rect(-13, -9, 39, 26)
+    var v: seq[float32]
+    for mode in [cmRgb, cmGrayscale, cmCmyk, cmLab, cmBitmap, cmDuotone, cmIndexed, cmMultichannel]:
+      for sample in [stU8, stU16, stF32]:
+        for alpha in [false, true]:
+          let fmt = pixelFormat(mode, sample, alpha)
+          let n = fmt.channels
+          var s = newSurface(fmt)
+          var data = newSeq[float32](bounds.width * bounds.height * n)
+          for i in 0 ..< data.len: data[i] = (if i mod 17 == 0: 0'f32 else: float32((i * 103 + i div n * 71) mod 65536) / 65535'f32)
+          s.writeRegion(bounds, data)
+          for edge in [edgeTransparency(), edgeExtension(), edgeColor([0.2'f32, 0.5, 0.7, 0.4])]:
+            for ca in [false, true]:
+              let map = proc(x, y: float64): Option[Sample] =
+                if (asI32(x) + asI32(y)) mod 13 == 0: return none(Sample)
+                let p = [x * 0.83 - 3.7, y * 1.14 + 1.3]
+                some(Sample(p: p, pr: (if ca: [p[0] - 0.9, p[1] + 0.3] else: p), pb: (if ca: [p[0] + 0.7, p[1] - 0.4] else: p), gain: 1.17'f32))
+              let o2 = bounds.inflate(3)
+              let r = remap(s, bounds, o2, edge, map)
+              echo "PixelFormat { mode: ", r.format.mode, ", sample: ", r.format.sample, ", alpha: ", r.format.alpha, " } ", r.tileCount, " ", r.channels
+              v.add r.readRegion(o2)
+    writeF32(o, v.len, 1, 1, v)
+  of "lc.misc":
+    for f in [-5.0, 0.0, 12.0, 14.0, 17.5, 18.5, 24.0, 35.0, 49.9, 85.0, 120.0, 200.0, 999.0, NaN, Inf]:
+      let p = genericProfile(f)
+      echo p.name, " ", b64(p.k1), " ", b64(p.k2), " ", b64(p.p1), " ", b64(p.p2), " ", b64(p.vignette[0]), " ",
+           b64(p.vignette[1]), " ", b64(p.vignette[2]), " ", b64(p.caRed), " ", b64(p.caBlue)
+    for (ax, ay, bx, by) in [(0.0, 0.0, 10.0, 1.0), (0.0, 0.0, 1.0, 10.0), (5.0, 5.0, -3.0, 4.0), (0.0, 0.0, 0.0, 0.0),
+                             (0.0, 0.0, -10.0, -10.0), (1.0, 2.0, 1.0, NaN)]:
+      echo "straighten ", b64(straightenAngle([ax, ay], [bx, by]))
+    writeFile(o, "")
   of "py.lap":
     let b = readBuf(a[2])
     let pyr = laplacian(b.w, b.h, b.ch, b.f, parseInt(a[3]))

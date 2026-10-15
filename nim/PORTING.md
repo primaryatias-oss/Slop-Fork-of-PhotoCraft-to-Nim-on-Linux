@@ -117,8 +117,9 @@ Trap, gradient/bucket tools, retouch kernels (dodge, burn, sponge, local blur/sh
 blending (`poisson`), non-local patch completion (`nonlocal`), the Remove Tool (`remove`, `holes`),
 Perspective Warp, Crop and Straighten Photos (`scancrop`), Red Eye, Content-Aware Scale (`seam`),
 Magnetic Lasso, Liquify, Render › Flame / Picture Frame / Tree (`render2`), Auto-Blend pyramids and
-focus-stack fusion (`pyramid`). Non-filter APIs are checked with `tools/algocheck.py`
-(`tools/algocases/*.json`, 2697 command runs identical). 2869 of 2870 filter runs identical to Rust (`tools/filtercases.json`, 410 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
+focus-stack fusion (`pyramid`), Lens Correction (`lens`, including `remap` in every colour mode).
+Non-filter APIs are checked with `tools/algocheck.py` (`tools/algocases/*.json`, 2748 command runs
+identical). 2869 of 2870 filter runs identical to Rust (`tools/filtercases.json`, 410 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
 | io (PSD/PSB ↔ document, layered TIFF, multi-part EXR, flat formats, facade) | ported, tested; see "io notes" below |
 | io: OpenRaster, Paint.NET | ported, tested |
 | io: SVG, camera raw, Affinity | pending (the facade reports "unsupported" until they land; SVG needs a usvg-style normalizer) |
@@ -170,7 +171,8 @@ by document JSON + tile hashes (`.pcraft`), raw float renders, or output bytes.
 * Where the Rust crate panics (or wraps in release builds) on input the port must survive, the
   Nim code saturates instead, and the case stays out of the cross-check: Liquify's `dab` with a
   valid stroke to x = 1e200 (the dab margin overflows `usize`) is one; `t_algo_liquify` keeps it
-  as a no-crash test.
+  as a no-crash test. Lens Correction's `auto_scale` loops forever on a zero or negative scale;
+  the port starts that search from 1 %.
 
 ## Text notes
 
