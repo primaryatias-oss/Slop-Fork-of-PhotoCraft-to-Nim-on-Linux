@@ -165,6 +165,21 @@ proc totalCmp*(a, b: float64): int =
   y = y xor int64(cast[uint64](y shr 63) shr 1)
   cmp(x, y)
 
+proc binarySearchBy*[T](v: openArray[T]; f: proc(x: T): int): (bool, int) =
+  ## Rust's `slice::binary_search_by` exactly (its branch-free loop decides which of equal
+  ## elements is found): `f` returns <0 / 0 / >0 for Less / Equal / Greater. `(true, i)` is
+  ## `Ok(i)`, `(false, i)` is `Err(i)`.
+  var size = v.len
+  if size == 0: return (false, 0)
+  var base = 0
+  while size > 1:
+    let half = size div 2
+    let mid = base + half
+    if f(v[mid]) <= 0: base = mid
+    size -= half
+  let c = f(v[base])
+  if c == 0: (true, base) else: (false, base + int(c < 0))
+
 # ---------------------------------------------------------------- Rust float semantics
 
 proc powi*[T: SomeFloat](x: T; n: int): T =

@@ -7,7 +7,7 @@
 
 import std/[os, strutils, options, math, tables, sequtils, json]
 import photocraft/[geom, raster]
-import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch, poisson, nonlocal, remove, perspective, scancrop, redeye, seam, magnetic, liquify]
+import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch, poisson, nonlocal, remove, perspective, scancrop, redeye, seam, magnetic, liquify, render2]
 import photocraft/color as pcolor
 import photocraft/color/blend
 
@@ -963,6 +963,40 @@ proc reshapeCmd(a: seq[string]): bool =
   of "cs.skin":
     let b = readBuf(a[2])
     writeF32(o, b.w, b.h, 1, skinMask(b.w, b.h, b.ch, b.f))
+  of "r2.run":
+    let canvas = rectArg(a[4])
+    var prims: seq[Prim]
+    case a[2]
+    of "flame":
+      let spec = flameSpecFromJson(parseJson(a[3]))
+      var paths: seq[seq[(float32, float32)]]
+      for p in parseJson(a[8]):
+        var q: seq[(float32, float32)]
+        for pt in p: q.add (float32(pt[0].getFloat), float32(pt[1].getFloat))
+        paths.add q
+      if paths.len == 0: paths = @[defaultFlamePath(canvas)]
+      prims = flame(spec, paths)
+    of "tree": prims = tree(treeSpecFromJson(parseJson(a[3])), canvas)
+    else: prims = pictureFrame(frameSpecFromJson(parseJson(a[3])), canvas)
+    var v: seq[float32]
+    for p in prims:
+      if p.shape.kind == skCapsule: v.add [0'f32, p.shape.a[0], p.shape.a[1], p.shape.b[0], p.shape.b[1], p.shape.ra, p.shape.rb]
+      else: v.add [1'f32, p.shape.c[0], p.shape.c[1], p.shape.rx, p.shape.ry, p.shape.angle, 0'f32]
+      v.add p.c0
+      v.add p.c1
+      v.add p.soft
+      v.add float32(ord(p.blend))
+      let r = p.bounds
+      v.add [float32(r.x0), float32(r.y0), float32(r.x1), float32(r.y1)]
+    let im = readBuf(a[5])
+    var surf = surfaceArg(a[6], im)
+    let full = rect(0, 0, im.w, im.h)
+    let used = composite(surf, prims, canvas.intersect(full), surfaceOf(a[7], full))
+    echo "prims ", prims.len, " used ", used.x0, " ", used.y0, " ", used.x1, " ", used.y1
+    v.add surf.readRegion(full)
+    writeF32(o, v.len, 1, 1, v)
+    let b = surf.contentBounds
+    echo "tiles ", surf.tileCount, " bounds ", b.x0, " ", b.y0, " ", b.x1, " ", b.y1
   of "lq.field", "lq.apply", "lq.proxy", "lq.full":
     let k = (if a[1] == "lq.field": 2 else: 4)
     let bounds = rectArg(a[k])

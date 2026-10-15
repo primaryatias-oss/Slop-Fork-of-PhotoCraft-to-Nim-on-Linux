@@ -3,7 +3,7 @@
 //! nim/PORTING.md).
 
 use crate::axio;
-use photocraft_algo::{liquify as lq, magnetic, seam};
+use photocraft_algo::{liquify as lq, magnetic, render2, seam};
 use photocraft_geom::Rect;
 
 fn opt_mask(path: &str) -> Option<Vec<f32>> {
@@ -149,6 +149,47 @@ pub fn run(args: &[String]) -> bool {
                     }
                 }
             }
+        }
+        "r2.run" => {
+            // kind spec canvas img fmt mask|- paths
+            let canvas = axio::rect(a[4]);
+            let prims: Vec<render2::Prim> = match a[2] {
+                "flame" => {
+                    let spec: render2::FlameSpec = serde_json::from_str(a[3]).unwrap();
+                    let paths: Vec<Vec<(f32, f32)>> = serde_json::from_str(a[8]).unwrap();
+                    let paths = if paths.is_empty() { vec![render2::default_flame_path(canvas)] } else { paths };
+                    render2::flame(&spec, &paths)
+                }
+                "tree" => render2::tree(&serde_json::from_str(a[3]).unwrap(), canvas),
+                _ => render2::picture_frame(&serde_json::from_str(a[3]).unwrap(), canvas),
+            };
+            let mut v: Vec<f32> = Vec::new();
+            for p in &prims {
+                match p.shape {
+                    render2::Shape::Capsule { a, b, ra, rb } => v.extend_from_slice(&[0.0, a.0, a.1, b.0, b.1, ra, rb]),
+                    render2::Shape::Ellipse { c, rx, ry, angle } => v.extend_from_slice(&[1.0, c.0, c.1, rx, ry, angle, 0.0]),
+                }
+                v.extend_from_slice(&p.c0);
+                v.extend_from_slice(&p.c1);
+                v.push(p.soft);
+                v.push(match p.blend {
+                    render2::Blend::Normal => 0.0,
+                    render2::Blend::Add => 1.0,
+                    render2::Blend::Lighten => 2.0,
+                });
+                let r = p.bounds();
+                v.extend_from_slice(&[r.x0 as f32, r.y0 as f32, r.x1 as f32, r.y1 as f32]);
+            }
+            let im = axio::read(a[5]);
+            let mut surf = crate::ax_retouch::surface(a[6], &im);
+            let full = Rect::new(0, 0, im.w as i32, im.h as i32);
+            let sel = (a[7] != "-").then(|| photocraft_algo::selection::mask_to_surface(&axio::read(a[7]).f, full));
+            let used = render2::composite(&mut surf, &prims, canvas.intersect(&full), sel.as_ref());
+            println!("prims {} used {} {} {} {}", prims.len(), used.x0, used.y0, used.x1, used.y1);
+            v.extend(surf.read_region(full));
+            axio::write_f32(out, v.len(), 1, 1, &v);
+            let b = surf.content_bounds();
+            println!("tiles {} bounds {} {} {} {}", surf.tile_count(), b.x0, b.y0, b.x1, b.y1);
         }
         _ => return false,
     }

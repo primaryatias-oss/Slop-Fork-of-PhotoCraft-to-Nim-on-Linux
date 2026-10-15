@@ -73,6 +73,8 @@ own nimcache (`.nimcache/<name>`), so different test files can compile at the sa
   `photocraft/rmath.cbrt`. Every other libm function the port uses matches glibc bit for bit
   (checked on 200k inputs each). Rust's `powi(n)` at run time is repeated multiplication
   (`x * x * x`), but a constant-folded `powi` equals `pow`.
+* Rust's `binary_search_by` returns a specific one of several equal elements (its branch-free
+  loop); `util.binarySearchBy` reproduces it (checked against rustc on 3000 arrays with ties).
 * `high(float32)`/`low(float32)` are ±∞ in Nim, not Rust's `f32::MAX`/`f32::MIN`: use
   `rmath.F32Max` (blend modes at `f32::MAX` stay finite only with it).
 * A `float64` argument passed to a `float32` parameter is narrowed silently (no error): give
@@ -114,8 +116,8 @@ response, ghosts, tone mapping), EXIF, Indexed Color/Bitmap (`quantize`), Magic 
 Trap, gradient/bucket tools, retouch kernels (dodge, burn, sponge, local blur/sharpen), Poisson
 blending (`poisson`), non-local patch completion (`nonlocal`), the Remove Tool (`remove`, `holes`),
 Perspective Warp, Crop and Straighten Photos (`scancrop`), Red Eye, Content-Aware Scale (`seam`),
-Magnetic Lasso, Liquify. Non-filter APIs are checked with `tools/algocheck.py`
-(`tools/algocases/*.json`, 2511 command runs identical). 2869 of 2870 filter runs identical to Rust (`tools/filtercases.json`, 410 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
+Magnetic Lasso, Liquify, Render › Flame / Picture Frame / Tree (`render2`). Non-filter APIs are
+checked with `tools/algocheck.py` (`tools/algocases/*.json`, 2635 command runs identical). 2869 of 2870 filter runs identical to Rust (`tools/filtercases.json`, 410 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
 | io (PSD/PSB ↔ document, layered TIFF, multi-part EXR, flat formats, facade) | ported, tested; see "io notes" below |
 | io: OpenRaster, Paint.NET | ported, tested |
 | io: SVG, camera raw, Affinity | pending (the facade reports "unsupported" until they land; SVG needs a usvg-style normalizer) |

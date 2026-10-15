@@ -1,0 +1,1242 @@
+[
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 1, \"seed\": 3}",
+"0,0,300,220",
+"@tex",
+"rgb16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 1, \"lightDirection\": 2, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": false, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"rgb32",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 2, \"seed\": 6}",
+"0,0,300,220",
+"@tex",
+"cmyk8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 2, \"lightDirection\": 3, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": true, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"gray8x",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 3, \"seed\": 9}",
+"0,0,300,220",
+"@tex",
+"lab16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 3, \"lightDirection\": 4, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": false, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"rgb8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 4, \"seed\": 12}",
+"0,0,300,220",
+"@tex",
+"rgb16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 4, \"lightDirection\": 5, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": true, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"rgb32",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 5, \"seed\": 15}",
+"0,0,300,220",
+"@tex",
+"cmyk8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 5, \"lightDirection\": 1, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": false, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"gray8x",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 6, \"seed\": 18}",
+"0,0,300,220",
+"@tex",
+"lab16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 6, \"lightDirection\": 2, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": true, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"rgb8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 7, \"seed\": 21}",
+"0,0,300,220",
+"@tex",
+"rgb16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 7, \"lightDirection\": 3, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": false, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"rgb32",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 8, \"seed\": 24}",
+"0,0,300,220",
+"@tex",
+"cmyk8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 8, \"lightDirection\": 4, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": true, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"gray8x",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 9, \"seed\": 27}",
+"0,0,300,220",
+"@tex",
+"lab16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 9, \"lightDirection\": 5, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": false, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"rgb8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 10, \"seed\": 30}",
+"0,0,300,220",
+"@tex",
+"rgb16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 10, \"lightDirection\": 1, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": true, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"rgb32",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 11, \"seed\": 33}",
+"0,0,300,220",
+"@tex",
+"cmyk8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 11, \"lightDirection\": 2, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": false, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"gray8x",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 12, \"seed\": 36}",
+"0,0,300,220",
+"@tex",
+"lab16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 12, \"lightDirection\": 3, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": true, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"rgb8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 13, \"seed\": 39}",
+"0,0,300,220",
+"@tex",
+"rgb16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 13, \"lightDirection\": 4, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": false, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"rgb32",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 14, \"seed\": 42}",
+"0,0,300,220",
+"@tex",
+"cmyk8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 14, \"lightDirection\": 5, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": true, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"gray8x",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 15, \"seed\": 45}",
+"0,0,300,220",
+"@tex",
+"lab16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 15, \"lightDirection\": 1, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": false, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"rgb8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 16, \"seed\": 48}",
+"0,0,300,220",
+"@tex",
+"rgb16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 16, \"lightDirection\": 2, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": true, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"rgb32",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 17, \"seed\": 51}",
+"0,0,300,220",
+"@tex",
+"cmyk8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 17, \"lightDirection\": 3, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": false, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"gray8x",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 18, \"seed\": 54}",
+"0,0,300,220",
+"@tex",
+"lab16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 18, \"lightDirection\": 4, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": true, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"rgb8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 19, \"seed\": 57}",
+"0,0,300,220",
+"@tex",
+"rgb16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 19, \"lightDirection\": 5, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": false, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"rgb32",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 20, \"seed\": 60}",
+"0,0,300,220",
+"@tex",
+"cmyk8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 20, \"lightDirection\": 1, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": true, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"gray8x",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 21, \"seed\": 63}",
+"0,0,300,220",
+"@tex",
+"lab16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 21, \"lightDirection\": 2, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": false, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"rgb8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 22, \"seed\": 66}",
+"0,0,300,220",
+"@tex",
+"rgb16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 22, \"lightDirection\": 3, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": true, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"rgb32",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 23, \"seed\": 69}",
+"0,0,300,220",
+"@tex",
+"cmyk8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 23, \"lightDirection\": 4, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": false, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"gray8x",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 24, \"seed\": 72}",
+"0,0,300,220",
+"@tex",
+"lab16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 24, \"lightDirection\": 5, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": true, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"rgb8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 25, \"seed\": 75}",
+"0,0,300,220",
+"@tex",
+"rgb16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 25, \"lightDirection\": 1, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": false, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"rgb32",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 26, \"seed\": 78}",
+"0,0,300,220",
+"@tex",
+"cmyk8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 26, \"lightDirection\": 2, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": true, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"gray8x",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 27, \"seed\": 81}",
+"0,0,300,220",
+"@tex",
+"lab16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 27, \"lightDirection\": 3, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": false, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"rgb8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 28, \"seed\": 84}",
+"0,0,300,220",
+"@tex",
+"rgb16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 28, \"lightDirection\": 4, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": true, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"rgb32",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 29, \"seed\": 87}",
+"0,0,300,220",
+"@tex",
+"cmyk8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 29, \"lightDirection\": 5, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": false, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"gray8x",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 30, \"seed\": 90}",
+"0,0,300,220",
+"@tex",
+"lab16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 30, \"lightDirection\": 1, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": true, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"rgb8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 31, \"seed\": 93}",
+"0,0,300,220",
+"@tex",
+"rgb16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 31, \"lightDirection\": 2, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": false, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"rgb32",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 32, \"seed\": 96}",
+"0,0,300,220",
+"@tex",
+"cmyk8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 32, \"lightDirection\": 3, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": true, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"gray8x",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 33, \"seed\": 99}",
+"0,0,300,220",
+"@tex",
+"lab16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 33, \"lightDirection\": 4, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": false, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"rgb8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 34, \"seed\": 102}",
+"0,0,300,220",
+"@tex",
+"rgb16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 34, \"lightDirection\": 5, \"leavesAmount\": 90, \"leavesSize\": 150, \"branchesHeight\": 200, \"branchesThickness\": 60, \"flatShading\": true, \"defaultLeaves\": false, \"leavesColor\": [0.8, 0.2, 0.3, 1], \"customBranchColor\": true, \"branchesColor\": [0.1, 0.1, 0.4, 1], \"x\": 0.3, \"y\": 0.9, \"size\": 0.6}",
+"50,20,400,300",
+"@tex",
+"rgb32",
+"-",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 0, \"lightDirection\": 0, \"leavesAmount\": -5, \"leavesSize\": 500, \"size\": 3}",
+"0,0,97,71",
+"@img",
+"rgb8",
+"@soft",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 35, \"lightDirection\": 0, \"leavesAmount\": -5, \"leavesSize\": 500, \"size\": 3}",
+"0,0,97,71",
+"@img",
+"rgb8",
+"@soft",
+"[]"
+],
+[
+"r2.run",
+"tree",
+"{\"baseTreeType\": 100, \"lightDirection\": 0, \"leavesAmount\": -5, \"leavesSize\": 500, \"size\": 3}",
+"0,0,97,71",
+"@img",
+"rgb8",
+"@soft",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 1, \"seed\": 1}",
+"0,0,320,240",
+"@tex",
+"cmyk8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 1, \"margin\": 12, \"size\": 80, \"arrangement\": 90, \"lines\": 2, \"thickness\": 70, \"fade\": 40, \"seed\": 7, \"vineColor\": [0.5, 0.2, 0.1, 0.8], \"flowerColor\": [0.1, 0.3, 0.9, 1], \"leafColor\": [0.6, 0.7, 0.1, 1]}",
+"20,10,500,400",
+"@tex",
+"gray8x",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 2, \"seed\": 2}",
+"0,0,320,240",
+"@tex",
+"lab16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 2, \"margin\": 12, \"size\": 80, \"arrangement\": 90, \"lines\": 3, \"thickness\": 70, \"fade\": 40, \"seed\": 7, \"vineColor\": [0.5, 0.2, 0.1, 0.8], \"flowerColor\": [0.1, 0.3, 0.9, 1], \"leafColor\": [0.6, 0.7, 0.1, 1]}",
+"20,10,500,400",
+"@tex",
+"rgb8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 3, \"seed\": 3}",
+"0,0,320,240",
+"@tex",
+"rgb16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 3, \"margin\": 12, \"size\": 80, \"arrangement\": 90, \"lines\": 4, \"thickness\": 70, \"fade\": 40, \"seed\": 7, \"vineColor\": [0.5, 0.2, 0.1, 0.8], \"flowerColor\": [0.1, 0.3, 0.9, 1], \"leafColor\": [0.6, 0.7, 0.1, 1]}",
+"20,10,500,400",
+"@tex",
+"rgb32",
+"@big",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 4, \"seed\": 4}",
+"0,0,320,240",
+"@tex",
+"cmyk8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 4, \"margin\": 12, \"size\": 80, \"arrangement\": 90, \"lines\": 5, \"thickness\": 70, \"fade\": 40, \"seed\": 7, \"vineColor\": [0.5, 0.2, 0.1, 0.8], \"flowerColor\": [0.1, 0.3, 0.9, 1], \"leafColor\": [0.6, 0.7, 0.1, 1]}",
+"20,10,500,400",
+"@tex",
+"gray8x",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 5, \"seed\": 5}",
+"0,0,320,240",
+"@tex",
+"lab16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 5, \"margin\": 12, \"size\": 80, \"arrangement\": 90, \"lines\": 1, \"thickness\": 70, \"fade\": 40, \"seed\": 7, \"vineColor\": [0.5, 0.2, 0.1, 0.8], \"flowerColor\": [0.1, 0.3, 0.9, 1], \"leafColor\": [0.6, 0.7, 0.1, 1]}",
+"20,10,500,400",
+"@tex",
+"rgb8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 6, \"seed\": 6}",
+"0,0,320,240",
+"@tex",
+"rgb16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 6, \"margin\": 12, \"size\": 80, \"arrangement\": 90, \"lines\": 2, \"thickness\": 70, \"fade\": 40, \"seed\": 7, \"vineColor\": [0.5, 0.2, 0.1, 0.8], \"flowerColor\": [0.1, 0.3, 0.9, 1], \"leafColor\": [0.6, 0.7, 0.1, 1]}",
+"20,10,500,400",
+"@tex",
+"rgb32",
+"@big",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 7, \"seed\": 7}",
+"0,0,320,240",
+"@tex",
+"cmyk8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 7, \"margin\": 12, \"size\": 80, \"arrangement\": 90, \"lines\": 3, \"thickness\": 70, \"fade\": 40, \"seed\": 7, \"vineColor\": [0.5, 0.2, 0.1, 0.8], \"flowerColor\": [0.1, 0.3, 0.9, 1], \"leafColor\": [0.6, 0.7, 0.1, 1]}",
+"20,10,500,400",
+"@tex",
+"gray8x",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 8, \"seed\": 8}",
+"0,0,320,240",
+"@tex",
+"lab16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 8, \"margin\": 12, \"size\": 80, \"arrangement\": 90, \"lines\": 4, \"thickness\": 70, \"fade\": 40, \"seed\": 7, \"vineColor\": [0.5, 0.2, 0.1, 0.8], \"flowerColor\": [0.1, 0.3, 0.9, 1], \"leafColor\": [0.6, 0.7, 0.1, 1]}",
+"20,10,500,400",
+"@tex",
+"rgb8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 9, \"seed\": 9}",
+"0,0,320,240",
+"@tex",
+"rgb16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 9, \"margin\": 12, \"size\": 80, \"arrangement\": 90, \"lines\": 5, \"thickness\": 70, \"fade\": 40, \"seed\": 7, \"vineColor\": [0.5, 0.2, 0.1, 0.8], \"flowerColor\": [0.1, 0.3, 0.9, 1], \"leafColor\": [0.6, 0.7, 0.1, 1]}",
+"20,10,500,400",
+"@tex",
+"rgb32",
+"@big",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 10, \"seed\": 10}",
+"0,0,320,240",
+"@tex",
+"cmyk8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 10, \"margin\": 12, \"size\": 80, \"arrangement\": 90, \"lines\": 1, \"thickness\": 70, \"fade\": 40, \"seed\": 7, \"vineColor\": [0.5, 0.2, 0.1, 0.8], \"flowerColor\": [0.1, 0.3, 0.9, 1], \"leafColor\": [0.6, 0.7, 0.1, 1]}",
+"20,10,500,400",
+"@tex",
+"gray8x",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 11, \"seed\": 11}",
+"0,0,320,240",
+"@tex",
+"lab16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 11, \"margin\": 12, \"size\": 80, \"arrangement\": 90, \"lines\": 2, \"thickness\": 70, \"fade\": 40, \"seed\": 7, \"vineColor\": [0.5, 0.2, 0.1, 0.8], \"flowerColor\": [0.1, 0.3, 0.9, 1], \"leafColor\": [0.6, 0.7, 0.1, 1]}",
+"20,10,500,400",
+"@tex",
+"rgb8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 12, \"seed\": 12}",
+"0,0,320,240",
+"@tex",
+"rgb16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 12, \"margin\": 12, \"size\": 80, \"arrangement\": 90, \"lines\": 3, \"thickness\": 70, \"fade\": 40, \"seed\": 7, \"vineColor\": [0.5, 0.2, 0.1, 0.8], \"flowerColor\": [0.1, 0.3, 0.9, 1], \"leafColor\": [0.6, 0.7, 0.1, 1]}",
+"20,10,500,400",
+"@tex",
+"rgb32",
+"@big",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 13, \"seed\": 13}",
+"0,0,320,240",
+"@tex",
+"cmyk8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 13, \"margin\": 12, \"size\": 80, \"arrangement\": 90, \"lines\": 4, \"thickness\": 70, \"fade\": 40, \"seed\": 7, \"vineColor\": [0.5, 0.2, 0.1, 0.8], \"flowerColor\": [0.1, 0.3, 0.9, 1], \"leafColor\": [0.6, 0.7, 0.1, 1]}",
+"20,10,500,400",
+"@tex",
+"gray8x",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 14, \"seed\": 14}",
+"0,0,320,240",
+"@tex",
+"lab16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 14, \"margin\": 12, \"size\": 80, \"arrangement\": 90, \"lines\": 5, \"thickness\": 70, \"fade\": 40, \"seed\": 7, \"vineColor\": [0.5, 0.2, 0.1, 0.8], \"flowerColor\": [0.1, 0.3, 0.9, 1], \"leafColor\": [0.6, 0.7, 0.1, 1]}",
+"20,10,500,400",
+"@tex",
+"rgb8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 15, \"seed\": 15}",
+"0,0,320,240",
+"@tex",
+"rgb16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 15, \"margin\": 12, \"size\": 80, \"arrangement\": 90, \"lines\": 1, \"thickness\": 70, \"fade\": 40, \"seed\": 7, \"vineColor\": [0.5, 0.2, 0.1, 0.8], \"flowerColor\": [0.1, 0.3, 0.9, 1], \"leafColor\": [0.6, 0.7, 0.1, 1]}",
+"20,10,500,400",
+"@tex",
+"rgb32",
+"@big",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 16, \"seed\": 16}",
+"0,0,320,240",
+"@tex",
+"cmyk8",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 16, \"margin\": 12, \"size\": 80, \"arrangement\": 90, \"lines\": 2, \"thickness\": 70, \"fade\": 40, \"seed\": 7, \"vineColor\": [0.5, 0.2, 0.1, 0.8], \"flowerColor\": [0.1, 0.3, 0.9, 1], \"leafColor\": [0.6, 0.7, 0.1, 1]}",
+"20,10,500,400",
+"@tex",
+"gray8x",
+"-",
+"[]"
+],
+[
+"r2.run",
+"frame",
+"{\"frame\": 99, \"margin\": 50, \"size\": 0, \"arrangement\": 0, \"lines\": 9, \"thickness\": 0}",
+"0,0,97,71",
+"@img",
+"rgb16",
+"@mask",
+"[]"
+],
+[
+"r2.run",
+"flame",
+"{\"flameType\": \"oneFlameAlongPath\", \"flameStyle\": \"violent\", \"flameShape\": \"toCenter\", \"seed\": 1, \"quality\": 1, \"length\": 67, \"width\": 21, \"interval\": 31, \"angle\": 25, \"randomizeLength\": false, \"randomizeShapes\": false, \"flameLines\": 13, \"flameBottomAlignment\": 5, \"turbulent\": 4, \"jag\": 3, \"opacity\": 51, \"adjustIntervalForLoops\": true, \"color\": [0.2, 0.5, 1.0, 1.0]}",
+"0,0,320,260",
+"@tex",
+"lab16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"flame",
+"{\"flameType\": \"oneFlameAlongPath\", \"flameStyle\": \"flat\", \"flameShape\": \"spread\", \"seed\": 2, \"quality\": 2, \"length\": 74, \"width\": 22, \"interval\": 32, \"angle\": 50, \"randomizeLength\": true, \"randomizeShapes\": false, \"flameLines\": 16, \"flameBottomAlignment\": 10, \"turbulent\": 8, \"jag\": 6, \"opacity\": 52, \"adjustIntervalForLoops\": true}",
+"0,0,320,260",
+"@tex",
+"rgb8",
+"-",
+"[[[180.0, 120.0], [176.0845213036123, 138.54101966249684], [164.72135954999578, 155.2671151375484], [147.02282018339787, 168.54101966249686], [124.7213595499958, 177.06339097770922], [100.0, 180.0], [75.27864045000422, 177.06339097770922], [52.97717981660216, 168.54101966249686], [35.27864045000422, 155.2671151375484], [23.915478696387723, 138.54101966249686], [20.0, 120.00000000000001], [23.915478696387723, 101.45898033750314], [35.27864045000419, 84.73288486245161], [52.97717981660214, 71.45898033750316], [75.27864045000419, 62.93660902229079], [99.99999999999999, 60.0], [124.72135954999578, 62.93660902229078], [147.02282018339784, 71.45898033750315], [164.72135954999578, 84.7328848624516], [176.0845213036123, 101.45898033750314], [180.0, 119.99999999999999]]]"
+],
+[
+"r2.run",
+"flame",
+"{\"flameType\": \"oneFlameAlongPath\", \"flameStyle\": \"normal\", \"flameShape\": \"oval\", \"seed\": 3, \"quality\": 3, \"length\": 81, \"width\": 23, \"interval\": 33, \"angle\": 75, \"randomizeLength\": false, \"randomizeShapes\": false, \"flameLines\": 19, \"flameBottomAlignment\": 15, \"turbulent\": 12, \"jag\": 9, \"opacity\": 53, \"adjustIntervalForLoops\": false}",
+"0,0,320,260",
+"@tex",
+"rgb16",
+"-",
+"[[[20, 200], [150, 180], [280, 210]], [[50, 50]]]"
+],
+[
+"r2.run",
+"flame",
+"{\"flameType\": \"multipleFlamesAlongPath\", \"flameStyle\": \"violent\", \"flameShape\": \"pointed\", \"seed\": 4, \"quality\": 4, \"length\": 88, \"width\": 24, \"interval\": 34, \"angle\": 100, \"randomizeLength\": true, \"randomizeShapes\": true, \"flameLines\": 22, \"flameBottomAlignment\": 20, \"turbulent\": 16, \"jag\": 12, \"opacity\": 54, \"adjustIntervalForLoops\": true}",
+"0,0,320,260",
+"@tex",
+"rgb32",
+"-",
+"[]"
+],
+[
+"r2.run",
+"flame",
+"{\"flameType\": \"multipleFlamesAlongPath\", \"flameStyle\": \"flat\", \"flameShape\": \"parallel\", \"seed\": 5, \"quality\": 0, \"length\": 95, \"width\": 25, \"interval\": 35, \"angle\": 125, \"randomizeLength\": false, \"randomizeShapes\": false, \"flameLines\": 25, \"flameBottomAlignment\": 25, \"turbulent\": 20, \"jag\": 15, \"opacity\": 55, \"adjustIntervalForLoops\": true, \"color\": [0.2, 0.5, 1.0, 1.0]}",
+"0,0,320,260",
+"@tex",
+"cmyk8",
+"-",
+"[[[180.0, 120.0], [176.0845213036123, 138.54101966249684], [164.72135954999578, 155.2671151375484], [147.02282018339787, 168.54101966249686], [124.7213595499958, 177.06339097770922], [100.0, 180.0], [75.27864045000422, 177.06339097770922], [52.97717981660216, 168.54101966249686], [35.27864045000422, 155.2671151375484], [23.915478696387723, 138.54101966249686], [20.0, 120.00000000000001], [23.915478696387723, 101.45898033750314], [35.27864045000419, 84.73288486245161], [52.97717981660214, 71.45898033750316], [75.27864045000419, 62.93660902229079], [99.99999999999999, 60.0], [124.72135954999578, 62.93660902229078], [147.02282018339784, 71.45898033750315], [164.72135954999578, 84.7328848624516], [176.0845213036123, 101.45898033750314], [180.0, 119.99999999999999]]]"
+],
+[
+"r2.run",
+"flame",
+"{\"flameType\": \"multipleFlamesAlongPath\", \"flameStyle\": \"normal\", \"flameShape\": \"toCenter\", \"seed\": 6, \"quality\": 1, \"length\": 102, \"width\": 26, \"interval\": 36, \"angle\": 150, \"randomizeLength\": true, \"randomizeShapes\": false, \"flameLines\": 28, \"flameBottomAlignment\": 30, \"turbulent\": 24, \"jag\": 18, \"opacity\": 56, \"adjustIntervalForLoops\": false}",
+"0,0,320,260",
+"@tex",
+"gray8x",
+"-",
+"[[[20, 200], [150, 180], [280, 210]], [[50, 50]]]"
+],
+[
+"r2.run",
+"flame",
+"{\"flameType\": \"multipleFlamesPathDirections\", \"flameStyle\": \"violent\", \"flameShape\": \"spread\", \"seed\": 7, \"quality\": 2, \"length\": 109, \"width\": 27, \"interval\": 37, \"angle\": 175, \"randomizeLength\": false, \"randomizeShapes\": false, \"flameLines\": 31, \"flameBottomAlignment\": 35, \"turbulent\": 28, \"jag\": 21, \"opacity\": 57, \"adjustIntervalForLoops\": true}",
+"0,0,320,260",
+"@tex",
+"lab16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"flame",
+"{\"flameType\": \"multipleFlamesPathDirections\", \"flameStyle\": \"flat\", \"flameShape\": \"oval\", \"seed\": 8, \"quality\": 3, \"length\": 116, \"width\": 28, \"interval\": 38, \"angle\": 200, \"randomizeLength\": true, \"randomizeShapes\": true, \"flameLines\": 34, \"flameBottomAlignment\": 40, \"turbulent\": 32, \"jag\": 24, \"opacity\": 58, \"adjustIntervalForLoops\": true}",
+"0,0,320,260",
+"@tex",
+"rgb8",
+"-",
+"[[[180.0, 120.0], [176.0845213036123, 138.54101966249684], [164.72135954999578, 155.2671151375484], [147.02282018339787, 168.54101966249686], [124.7213595499958, 177.06339097770922], [100.0, 180.0], [75.27864045000422, 177.06339097770922], [52.97717981660216, 168.54101966249686], [35.27864045000422, 155.2671151375484], [23.915478696387723, 138.54101966249686], [20.0, 120.00000000000001], [23.915478696387723, 101.45898033750314], [35.27864045000419, 84.73288486245161], [52.97717981660214, 71.45898033750316], [75.27864045000419, 62.93660902229079], [99.99999999999999, 60.0], [124.72135954999578, 62.93660902229078], [147.02282018339784, 71.45898033750315], [164.72135954999578, 84.7328848624516], [176.0845213036123, 101.45898033750314], [180.0, 119.99999999999999]]]"
+],
+[
+"r2.run",
+"flame",
+"{\"flameType\": \"multipleFlamesPathDirections\", \"flameStyle\": \"normal\", \"flameShape\": \"pointed\", \"seed\": 9, \"quality\": 4, \"length\": 123, \"width\": 29, \"interval\": 39, \"angle\": 225, \"randomizeLength\": false, \"randomizeShapes\": false, \"flameLines\": 37, \"flameBottomAlignment\": 45, \"turbulent\": 36, \"jag\": 27, \"opacity\": 59, \"adjustIntervalForLoops\": false, \"color\": [0.2, 0.5, 1.0, 1.0]}",
+"0,0,320,260",
+"@tex",
+"rgb16",
+"-",
+"[[[20, 200], [150, 180], [280, 210]], [[50, 50]]]"
+],
+[
+"r2.run",
+"flame",
+"{\"flameType\": \"multipleFlamesVariousLength\", \"flameStyle\": \"violent\", \"flameShape\": \"parallel\", \"seed\": 10, \"quality\": 0, \"length\": 130, \"width\": 30, \"interval\": 40, \"angle\": 250, \"randomizeLength\": true, \"randomizeShapes\": false, \"flameLines\": 40, \"flameBottomAlignment\": 50, \"turbulent\": 40, \"jag\": 30, \"opacity\": 60, \"adjustIntervalForLoops\": true}",
+"0,0,320,260",
+"@tex",
+"rgb32",
+"-",
+"[]"
+],
+[
+"r2.run",
+"flame",
+"{\"flameType\": \"multipleFlamesVariousLength\", \"flameStyle\": \"flat\", \"flameShape\": \"toCenter\", \"seed\": 11, \"quality\": 1, \"length\": 137, \"width\": 31, \"interval\": 41, \"angle\": 275, \"randomizeLength\": false, \"randomizeShapes\": false, \"flameLines\": 43, \"flameBottomAlignment\": 55, \"turbulent\": 44, \"jag\": 33, \"opacity\": 61, \"adjustIntervalForLoops\": true}",
+"0,0,320,260",
+"@tex",
+"cmyk8",
+"-",
+"[[[180.0, 120.0], [176.0845213036123, 138.54101966249684], [164.72135954999578, 155.2671151375484], [147.02282018339787, 168.54101966249686], [124.7213595499958, 177.06339097770922], [100.0, 180.0], [75.27864045000422, 177.06339097770922], [52.97717981660216, 168.54101966249686], [35.27864045000422, 155.2671151375484], [23.915478696387723, 138.54101966249686], [20.0, 120.00000000000001], [23.915478696387723, 101.45898033750314], [35.27864045000419, 84.73288486245161], [52.97717981660214, 71.45898033750316], [75.27864045000419, 62.93660902229079], [99.99999999999999, 60.0], [124.72135954999578, 62.93660902229078], [147.02282018339784, 71.45898033750315], [164.72135954999578, 84.7328848624516], [176.0845213036123, 101.45898033750314], [180.0, 119.99999999999999]]]"
+],
+[
+"r2.run",
+"flame",
+"{\"flameType\": \"multipleFlamesVariousLength\", \"flameStyle\": \"normal\", \"flameShape\": \"spread\", \"seed\": 12, \"quality\": 2, \"length\": 144, \"width\": 32, \"interval\": 42, \"angle\": 300, \"randomizeLength\": true, \"randomizeShapes\": true, \"flameLines\": 46, \"flameBottomAlignment\": 60, \"turbulent\": 48, \"jag\": 36, \"opacity\": 62, \"adjustIntervalForLoops\": false}",
+"0,0,320,260",
+"@tex",
+"gray8x",
+"-",
+"[[[20, 200], [150, 180], [280, 210]], [[50, 50]]]"
+],
+[
+"r2.run",
+"flame",
+"{\"flameType\": \"candleLight\", \"flameStyle\": \"violent\", \"flameShape\": \"oval\", \"seed\": 13, \"quality\": 3, \"length\": 151, \"width\": 33, \"interval\": 43, \"angle\": 325, \"randomizeLength\": false, \"randomizeShapes\": false, \"flameLines\": 49, \"flameBottomAlignment\": 65, \"turbulent\": 52, \"jag\": 39, \"opacity\": 63, \"adjustIntervalForLoops\": true, \"color\": [0.2, 0.5, 1.0, 1.0]}",
+"0,0,320,260",
+"@tex",
+"lab16",
+"-",
+"[]"
+],
+[
+"r2.run",
+"flame",
+"{\"flameType\": \"candleLight\", \"flameStyle\": \"flat\", \"flameShape\": \"pointed\", \"seed\": 14, \"quality\": 4, \"length\": 158, \"width\": 34, \"interval\": 44, \"angle\": 350, \"randomizeLength\": true, \"randomizeShapes\": false, \"flameLines\": 52, \"flameBottomAlignment\": 70, \"turbulent\": 56, \"jag\": 42, \"opacity\": 64, \"adjustIntervalForLoops\": true}",
+"0,0,320,260",
+"@tex",
+"rgb8",
+"-",
+"[[[180.0, 120.0], [176.0845213036123, 138.54101966249684], [164.72135954999578, 155.2671151375484], [147.02282018339787, 168.54101966249686], [124.7213595499958, 177.06339097770922], [100.0, 180.0], [75.27864045000422, 177.06339097770922], [52.97717981660216, 168.54101966249686], [35.27864045000422, 155.2671151375484], [23.915478696387723, 138.54101966249686], [20.0, 120.00000000000001], [23.915478696387723, 101.45898033750314], [35.27864045000419, 84.73288486245161], [52.97717981660214, 71.45898033750316], [75.27864045000419, 62.93660902229079], [99.99999999999999, 60.0], [124.72135954999578, 62.93660902229078], [147.02282018339784, 71.45898033750315], [164.72135954999578, 84.7328848624516], [176.0845213036123, 101.45898033750314], [180.0, 119.99999999999999]]]"
+],
+[
+"r2.run",
+"flame",
+"{\"flameType\": \"candleLight\", \"flameStyle\": \"normal\", \"flameShape\": \"parallel\", \"seed\": 15, \"quality\": 0, \"length\": 165, \"width\": 35, \"interval\": 45, \"angle\": 375, \"randomizeLength\": false, \"randomizeShapes\": false, \"flameLines\": 55, \"flameBottomAlignment\": 75, \"turbulent\": 60, \"jag\": 45, \"opacity\": 65, \"adjustIntervalForLoops\": false}",
+"0,0,320,260",
+"@tex",
+"rgb16",
+"-",
+"[[[20, 200], [150, 180], [280, 210]], [[50, 50]]]"
+],
+[
+"r2.run",
+"flame",
+"{\"flameType\": \"multipleFlamesOneDirection\", \"flameStyle\": \"violent\", \"flameShape\": \"toCenter\", \"seed\": 16, \"quality\": 1, \"length\": 172, \"width\": 36, \"interval\": 46, \"angle\": 400, \"randomizeLength\": true, \"randomizeShapes\": true, \"flameLines\": 58, \"flameBottomAlignment\": 80, \"turbulent\": 64, \"jag\": 48, \"opacity\": 66, \"adjustIntervalForLoops\": true}",
+"0,0,320,260",
+"@tex",
+"rgb32",
+"-",
+"[]"
+],
+[
+"r2.run",
+"flame",
+"{\"flameType\": \"multipleFlamesOneDirection\", \"flameStyle\": \"flat\", \"flameShape\": \"spread\", \"seed\": 17, \"quality\": 2, \"length\": 179, \"width\": 37, \"interval\": 47, \"angle\": 425, \"randomizeLength\": false, \"randomizeShapes\": false, \"flameLines\": 61, \"flameBottomAlignment\": 85, \"turbulent\": 68, \"jag\": 51, \"opacity\": 67, \"adjustIntervalForLoops\": true, \"color\": [0.2, 0.5, 1.0, 1.0]}",
+"0,0,320,260",
+"@tex",
+"cmyk8",
+"-",
+"[[[180.0, 120.0], [176.0845213036123, 138.54101966249684], [164.72135954999578, 155.2671151375484], [147.02282018339787, 168.54101966249686], [124.7213595499958, 177.06339097770922], [100.0, 180.0], [75.27864045000422, 177.06339097770922], [52.97717981660216, 168.54101966249686], [35.27864045000422, 155.2671151375484], [23.915478696387723, 138.54101966249686], [20.0, 120.00000000000001], [23.915478696387723, 101.45898033750314], [35.27864045000419, 84.73288486245161], [52.97717981660214, 71.45898033750316], [75.27864045000419, 62.93660902229079], [99.99999999999999, 60.0], [124.72135954999578, 62.93660902229078], [147.02282018339784, 71.45898033750315], [164.72135954999578, 84.7328848624516], [176.0845213036123, 101.45898033750314], [180.0, 119.99999999999999]]]"
+],
+[
+"r2.run",
+"flame",
+"{\"flameType\": \"multipleFlamesOneDirection\", \"flameStyle\": \"normal\", \"flameShape\": \"oval\", \"seed\": 18, \"quality\": 3, \"length\": 186, \"width\": 38, \"interval\": 48, \"angle\": 450, \"randomizeLength\": true, \"randomizeShapes\": false, \"flameLines\": 64, \"flameBottomAlignment\": 90, \"turbulent\": 72, \"jag\": 54, \"opacity\": 68, \"adjustIntervalForLoops\": false}",
+"0,0,320,260",
+"@tex",
+"gray8x",
+"-",
+"[[[20, 200], [150, 180], [280, 210]], [[50, 50]]]"
+],
+[
+"r2.run",
+"flame",
+"{\"flameType\": \"candleLight\", \"length\": 2000, \"width\": 0, \"quality\": 9, \"color\": null}",
+"0,0,97,71",
+"@img",
+"rgb32",
+"@soft",
+"[[[40,60]],[]]"
+],
+[
+"r2.run",
+"flame",
+"{}",
+"0,0,97,71",
+"@img",
+"rgb8",
+"-",
+"[[[10,10],[10,10],[10,10]]]"
+]
+]
