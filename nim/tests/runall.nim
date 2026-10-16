@@ -30,3 +30,4 @@ import t_algo_lens
 import t_algo_vanishing
 import t_algo_wideangle
 import t_algo_puppet
+import t_algo_photomerge

@@ -3,7 +3,7 @@
 
 Usage: algocheck.py [--tol X] cases.json...
 Each file holds a JSON list of argument lists: `["sel.wand", "@img", "10", "20", "32", "1", "0"]`.
-`@name` stands for `$WORK/name.pcim` (written by `algocheck gen`); both programs get the same
+`@name` stands for `$WORK/name.pcim` (`@a:@b` for a pair of them) (written by `algocheck gen`); both programs get the same
 arguments plus an output path, and their stdout and output files must match byte for byte (or,
 with --tol, f32 outputs to within X).
 Environment: ORACLE (Rust oracle binary), ALGOCHECK (Nim binary), WORK (scratch dir).
@@ -34,7 +34,7 @@ def main():
         subprocess.run([NIM, "gen", WORK], check=True)
     bad = 0
     for c in cases:
-        argv = [os.path.join(WORK, x[1:] + ".pcim") if x.startswith("@") else x for x in c]
+        argv = [":".join(os.path.join(WORK, y[1:] + ".pcim") for y in x.split(":")) if x.startswith("@") else x for x in c]
         r, n = os.path.join(WORK, "r.out"), os.path.join(WORK, "n.out")
         for p in (r, n):
             if os.path.exists(p): os.remove(p)

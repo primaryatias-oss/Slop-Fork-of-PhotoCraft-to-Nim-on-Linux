@@ -73,6 +73,8 @@ own nimcache (`.nimcache/<name>`), so different test files can compile at the sa
   `photocraft/rmath.cbrt`. Every other libm function the port uses matches glibc bit for bit
   (checked on 200k inputs each). Rust's `powi(n)` at run time is repeated multiplication
   (`x * x * x`), but a constant-folded `powi` equals `pow`.
+* Rust's float `Iterator::sum` starts at `-0.0` (an empty or all-`-0.0` sum is `-0.0`); start
+  ported sums at `-0.0` so zero signs match. Explicit `fold(0.0, …)` starts at `+0.0`.
 * Rust's `binary_search_by` returns a specific one of several equal elements (its branch-free
   loop); `util.binarySearchBy` reproduces it (checked against rustc on 3000 arrays with ties).
 * `high(float32)`/`low(float32)` are ±∞ in Nim, not Rust's `f32::MAX`/`f32::MIN`: use
@@ -92,6 +94,10 @@ own nimcache (`.nimcache/<name>`), so different test files can compile at the sa
   q[1]]` gives `[q0, q3, q2, q3]`. Permute through a temporary (`let r = [...]; q = r`); tuples,
   objects and seqs are not affected.
 * Identifiers are style-insensitive except the first letter: `im` and `iM` are the same.
+* A nested proc that captures an `openArray` (or `var`) parameter is only rejected when its
+  enclosing proc is actually used, so importing a module compiles cleanly until a caller appears.
+  Copy the parameter (`let feats = @feats`) or pass it to a top-level helper (a template wrapper
+  keeps call sites short); compile new modules through a caller (the algocheck twin or a test).
 * Statement lists inside parenthesised expressions (`(let a = ..; if ..)`) are fragile; use a
   template or a helper proc.
 * `float32` inference: `0.5 * arctan2(a, b)` is `float` (64-bit) when the arguments are; annotate
@@ -121,8 +127,10 @@ blending (`poisson`), non-local patch completion (`nonlocal`), the Remove Tool (
 Perspective Warp, Crop and Straighten Photos (`scancrop`), Red Eye, Content-Aware Scale (`seam`),
 Magnetic Lasso, Liquify, Render › Flame / Picture Frame / Tree (`render2`), Auto-Blend pyramids and
 focus-stack fusion (`pyramid`), Lens Correction (`lens`, including `remap` in every colour mode),
-Vanishing Point, Adaptive Wide Angle (`wideangle`), Puppet Warp. Non-filter APIs are checked with
-`tools/algocheck.py` (`tools/algocases/*.json`, 2887 command runs identical). 2869 of 2870 filter runs identical to Rust (`tools/filtercases.json`, 410 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
+Vanishing Point, Adaptive Wide Angle (`wideangle`), Puppet Warp, Photomerge / Auto-Align (Harris +
+steered BRIEF `features`, `panorama` matching, bundle adjustment, photometric, seams, multi-band;
+`direct` intensity registration). Non-filter APIs are checked with `tools/algocheck.py`
+(`tools/algocases/*.json`, 3118 command runs identical). 2869 of 2870 filter runs identical to Rust (`tools/filtercases.json`, 410 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
 | io (PSD/PSB ↔ document, layered TIFF, multi-part EXR, flat formats, facade) | ported, tested; see "io notes" below |
 | io: OpenRaster, Paint.NET | ported, tested |
 | io: SVG, camera raw, Affinity | pending (the facade reports "unsupported" until they land; SVG needs a usvg-style normalizer) |

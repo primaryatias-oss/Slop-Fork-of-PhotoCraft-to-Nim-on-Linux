@@ -7,7 +7,7 @@
 
 import std/[os, strutils, options, math, tables, sequtils, json]
 import photocraft/[geom, raster]
-import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch, poisson, nonlocal, remove, perspective, scancrop, redeye, seam, magnetic, liquify, render2, pyramid, lens, vanishing, wideangle, transform, puppet]
+import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch, poisson, nonlocal, remove, perspective, scancrop, redeye, seam, magnetic, liquify, render2, pyramid, lens, vanishing, wideangle, transform, puppet, features, panorama, direct]
 import photocraft/color as pcolor
 import photocraft/color/blend
 
@@ -80,6 +80,126 @@ proc hashU(x, y, s: uint32): uint32 =
   h = h * 0x2c1b3c6d'u32
   h = h xor (h shr 12)
   h
+
+proc genPano(dir: string) =
+  ## Photomerge / Auto-Align inputs: views of blob scenes (panorama tests' recipe), direct
+  ## registration textures, photometric and seam strips.
+  proc scene(w, h: int; seed: uint64): seq[float32] =
+    var rng = newRng(seed)
+    result = newSeq[float32](w * h)
+    for i in 0 ..< w * h: result[i] = 0.25'f32 + 0.2'f32 * (float32(i mod w) / float32(w))
+    for _ in 0 ..< max(w * h div 900, 40):
+      let cx = float64(rng.next mod uint64(w))
+      let cy = float64(rng.next mod uint64(h))
+      let r = 3.0 + float64(rng.next mod 9)
+      let v = float32(rng.next mod 1000) / 1000'f32
+      let sq = rng.next mod 2 == 0
+      let (x0, x1) = (int(max(cx - r, 0.0)), min(int(cx + r) + 1, w))
+      let (y0, y1) = (int(max(cy - r, 0.0)), min(int(cy + r) + 1, h))
+      for y in y0 ..< y1:
+        for x in x0 ..< x1:
+          let (dx, dy) = (float64(x) - cx, float64(y) - cy)
+          if (if sq: abs(dx) < r and abs(dy) < r * 0.6 else: hypot(dx, dy) < r): result[y * w + x] = v
+  proc view(sc: seq[float32]; sw, sh, tw, th: int; map: proc(x, y: float64): (float64, float64)): seq[float32] =
+    for i in 0 ..< tw * th:
+      let (x, y) = map(float64(i mod tw), float64(i div tw))
+      result.add(if x < 0.0 or y < 0.0 or x > float64(sw - 1) or y > float64(sh - 1): 0'f32
+                 else: bilinear(sc, sw, sh, 1, 0, float32(x), float32(y)))
+  let sc = scene(640, 300, 3)
+  for k, (ox, oy) in [(20.0, 30.0), (190.0, 40.0), (360.0, 25.0)]:
+    let (ox, oy) = (ox, oy)
+    writeF32(dir / ("pv" & $k & ".pcim"), 260, 220, 1, view(sc, 640, 300, 260, 220, proc(x, y: float64): (float64, float64) = (x + ox, y + oy)))
+  let hq = Homography(m: [1.05, 0.03, 180.0, -0.02, 1.0, 35.0, 0.0001, -0.00005, 1.0])
+  writeF32(dir / "pvq.pcim", 260, 220, 1, view(sc, 640, 300, 260, 220, proc(x, y: float64): (float64, float64) = hq.apply(x, y)))
+  # A view rotated 3° and scaled 0.97 about (130, 110), shifted like pv1.
+  let (c3, s3) = (cos(3.0 * PI / 180.0) * 0.97, sin(3.0 * PI / 180.0) * 0.97)
+  writeF32(dir / "pvr.pcim", 260, 220, 1, view(sc, 640, 300, 260, 220, proc(x, y: float64): (float64, float64) =
+    (190.0 + 130.0 + c3 * (x - 130.0) - s3 * (y - 110.0), 40.0 + 110.0 + s3 * (x - 130.0) + c3 * (y - 110.0))))
+  var pm = newSeq[float32](260 * 220)
+  for i in 0 ..< pm.len: pm[i] = (if i mod 260 in 90 .. 150 and i div 260 in 60 .. 140: 0'f32 else: 1'f32)
+  writeF32(dir / "pvm.pcim", 260, 220, 1, pm)
+  let f = 300.0
+  let sc2 = scene(1400, 500, 9)
+  for k, deg in [-25.0, 0.0, 25.0]:
+    let deg = deg
+    writeF32(dir / ("pc" & $k & ".pcim"), 320, 240, 1, view(sc2, 1400, 500, 320, 240, proc(x, y: float64): (float64, float64) =
+      let (dx, dy) = (x - 160.0, y - 120.0)
+      let th = arctan2(dx, f) + deg * PI / 180.0
+      let hh = dy / hypot(dx, f)
+      (700.0 + f * th, 250.0 + f * hh)))
+  # Direct registration: a smooth texture and a similarity-warped, a shifted and a masked copy.
+  proc texture(w, h: int; seed: uint32): seq[float32] =
+    let s = float32(seed)
+    for i in 0 ..< w * h:
+      let (x, y) = (float32(i mod w), float32(i div w))
+      let v = sin(x * 0.21'f32 + s) * cos(y * 0.17'f32 - s) + sin(x * 0.071'f32 + y * 0.093'f32 + s * 0.5'f32) * 0.7'f32 +
+              cos((x * 0.33'f32 - y * 0.29'f32) * 1.3'f32 + s) * 0.4'f32
+      result.add 0.5'f32 + 0.2'f32 * v
+  let (dw, dh) = (320, 240)
+  let dref = texture(dw, dh, 3)
+  writeF32(dir / "dref.pcim", dw, dh, 1, dref)
+  let truth = Pose(dx: 3.3 / float64(dw), dy: -2.1 / float64(dh), scale: 1.012, rot: 0.6 * PI / 180.0, aspect: 1.0)
+  let m = truth.matrix(dw, dh)
+  var dsim, dtr, dcov: seq[float32]
+  for i in 0 ..< dw * dh:
+    let (x, y) = m.apply(float64(i mod dw), float64(i div dw))
+    dsim.add direct.sample(dref, dw, dh, clamp(x, 0.0, float64(dw - 1)), clamp(y, 0.0, float64(dh - 1)))
+    dtr.add direct.sample(dref, dw, dh, clamp(float64(i mod dw) + 4.0, 0.0, float64(dw - 1)), clamp(float64(i div dw) + 3.0, 0.0, float64(dh - 1)))
+  let d4 = texture(dw, dh, 4)
+  writeF32(dir / "d4.pcim", dw, dh, 1, d4)
+  var dcm = newSeq[float32](dw * dh)
+  for i in 0 ..< dw * dh:
+    let ok = i mod dw < dw div 2
+    dcm[i] = (if ok: 1'f32 else: 0'f32)
+    dcov.add(if ok: direct.sample(d4, dw, dh, clamp(float64(i mod dw) + 2.5, 0.0, float64(dw - 1)), float64(i div dw))
+             else: float32((i * 7919) mod 1000) / 1000'f32)
+  writeF32(dir / "dsim.pcim", dw, dh, 1, dsim)
+  writeF32(dir / "dtr.pcim", dw, dh, 1, dtr)
+  writeF32(dir / "dcov.pcim", dw, dh, 1, dcov)
+  writeF32(dir / "dcovm.pcim", dw, dh, 1, dcm)
+  var dbright = dref
+  for v in dbright.mitems: v = v * 2'f32
+  writeF32(dir / "dbright.pcim", dw, dh, 1, dbright)
+  # A projective target (perspective terms) for the homography search.
+  let tp = Pose(dx: -1.7 / float64(dw), dy: 2.4 / float64(dh), scale: 0.993, rot: -0.4 * PI / 180.0, aspect: 1.01,
+                shear: 0.008, px: 0.012, py: -0.009)
+  let mp = tp.matrix(dw, dh)
+  var dproj: seq[float32]
+  for i in 0 ..< dw * dh:
+    let (x, y) = mp.apply(float64(i mod dw), float64(i div dw))
+    dproj.add direct.sample(dref, dw, dh, clamp(x, 0.0, float64(dw - 1)), clamp(y, 0.0, float64(dh - 1)))
+  writeF32(dir / "dproj.pcim", dw, dh, 1, dproj)
+  # Photometric strips: RGBA views of one flat-ish scene, the second brighter and vignetted.
+  let (ww, wh) = (200, 100)
+  for k, (x0, g) in [(0, [1.0'f32, 1.0, 1.0]), (100, [1.3'f32, 1.2, 1.1])]:
+    var px = newSeq[float32](ww * wh * 4)
+    for y in 0 ..< wh:
+      for x in 0 ..< ww:
+        let base = 0.3'f32 + 0.2'f32 * abs(sin(float32(x + x0) * 0.05'f32) * cos(float32(y) * 0.07'f32))
+        let r2 = (pow(float64(x) - 100.0, 2.0) + pow(float64(y) - 50.0, 2.0)) / (100.0 * 100.0 + 50.0 * 50.0)
+        let vig = float32(exp(-0.3 * r2))
+        let o = (y * ww + x) * 4
+        for c in 0 ..< 3: px[o + c] = base * g[c] * (if k == 1: vig else: 1'f32) * (1'f32 + 0.1'f32 * float32(c))
+        px[o + 3] = (if k == 1 and x > 180 and y > 80: 0.2'f32 else: 1'f32)
+    writeF32(dir / ("ph" & $k & ".pcim"), ww, wh, 4, px)
+  # Seam strips: two 80 × 40 grey images with texture; the second has a bright object.
+  for k in 0 .. 1:
+    var px = newSeq[float32](80 * 40)
+    for y in 0 ..< 40:
+      for x in 0 ..< 80:
+        let gx = x + 40 * k
+        px[y * 80 + x] = 0.5'f32 + 0.05'f32 * sin(float32(gx) * 0.3'f32) * cos(float32(y) * 0.2'f32)
+        if k == 1 and gx in 50 ..< 58: px[y * 80 + x] = 1'f32
+    writeF32(dir / ("sm" & $k & ".pcim"), 80, 40, 1, px)
+  var sm2 = newSeq[float32](70 * 50 * 4)
+  for y in 0 ..< 50:
+    for x in 0 ..< 70:
+      let o = (y * 70 + x) * 4
+      sm2[o] = 0.2'f32 + 0.01'f32 * float32(x)
+      sm2[o + 1] = 0.6'f32
+      sm2[o + 2] = 0.4'f32 + 0.005'f32 * float32(y)
+      sm2[o + 3] = (if (x - 35) * (x - 35) + (y - 25) * (y - 25) < 900: 1'f32 else: 0'f32)
+  writeF32(dir / "sm2.pcim", 70, 50, 4, sm2)
 
 proc gen(dir: string) =
   createDir(dir)
@@ -325,6 +445,8 @@ proc gen(dir: string) =
         shot[i + 2] = p[2]
         shot[i + 3] = (if k == 2 and y < 20: 0'f32 elif k == 2 and y < 30: 0.4'f32 else: 1'f32)
     writeF32(dir / ("fs" & $k & ".pcim"), fw, fh, 4, shot)
+
+  genPano(dir)
 
 # ---------------------------------------------------------------- selection
 
@@ -901,10 +1023,10 @@ proc fillCmd(a: seq[string]): bool =
 proc nums64(s: string): seq[float64] =
   for t in s.split(','): result.add parseFloat(t.strip)
 
-proc planesArg(s: string): seq[Plane] =
+proc planesArg(s: string): seq[perspective.Plane] =
   let v = nums64(s)
   proc q(o: int): Quad = [[v[o], v[o + 1]], [v[o + 2], v[o + 3]], [v[o + 4], v[o + 5]], [v[o + 6], v[o + 7]]]
-  for k in 0 ..< v.len div 16: result.add Plane(src: q(k * 16), dst: q(k * 16 + 8))
+  for k in 0 ..< v.len div 16: result.add perspective.Plane(src: q(k * 16), dst: q(k * 16 + 8))
 
 proc b64(v: float64): string = $cast[uint64](v)
 
@@ -1403,8 +1525,260 @@ proc photoCmd(a: seq[string]): bool =
   else: return false
   true
 
+# ---------------------------------------------------------------- photomerge / auto-align
+
+proc maskArg(a: string): Option[seq[bool]] =
+  if a == "-": return none(seq[bool])
+  var v: seq[bool]
+  for x in readBuf(a).f: v.add x > 0.5'f32
+  some(v)
+
+proc hs(h: Homography): string =
+  var parts: seq[string]
+  for v in h.m: parts.add b64(v)
+  parts.join(" ")
+
+proc ptsArg(a: string): (seq[array[2, float64]], seq[array[2, float64]]) =
+  let v = nums64(a)
+  var p: seq[array[2, float64]]
+  for i in 0 ..< v.len div 2: p.add [v[2 * i], v[2 * i + 1]]
+  let n = p.len div 2
+  (p[0 ..< n], p[n ..< 2 * n])
+
+proc modelArg(a: string): Model =
+  case a
+  of "translation": mTranslation
+  of "similarity": mSimilarity
+  else: mHomography
+
+proc motionArg(a: string): Motion =
+  case a
+  of "translation": moTranslation
+  of "euclidean": moEuclidean
+  of "similarity": moSimilarity
+  else: moHomography
+
+proc optH(r: Option[(Homography, seq[int])]): string =
+  if r.isNone: return "None"
+  let (h, inl) = r.get
+  hs(h) & " | " & inl.mapIt($it).join(" ")
+
+proc placementS(p: Placement): string =
+  let pr = (case p.projection
+    of prPlane: "plane"
+    of prCylinder: "cylinder"
+    of prSphere: "sphere")
+  pr & " " & b64(p.focal) & " " & b64(p.center[0]) & " " & b64(p.center[1]) & " " & b64(p.k1) & " " & hs(p.h)
+
+proc probe(p: Placement; w, h: float64) =
+  var line: seq[string]
+  for j in 0 .. 4:
+    for i in 0 .. 4:
+      let (x, y) = (-10.0 + (w + 20.0) * float64(i) / 4.0, -10.0 + (h + 20.0) * float64(j) / 4.0)
+      let q = p.project(x, y)
+      let (u, v) = p.forward(x, y)
+      line.add b64(q[0]) & " " & b64(q[1]) & " " & b64(u) & " " & b64(v)
+      let un = p.unproject(q[0], q[1])
+      line.add(if un.isSome: b64(un.get[0]) & " " & b64(un.get[1]) else: "none")
+      let iv = p.inverse(u, v)
+      line.add(if iv.isSome: b64(iv.get[0]) & " " & b64(iv.get[1]) else: "none")
+  echo "probe ", line.join(" ")
+  echo "bounds ", p.bounds(w, h).mapIt(b64(it)).join(" ")
+  echo "scaled ", placementS(p.scaled(2.5))
+  echo "translated ", placementS(p.translated(-7.25, 3.5))
+
+proc rois(a: seq[string]; k: int): seq[RoiImage] =
+  var i = k
+  while i + 2 <= a.len - 2:
+    let im = readBuf(a[i])
+    let ch = (if im.ch == 4 or im.ch == 2: im.ch - 1 else: im.ch)
+    let alphaCh = im.ch != ch
+    var r = RoiImage(x0: parseInt(a[i + 1]), y0: parseInt(a[i + 2]), w: im.w, h: im.h, ch: ch)
+    for p in 0 ..< im.f.len div im.ch:
+      for c in 0 ..< ch: r.px.add im.f[p * im.ch + c]
+      r.alpha.add(if alphaCh: im.f[p * im.ch + ch] else: 1'f32)
+    result.add r
+    i += 3
+
+proc canvasOf(w, h: int; rs: seq[RoiImage]): (seq[seq[float32]], seq[seq[bool]]) =
+  for r in rs:
+    var l = newSeq[float32](w * h)
+    var c = newSeq[bool](w * h)
+    for y in 0 ..< r.h:
+      for x in 0 ..< r.w:
+        let (cx, cy) = (x + r.x0, y + r.y0)
+        if cx < 0 or cy < 0 or cx >= w or cy >= h: continue
+        let k = cy * w + cx
+        let o = (y * r.w + x) * r.ch
+        l[k] = (if r.ch >= 3: 0.2126'f32 * r.px[o] + 0.7152'f32 * r.px[o + 1] + 0.0722'f32 * r.px[o + 2] else: r.px[o])
+        c[k] = r.alpha[y * r.w + x] > 0.5'f32
+    result[0].add l
+    result[1].add c
+
+proc poseS(p: Pose): string = p.toVec.mapIt(b64(it)).join(" ")
+
+proc poseArg(a: string): Pose =
+  let v = nums64(a)
+  fromVec([v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7]])
+
+proc descS(d: seq[Descriptor]): string = d.mapIt($it[0] & " " & $it[1] & " " & $it[2] & " " & $it[3]).join(" ")
+
+proc optB(v: Option[float64]): string = (if v.isSome: "Some(\"" & b64(v.get) & "\")" else: "None")
+
+proc panoCmd(a: seq[string]): bool =
+  let o = a[^1]
+  case a[1]
+  of "ft.harris":
+    let im = readBuf(a[2])
+    let l = lumaOf(im)
+    let c = harris(im.w, im.h, l, parseInt(a[3]), f(a[4]), maskArg(a[5]))
+    echo "n ", c.len
+    echo c.mapIt($cast[uint32](it.x) & " " & $cast[uint32](it.y) & " " & $cast[uint32](it.score)).join(" ")
+    for upright in [true, false]:
+      echo descS(describe(im.w, im.h, l, c, upright))
+  of "ft.match":
+    let (ia, ib) = (readBuf(a[2]), readBuf(a[3]))
+    let (la, lb) = (lumaOf(ia), lumaOf(ib))
+    let mx = parseInt(a[4])
+    let up = bl(a[6])
+    let ca = harris(ia.w, ia.h, la, mx, 5'f32, none(seq[bool]))
+    let cb = harris(ib.w, ib.h, lb, mx, 5'f32, none(seq[bool]))
+    let (da, db) = (describe(ia.w, ia.h, la, ca, up), describe(ib.w, ib.h, lb, cb, up))
+    let m = matchDescriptors(da, db, f(a[5]))
+    echo ca.len, " ", cb.len, " ", m.mapIt($it[0] & ":" & $it[1]).join(" ")
+    if da.len > 0 and db.len > 0: echo "hamming ", hamming(da[0], db[^1])
+  of "ft.fit", "pm.fit":
+    let (src, dst) = ptsArg(a[3])
+    let (iters, thr, seed) = (parseInt(a[4]), parseFloat(a[5]), uint64(parseBiggestUInt(a[6])))
+    if a[1] == "ft.fit":
+      let m = modelArg(a[2])
+      let fr = fit(m, src, dst)
+      echo "fit ", (if fr.isSome: hs(fr.get) else: "None")
+      echo "ransac ", optH(ransac(m, src, dst, iters, thr, seed))
+    else:
+      let m = motionArg(a[2])
+      let fr = fitMotion(m, src, dst)
+      echo "fit ", (if fr.isSome: hs(fr.get) else: "None")
+      echo "ransac ", optH(ransacMotion(m, src, dst, iters, thr, seed))
+  of "ft.reg":
+    let (ir, im) = (readBuf(a[2]), readBuf(a[3]))
+    let r = features.register(ir.w, ir.h, lumaOf(ir), lumaOf(im), maskArg(a[5]), maskArg(a[6]), modelArg(a[4]))
+    if r.isSome: echo hs(r.get[0]), " | ", r.get[1]
+    else: echo "None"
+  of "pm.focal":
+    let v = nums64(a[2])
+    let h = Homography(m: [v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8]])
+    echo optB(focalFromHomography(h, [v[9], v[10]], [v[11], v[12]]))
+  of "pm.place":
+    let v = nums64(a[3])
+    let projection = (case a[2]
+      of "cylinder": prCylinder
+      of "sphere": prSphere
+      else: prPlane)
+    let p = Placement(projection: projection, focal: v[0], center: [v[1], v[2]], k1: v[3],
+                      h: Homography(m: [v[4], v[5], v[6], v[7], v[8], v[9], v[10], v[11], v[12]]))
+    probe(p, v[13], v[14])
+  of "pm.align":
+    var imgs: seq[PreparedImage]
+    for s in a[7 ..< a.len - 1]:
+      let k = s.find(':')
+      let (p, m) = (if k >= 0: (s[0 ..< k], s[k + 1 .. ^1]) else: (s, "-"))
+      let im = readBuf(p)
+      imgs.add (im.w, im.h, lumaOf(im), maskArg(m))
+    let feats = detectMany(imgs, parseInt(a[6]))
+    for ft in feats:
+      echo "feat ", ft.w, " ", ft.h, " ", ft.points.mapIt(b64(it[0]) & " " & b64(it[1])).join(" "), " ", descS(ft.desc)
+    let matches = matchPairs(feats)
+    for m in matches:
+      let (fa, fb) = (feats[m.a], feats[m.b])
+      let ca = [float64(fa.w) / 2.0, float64(fa.h) / 2.0]
+      let cb = [float64(fb.w) / 2.0, float64(fb.h) / 2.0]
+      var ps: seq[string]
+      for i in 0 ..< m.ptsA.len:
+        ps.add b64(m.ptsA[i][0]) & " " & b64(m.ptsA[i][1]) & " " & b64(m.ptsB[i][0]) & " " & b64(m.ptsB[i][1])
+      echo "pair ", m.a, " ", m.b, " ", ps.join(" "), " ", m.ptsA.len, " | ", hs(m.homography), " | ",
+           optB(focalFromHomography(m.homography, ca, cb))
+    let opts = AlignOptions(layout: parseLayout(a[2]).get(lyAuto),
+                            focal: (if a[3] == "-": none(float64) else: some(parseFloat(a[3]))),
+                            reference: (if a[4] == "-": none(int) else: some(parseInt(a[4]))),
+                            geometric: bl(a[5]))
+    let al = align(feats, matches, opts)
+    if al.isNone: echo "align None"
+    else:
+      let al = al.get
+      echo "align ", al.layout.name, " ", al.reference, " ", b64(al.focal), " ", b64(al.k1), " ", b64(al.rms), " ",
+           al.pairs.mapIt($it[0] & "-" & $it[1] & "-" & $it[2]).join(" ")
+      for i, p in al.placements:
+        if p.isNone: echo "placement ", i, " None"
+        else:
+          echo "placement ", i, " ", placementS(p.get)
+          probe(p.get, float64(feats[i].w), float64(feats[i].h))
+  of "pm.photo":
+    let rs = rois(a, 6)
+    let focal = parseFloat(a[5])
+    var pls: seq[Placement]
+    var sizes: seq[(int, int)]
+    for r in rs:
+      pls.add Placement(projection: prPlane, focal: focal, center: [float64(r.w) / 2.0, float64(r.h) / 2.0], k1: 0.0,
+                        h: Homography(m: [1.0, 0.0, float64(r.x0) + float64(r.w) / 2.0, 0.0, 1.0, float64(r.y0) + float64(r.h) / 2.0, 0.0, 0.0, 1.0]))
+      sizes.add (r.w, r.h)
+    let ph = photometric(rs, (if bl(a[4]): some(pls) else: none(seq[Placement])), sizes, bl(a[2]), bl(a[3]))
+    echo "gains ", ph.gains.mapIt(it.mapIt($cast[uint32](it)).join(",")).join(" "), " vignette ", b64(ph.vignette[0]), " ",
+         b64(ph.vignette[1])
+    var fs: seq[string]
+    for i in 0 ..< rs.len:
+      for c in 0 ..< rs[i].ch:
+        for r2 in [0.0, 0.25, 0.8, 1.0]:
+          fs.add $cast[uint32](ph.factor(i, c, r2))
+    echo "factor ", fs.join(" ")
+  of "pm.seam", "pm.blend":
+    let (w, h) = (parseInt(a[2]), parseInt(a[3]))
+    let rs = rois(a, 5)
+    let (ls, cs) = canvasOf(w, h, rs)
+    var order: seq[int]
+    if a[1] == "pm.seam":
+      for x in a[4].split(','): order.add parseInt(x)
+    else:
+      for i in 0 ..< rs.len: order.add i
+    let labels = seamLabels(w, h, ls, cs, order)
+    if a[1] == "pm.seam":
+      writeF32(o, w, h, 1, labels.mapIt(float32(it)))
+    else:
+      let lv = (if a[4] == "auto": blendLevels(w, h) else: parseInt(a[4]))
+      echo "levels ", blendLevels(w, h), " ", lv
+      var wts: seq[seq[float32]]
+      for k, r in rs:
+        var wt = newSeq[float32](r.w * r.h)
+        for i in 0 ..< r.w * r.h:
+          let (cx, cy) = (i mod r.w + r.x0, i div r.w + r.y0)
+          let inside = cx >= 0 and cy >= 0 and cx < w and cy < h
+          wt[i] = (if inside and labels[cy * w + cx] == int32(k): 1'f32 else: 0'f32)
+        wts.add wt
+      let (px, cov) = multiband(w, h, rs, wts, lv)
+      let v = px & cov
+      writeF32(o, v.len, 1, 1, v)
+  of "dr.reg":
+    let (ir, it) = (readBuf(a[5]), readBuf(a[6]))
+    let init = (if a[4] == "-": PoseIdentity else: poseArg(a[4]))
+    let pr = direct.Plane(w: ir.w, h: ir.h, luma: lumaOf(ir), valid: maskArg(a[7]))
+    let pt = direct.Plane(w: it.w, h: it.h, luma: lumaOf(it), valid: maskArg(a[8]))
+    let r = direct.register(pr, pt, motionArg(a[2]), init, parseInt(a[3]))
+    echo "pose ", poseS(r.pose), " h ", hs(r.h), " rms ", b64(r.rms), " overlap ", r.overlap, " corr ", b64(r.correlation)
+    let (ow, cv) = direct.warp(pt, r.pose)
+    let v = ow & cv.mapIt(if it: 1'f32 else: 0'f32)
+    writeF32(o, v.len, 1, 1, v)
+  of "dr.warp":
+    let im = readBuf(a[3])
+    let pose = poseArg(a[2])
+    echo "matrix ", hs(pose.matrix(im.w, im.h))
+    let (ow, cv) = direct.warp(direct.Plane(w: im.w, h: im.h, luma: lumaOf(im), valid: maskArg(a[4])), pose)
+    let v = ow & cv.mapIt(if it: 1'f32 else: 0'f32)
+    writeF32(o, v.len, 1, 1, v)
+  else: return false
+  true
+
 when isMainModule:
   let a = @[getAppFilename()] & commandLineParams()
   if a.len < 2: quit("usage: algocheck gen <dir> | <command> <args…> <out>")
   if a[1] == "gen": gen(a[2])
-  elif not (selectionCmd(a) or toneCmd(a) or hdrCmd(a) or exifCmd(a) or quantizeCmd(a) or retouchCmd(a) or fillCmd(a) or warpCmd(a) or reshapeCmd(a) or photoCmd(a)): quit("unknown command " & a[1])
+  elif not (selectionCmd(a) or toneCmd(a) or hdrCmd(a) or exifCmd(a) or quantizeCmd(a) or retouchCmd(a) or fillCmd(a) or warpCmd(a) or reshapeCmd(a) or photoCmd(a) or panoCmd(a)): quit("unknown command " & a[1])

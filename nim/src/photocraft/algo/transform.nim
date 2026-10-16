@@ -42,7 +42,7 @@ proc apply*(h: Homography; x, y: float64): (float64, float64) =
 proc mul*(a, b: Homography): Homography =
   for i in 0 ..< 3:
     for j in 0 ..< 3:
-      var s = 0.0
+      var s = -0.0 # Rust's `Iterator::sum` starts at -0.0
       for k in 0 ..< 3: s += a.m[i * 3 + k] * b.m[k * 3 + j]
       result.m[i * 3 + j] = s
 
