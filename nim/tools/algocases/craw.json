@@ -1,0 +1,1197 @@
+[
+[
+"cr.dev",
+"@img",
+"{}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"temperature\": 50}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"temperature\": 50}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"tint\": -30}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"tint\": -30}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"exposure\": 1}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"exposure\": 1}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"exposure\": -2, \"temperature\": -100, \"tint\": 100}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"exposure\": -2, \"temperature\": -100, \"tint\": 100}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"contrast\": 100}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"contrast\": 100}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"contrast\": -100}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"contrast\": -100}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"highlights\": -100}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"highlights\": -100}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"shadows\": 100}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"shadows\": 100}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"highlights\": 60, \"shadows\": -40}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"highlights\": 60, \"shadows\": -40}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"whites\": 50, \"blacks\": -50}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"whites\": 50, \"blacks\": -50}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"whites\": -80, \"blacks\": 70}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"whites\": -80, \"blacks\": 70}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"texture\": 80}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"texture\": 80}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"texture\": -50}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"texture\": -50}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"clarity\": 80}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"clarity\": 80}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"clarity\": -60}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"clarity\": -60}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"dehaze\": 60}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"dehaze\": 60}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"dehaze\": -60}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"dehaze\": -60}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"vibrance\": 100}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"vibrance\": 100}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"saturation\": -100}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"saturation\": -100}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"vibrance\": -50, \"saturation\": 30}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"vibrance\": -50, \"saturation\": 30}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"curveShadows\": 50}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"curveShadows\": 50}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"curveShadows\": -40, \"curveDarks\": 30, \"curveLights\": -20, \"curveHighlights\": 70, \"curveSplits\": [10, 60, 90]}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"curveShadows\": -40, \"curveDarks\": 30, \"curveLights\": -20, \"curveHighlights\": 70, \"curveSplits\": [10, 60, 90]}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"curveDarks\": 80, \"curveSplits\": [90, 10, 50]}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"curveDarks\": 80, \"curveSplits\": [90, 10, 50]}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"pointCurve\": [[0, 30], [255, 255]]}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"pointCurve\": [[0, 30], [255, 255]]}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"pointCurveRed\": [[0, 0], [64, 40], [192, 220], [255, 255]], \"pointCurveGreen\": [[0, 20], [128, 100], [255, 240]], \"pointCurveBlue\": [[0, 255], [255, 0]]}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"pointCurveRed\": [[0, 0], [64, 40], [192, 220], [255, 255]], \"pointCurveGreen\": [[0, 20], [128, 100], [255, 240]], \"pointCurveBlue\": [[0, 255], [255, 0]]}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"pointCurve\": [[200, 10], [0, 0], [100, 180], [100.0000001, 50], [255, 255], [30, 30]]}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"pointCurve\": [[200, 10], [0, 0], [100, 180], [100.0000001, 50], [255, 255], [30, 30]]}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"hslSat\": [-100, 0, 0, 0, 0, 0, 0, 0]}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"hslSat\": [-100, 0, 0, 0, 0, 0, 0, 0]}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"hslHue\": [30, -50, 20, 100, -100, 40, -20, 60], \"hslSat\": [10, 20, -30, 40, -50, 60, -70, 80], \"hslLum\": [-50, 40, -30, 20, -10, 50, 60, -70]}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"hslHue\": [30, -50, 20, 100, -100, 40, -20, 60], \"hslSat\": [10, 20, -30, 40, -50, 60, -70, 80], \"hslLum\": [-50, 40, -30, 20, -10, 50, 60, -70]}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"gradeShadows\": {\"hue\": 220, \"sat\": 80}}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"gradeShadows\": {\"hue\": 220, \"sat\": 80}}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"gradeMidtones\": {\"hue\": 40, \"sat\": 50, \"lum\": -30}, \"gradeHighlights\": {\"hue\": 60, \"sat\": 30, \"lum\": 40}, \"gradeGlobal\": {\"hue\": 300, \"sat\": 20, \"lum\": 10}, \"gradeBlending\": 0, \"gradeBalance\": 100}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"gradeMidtones\": {\"hue\": 40, \"sat\": 50, \"lum\": -30}, \"gradeHighlights\": {\"hue\": 60, \"sat\": 30, \"lum\": 40}, \"gradeGlobal\": {\"hue\": 300, \"sat\": 20, \"lum\": 10}, \"gradeBlending\": 0, \"gradeBalance\": 100}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"gradeShadows\": {\"hue\": -30, \"sat\": 100, \"lum\": -100}, \"gradeBlending\": 100, \"gradeBalance\": -100}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"gradeShadows\": {\"hue\": -30, \"sat\": 100, \"lum\": -100}, \"gradeBlending\": 100, \"gradeBalance\": -100}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"sharpenAmount\": 100}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"sharpenAmount\": 100}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"sharpenAmount\": 60, \"sharpenRadius\": 0.5, \"sharpenDetail\": 0, \"sharpenMasking\": 50}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"sharpenAmount\": 60, \"sharpenRadius\": 0.5, \"sharpenDetail\": 0, \"sharpenMasking\": 50}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"sharpenAmount\": 150, \"sharpenRadius\": 3, \"sharpenDetail\": 100, \"sharpenMasking\": 100}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"sharpenAmount\": 150, \"sharpenRadius\": 3, \"sharpenDetail\": 100, \"sharpenMasking\": 100}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"noiseLuminance\": 80}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"noiseLuminance\": 80}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"noiseLuminance\": 40, \"noiseLuminanceDetail\": 0}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"noiseLuminance\": 40, \"noiseLuminanceDetail\": 0}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"noiseColor\": 70}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"noiseColor\": 70}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"noiseColor\": 100, \"noiseColorDetail\": 100, \"noiseLuminance\": 100}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"noiseColor\": 100, \"noiseColorDetail\": 100, \"noiseLuminance\": 100}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"grainAmount\": 50, \"seed\": 4}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"grainAmount\": 50, \"seed\": 4}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"grainAmount\": 100, \"grainSize\": 0, \"grainRoughness\": 0}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"grainAmount\": 100, \"grainSize\": 0, \"grainRoughness\": 0}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"grainAmount\": 30, \"grainSize\": 100, \"grainRoughness\": 100, \"seed\": 4294967295}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"grainAmount\": 30, \"grainSize\": 100, \"grainRoughness\": 100, \"seed\": 4294967295}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"grainAmount\": 40, \"pixelScale\": 0.25}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"grainAmount\": 40, \"pixelScale\": 0.25}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"vignetteAmount\": -80}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"vignetteAmount\": -80}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"vignetteAmount\": 60}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"vignetteAmount\": 60}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"vignetteAmount\": -50, \"vignetteStyle\": \"colorPriority\", \"vignetteHighlights\": 100}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"vignetteAmount\": -50, \"vignetteStyle\": \"colorPriority\", \"vignetteHighlights\": 100}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"vignetteAmount\": 70, \"vignetteStyle\": \"paintOverlay\"}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"vignetteAmount\": 70, \"vignetteStyle\": \"paintOverlay\"}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"vignetteAmount\": -70, \"vignetteStyle\": \"paintOverlay\", \"vignetteRoundness\": -100, \"vignetteFeather\": 0}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"vignetteAmount\": -70, \"vignetteStyle\": \"paintOverlay\", \"vignetteRoundness\": -100, \"vignetteFeather\": 0}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"vignetteAmount\": -40, \"vignetteRoundness\": 100, \"vignetteFeather\": 100, \"vignetteMidpoint\": 0}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"vignetteAmount\": -40, \"vignetteRoundness\": 100, \"vignetteFeather\": 100, \"vignetteMidpoint\": 0}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"vignetteAmount\": -40, \"vignetteRoundness\": 50, \"vignetteMidpoint\": 100, \"vignetteHighlights\": 50}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"vignetteAmount\": -40, \"vignetteRoundness\": 50, \"vignetteMidpoint\": 100, \"vignetteHighlights\": 50}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"temperature\": 20, \"tint\": 5, \"exposure\": 0.4, \"contrast\": 30, \"highlights\": -50, \"shadows\": 40, \"whites\": 10, \"blacks\": -10, \"texture\": 20, \"clarity\": 30, \"dehaze\": 15, \"vibrance\": 25, \"saturation\": -10, \"curveLights\": 20, \"pointCurve\": [[0, 10], [128, 140], [255, 250]], \"hslHue\": [5, 0, 0, 0, 0, -10, 0, 0], \"gradeShadows\": {\"hue\": 200, \"sat\": 30}, \"sharpenAmount\": 40, \"noiseLuminance\": 20, \"noiseColor\": 25, \"grainAmount\": 15, \"vignetteAmount\": -30, \"pixelScale\": 0.5}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"temperature\": 20, \"tint\": 5, \"exposure\": 0.4, \"contrast\": 30, \"highlights\": -50, \"shadows\": 40, \"whites\": 10, \"blacks\": -10, \"texture\": 20, \"clarity\": 30, \"dehaze\": 15, \"vibrance\": 25, \"saturation\": -10, \"curveLights\": 20, \"pointCurve\": [[0, 10], [128, 140], [255, 250]], \"hslHue\": [5, 0, 0, 0, 0, -10, 0, 0], \"gradeShadows\": {\"hue\": 200, \"sat\": 30}, \"sharpenAmount\": 40, \"noiseLuminance\": 20, \"noiseColor\": 25, \"grainAmount\": 15, \"vignetteAmount\": -30, \"pixelScale\": 0.5}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"exposure\": 1e+30}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"exposure\": 1e+30}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"grainAmount\": 50, \"grainSize\": -25}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"grainAmount\": 50, \"grainSize\": -25}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"pixelScale\": 0, \"sharpenAmount\": 50, \"noiseColor\": 50}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"pixelScale\": 0, \"sharpenAmount\": 50, \"noiseColor\": 50}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"noiseLuminance\": 5000}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"noiseLuminance\": 5000}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"temperature\": -1e+30, \"contrast\": 1e+30}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"temperature\": -1e+30, \"contrast\": 1e+30}",
+"1"
+],
+[
+"cr.dev",
+"@img",
+"{\"vignetteAmount\": -50, \"vignetteMidpoint\": -1000000000.0, \"vignetteFeather\": 1000000000.0}",
+"0"
+],
+[
+"cr.dev",
+"@odd",
+"{\"vignetteAmount\": -50, \"vignetteMidpoint\": -1000000000.0, \"vignetteFeather\": 1000000000.0}",
+"1"
+],
+[
+"cr.json",
+"{\"temperature\": 50}"
+],
+[
+"cr.json",
+"{\"tint\": -30}"
+],
+[
+"cr.json",
+"{\"exposure\": 1}"
+],
+[
+"cr.json",
+"{\"exposure\": -2, \"temperature\": -100, \"tint\": 100}"
+],
+[
+"cr.json",
+"{\"contrast\": 100}"
+],
+[
+"cr.json",
+"{\"contrast\": -100}"
+],
+[
+"cr.json",
+"{\"highlights\": -100}"
+],
+[
+"cr.json",
+"{\"shadows\": 100}"
+],
+[
+"cr.json",
+"{\"highlights\": 60, \"shadows\": -40}"
+],
+[
+"cr.json",
+"{\"whites\": 50, \"blacks\": -50}"
+],
+[
+"cr.json",
+"{\"whites\": -80, \"blacks\": 70}"
+],
+[
+"cr.json",
+"{\"texture\": 80}"
+],
+[
+"cr.json",
+"{\"texture\": -50}"
+],
+[
+"cr.json",
+"{\"clarity\": 80}"
+],
+[
+"cr.json",
+"{\"clarity\": -60}"
+],
+[
+"cr.json",
+"{\"dehaze\": 60}"
+],
+[
+"cr.json",
+"{\"dehaze\": -60}"
+],
+[
+"cr.json",
+"{\"vibrance\": 100}"
+],
+[
+"cr.json",
+"{\"saturation\": -100}"
+],
+[
+"cr.json",
+"{\"vibrance\": -50, \"saturation\": 30}"
+],
+[
+"cr.json",
+"{\"curveShadows\": 50}"
+],
+[
+"cr.json",
+"{\"curveShadows\": -40, \"curveDarks\": 30, \"curveLights\": -20, \"curveHighlights\": 70, \"curveSplits\": [10, 60, 90]}"
+],
+[
+"cr.json",
+"{\"curveDarks\": 80, \"curveSplits\": [90, 10, 50]}"
+],
+[
+"cr.json",
+"{\"pointCurve\": [[0, 30], [255, 255]]}"
+],
+[
+"cr.json",
+"{\"pointCurveRed\": [[0, 0], [64, 40], [192, 220], [255, 255]], \"pointCurveGreen\": [[0, 20], [128, 100], [255, 240]], \"pointCurveBlue\": [[0, 255], [255, 0]]}"
+],
+[
+"cr.json",
+"{\"pointCurve\": [[200, 10], [0, 0], [100, 180], [100.0000001, 50], [255, 255], [30, 30]]}"
+],
+[
+"cr.json",
+"{\"hslSat\": [-100, 0, 0, 0, 0, 0, 0, 0]}"
+],
+[
+"cr.json",
+"{\"hslHue\": [30, -50, 20, 100, -100, 40, -20, 60], \"hslSat\": [10, 20, -30, 40, -50, 60, -70, 80], \"hslLum\": [-50, 40, -30, 20, -10, 50, 60, -70]}"
+],
+[
+"cr.json",
+"{\"gradeShadows\": {\"hue\": 220, \"sat\": 80}}"
+],
+[
+"cr.json",
+"{\"gradeMidtones\": {\"hue\": 40, \"sat\": 50, \"lum\": -30}, \"gradeHighlights\": {\"hue\": 60, \"sat\": 30, \"lum\": 40}, \"gradeGlobal\": {\"hue\": 300, \"sat\": 20, \"lum\": 10}, \"gradeBlending\": 0, \"gradeBalance\": 100}"
+],
+[
+"cr.json",
+"{\"gradeShadows\": {\"hue\": -30, \"sat\": 100, \"lum\": -100}, \"gradeBlending\": 100, \"gradeBalance\": -100}"
+],
+[
+"cr.json",
+"{\"sharpenAmount\": 100}"
+],
+[
+"cr.json",
+"{\"sharpenAmount\": 60, \"sharpenRadius\": 0.5, \"sharpenDetail\": 0, \"sharpenMasking\": 50}"
+],
+[
+"cr.json",
+"{\"sharpenAmount\": 150, \"sharpenRadius\": 3, \"sharpenDetail\": 100, \"sharpenMasking\": 100}"
+],
+[
+"cr.json",
+"{\"noiseLuminance\": 80}"
+],
+[
+"cr.json",
+"{\"noiseLuminance\": 40, \"noiseLuminanceDetail\": 0}"
+],
+[
+"cr.json",
+"{\"noiseColor\": 70}"
+],
+[
+"cr.json",
+"{\"noiseColor\": 100, \"noiseColorDetail\": 100, \"noiseLuminance\": 100}"
+],
+[
+"cr.json",
+"{\"grainAmount\": 50, \"seed\": 4}"
+],
+[
+"cr.json",
+"{\"grainAmount\": 100, \"grainSize\": 0, \"grainRoughness\": 0}"
+],
+[
+"cr.json",
+"{\"grainAmount\": 30, \"grainSize\": 100, \"grainRoughness\": 100, \"seed\": 4294967295}"
+],
+[
+"cr.json",
+"{\"grainAmount\": 40, \"pixelScale\": 0.25}"
+],
+[
+"cr.json",
+"{\"vignetteAmount\": -80}"
+],
+[
+"cr.json",
+"{\"vignetteAmount\": 60}"
+],
+[
+"cr.json",
+"{\"vignetteAmount\": -50, \"vignetteStyle\": \"colorPriority\", \"vignetteHighlights\": 100}"
+],
+[
+"cr.json",
+"{\"vignetteAmount\": 70, \"vignetteStyle\": \"paintOverlay\"}"
+],
+[
+"cr.json",
+"{\"vignetteAmount\": -70, \"vignetteStyle\": \"paintOverlay\", \"vignetteRoundness\": -100, \"vignetteFeather\": 0}"
+],
+[
+"cr.json",
+"{\"vignetteAmount\": -40, \"vignetteRoundness\": 100, \"vignetteFeather\": 100, \"vignetteMidpoint\": 0}"
+],
+[
+"cr.json",
+"{\"vignetteAmount\": -40, \"vignetteRoundness\": 50, \"vignetteMidpoint\": 100, \"vignetteHighlights\": 50}"
+],
+[
+"cr.json",
+"{\"temperature\": 20, \"tint\": 5, \"exposure\": 0.4, \"contrast\": 30, \"highlights\": -50, \"shadows\": 40, \"whites\": 10, \"blacks\": -10, \"texture\": 20, \"clarity\": 30, \"dehaze\": 15, \"vibrance\": 25, \"saturation\": -10, \"curveLights\": 20, \"pointCurve\": [[0, 10], [128, 140], [255, 250]], \"hslHue\": [5, 0, 0, 0, 0, -10, 0, 0], \"gradeShadows\": {\"hue\": 200, \"sat\": 30}, \"sharpenAmount\": 40, \"noiseLuminance\": 20, \"noiseColor\": 25, \"grainAmount\": 15, \"vignetteAmount\": -30, \"pixelScale\": 0.5}"
+],
+[
+"cr.json",
+"{\"exposure\": 1e+30}"
+],
+[
+"cr.json",
+"{\"grainAmount\": 50, \"grainSize\": -25}"
+],
+[
+"cr.json",
+"{\"pixelScale\": 0, \"sharpenAmount\": 50, \"noiseColor\": 50}"
+],
+[
+"cr.json",
+"{\"noiseLuminance\": 5000}"
+],
+[
+"cr.json",
+"{\"temperature\": -1e+30, \"contrast\": 1e+30}"
+],
+[
+"cr.json",
+"{\"vignetteAmount\": -50, \"vignetteMidpoint\": -1000000000.0, \"vignetteFeather\": 1000000000.0}"
+],
+[
+"cr.dev",
+"@scan2",
+"{\"highlights\": -80, \"shadows\": 60}",
+"0"
+],
+[
+"cr.dev",
+"@scan2",
+"{\"clarity\": 70}",
+"0"
+],
+[
+"cr.dev",
+"@scan2",
+"{\"dehaze\": 50}",
+"0"
+],
+[
+"cr.dev",
+"@scan2",
+"{\"dehaze\": -40}",
+"0"
+],
+[
+"cr.dev",
+"@scan2",
+"{\"texture\": 60, \"noiseColor\": 40}",
+"0"
+],
+[
+"cr.dev",
+"@tex",
+"{\"highlights\": -80, \"shadows\": 60, \"clarity\": 40}",
+"0"
+],
+[
+"cr.dev",
+"@half",
+"{\"highlights\": -80, \"shadows\": 60, \"clarity\": 40}",
+"1"
+],
+[
+"cr.dev",
+"@tex",
+"{\"dehaze\": 50, \"vignetteAmount\": -30, \"grainAmount\": 20}",
+"0"
+],
+[
+"cr.dev",
+"@half",
+"{\"dehaze\": 50, \"vignetteAmount\": -30, \"grainAmount\": 20}",
+"1"
+],
+[
+"cr.json",
+"{}"
+],
+[
+"cr.json",
+"{\"gradeShadows\":[1,2]}"
+],
+[
+"cr.json",
+"{\"gradeShadows\":[1,2,3,4]}"
+],
+[
+"cr.json",
+"{\"gradeShadows\":[]}"
+],
+[
+"cr.json",
+"{\"seed\":3.0}"
+],
+[
+"cr.json",
+"{\"exposure\":\"1\"}"
+],
+[
+"cr.json",
+"[1,2]"
+],
+[
+"cr.json",
+"[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,[1,2,3]]"
+],
+[
+"cr.json",
+"{\"pointCurve\":[[1,2],[3]]}"
+],
+[
+"cr.json",
+"{\"curveSplits\":[1,2]}"
+],
+[
+"cr.json",
+"{\"hslHue\":[1,2,3,4,5,6,7,8,9]}"
+],
+[
+"cr.json",
+"{\"seed\":-1}"
+],
+[
+"cr.json",
+"{\"seed\":4294967296}"
+],
+[
+"cr.json",
+"{\"vignetteStyle\":5}"
+],
+[
+"cr.json",
+"{\"exposure\":null}"
+],
+[
+"cr.json",
+"{\"pointCurve\":null}"
+],
+[
+"cr.json",
+"{\"unknown\":5,\"exposure\":2}"
+],
+[
+"cr.json",
+"{\"pointCurve\":[[128,128]]}"
+],
+[
+"cr.json",
+"{\"pointCurve\":[[255,255],[0,0]]}"
+],
+[
+"cr.json",
+"{\"pointCurve\":[[0,0],[0,255]]}"
+],
+[
+"cr.json",
+"{\"pointCurve\":[[0,-1],[255,255]]}"
+],
+[
+"cr.json",
+"{\"pointCurve\":[[0,0],[256,255]]}"
+],
+[
+"cr.json",
+"{\"pointCurveBlue\":[[0,0],[1e30,255]]}"
+],
+[
+"cr.json",
+"{\"pointCurveGreen\": [[0, 0], [15, 15], [30, 30], [45, 45], [60, 60], [75, 75], [90, 90], [105, 105], [120, 120], [135, 135], [150, 150], [165, 165], [180, 180], [195, 195], [210, 210], [225, 225], [240, 240]]}"
+],
+[
+"cr.json",
+"{\"pointCurveRed\": [[0, 0], [17, 17], [34, 34], [51, 51], [68, 68], [85, 85], [102, 102], [119, 119], [136, 136], [153, 153], [170, 170], [187, 187], [204, 204], [221, 221], [238, 238], [255, 255]]}"
+],
+[
+"cr.json",
+"{\"pointCurve\":[[0,0],[255,255]]}"
+],
+[
+"cr.json",
+"{\"pointCurve\":[]}"
+],
+[
+"cr.json",
+"\"x\""
+],
+[
+"cr.json",
+"5"
+],
+[
+"cr.json",
+"{\"gradeGlobal\":{\"lum\":3},\"seed\":0}"
+],
+[
+"cr.json",
+"{\"pixelScale\":1e-50}"
+],
+[
+"cr.misc",
+"0,0,64,40,192,220,255,255",
+"256"
+],
+[
+"cr.misc",
+"0,30,255,255",
+"1024"
+],
+[
+"cr.misc",
+"",
+"10"
+],
+[
+"cr.misc",
+"10,10",
+"16"
+],
+[
+"cr.misc",
+"200,10,0,0,100,180,100.0000001,50,255,255,30,30",
+"64"
+],
+[
+"cr.misc",
+"0,0,128,255,255,0",
+"33"
+],
+[
+"cr.misc",
+"0,0,0,255",
+"8"
+],
+[
+"cr.misc",
+"0,0,255,255",
+"1"
+],
+[
+"cr.misc",
+"0,0,255,255",
+"0"
+],
+[
+"cr.misc",
+"0,0,50,100,100,100,200,0,255,255",
+"100"
+],
+[
+"cr.misc",
+"nan,1,2,3",
+"5"
+],
+[
+"cr.dev",
+"@tiny1",
+"{\"dehaze\": 30, \"clarity\": 40, \"sharpenAmount\": 50, \"vignetteAmount\": -20}",
+"0"
+],
+[
+"cr.dev",
+"@tiny1",
+"{\"highlights\": -50, \"shadows\": 50, \"texture\": 40, \"noiseColor\": 60, \"noiseLuminance\": 50, \"sharpenMasking\": 40, \"sharpenAmount\": 30}",
+"0"
+],
+[
+"cr.dev",
+"@tiny1",
+"{\"grainAmount\": 60, \"vignetteAmount\": 40, \"vignetteStyle\": \"colorPriority\", \"dehaze\": -30}",
+"0"
+],
+[
+"cr.dev",
+"@tiny2",
+"{\"dehaze\": 30, \"clarity\": 40, \"sharpenAmount\": 50, \"vignetteAmount\": -20}",
+"0"
+],
+[
+"cr.dev",
+"@tiny2",
+"{\"highlights\": -50, \"shadows\": 50, \"texture\": 40, \"noiseColor\": 60, \"noiseLuminance\": 50, \"sharpenMasking\": 40, \"sharpenAmount\": 30}",
+"0"
+],
+[
+"cr.dev",
+"@tiny2",
+"{\"grainAmount\": 60, \"vignetteAmount\": 40, \"vignetteStyle\": \"colorPriority\", \"dehaze\": -30}",
+"0"
+],
+[
+"cr.dev",
+"@tiny3",
+"{\"dehaze\": 30, \"clarity\": 40, \"sharpenAmount\": 50, \"vignetteAmount\": -20}",
+"0"
+],
+[
+"cr.dev",
+"@tiny3",
+"{\"highlights\": -50, \"shadows\": 50, \"texture\": 40, \"noiseColor\": 60, \"noiseLuminance\": 50, \"sharpenMasking\": 40, \"sharpenAmount\": 30}",
+"0"
+],
+[
+"cr.dev",
+"@tiny3",
+"{\"grainAmount\": 60, \"vignetteAmount\": 40, \"vignetteStyle\": \"colorPriority\", \"dehaze\": -30}",
+"0"
+]
+]

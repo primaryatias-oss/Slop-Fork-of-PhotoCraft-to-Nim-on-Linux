@@ -94,6 +94,9 @@ own nimcache (`.nimcache/<name>`), so different test files can compile at the sa
   q[1]]` gives `[q0, q3, q2, q3]`. Permute through a temporary (`let r = [...]; q = r`); tuples,
   objects and seqs are not affected.
 * Identifiers are style-insensitive except the first letter: `im` and `iM` are the same.
+* serde parity for settings structs: missing fields default, unknown fields are ignored, a struct
+  may also be written as a sequence of its fields (in declaration order). `std/json` keeps the last
+  of duplicate keys where serde_json rejects the object; that leniency is the one known difference.
 * A nested proc that captures an `openArray` (or `var`) parameter is only rejected when its
   enclosing proc is actually used, so importing a module compiles cleanly until a caller appears.
   Copy the parameter (`let feats = @feats`) or pass it to a top-level helper (a template wrapper
@@ -129,8 +132,8 @@ Magnetic Lasso, Liquify, Render › Flame / Picture Frame / Tree (`render2`), Au
 focus-stack fusion (`pyramid`), Lens Correction (`lens`, including `remap` in every colour mode),
 Vanishing Point, Adaptive Wide Angle (`wideangle`), Puppet Warp, Photomerge / Auto-Align (Harris +
 steered BRIEF `features`, `panorama` matching, bundle adjustment, photometric, seams, multi-band;
-`direct` intensity registration). Non-filter APIs are checked with `tools/algocheck.py`
-(`tools/algocases/*.json`, 3118 command runs identical). 2869 of 2870 filter runs identical to Rust (`tools/filtercases.json`, 410 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
+`direct` intensity registration), the Camera Raw Filter (`camera_raw`). Non-filter APIs are checked
+with `tools/algocheck.py` (`tools/algocases/*.json`, 3348 command runs identical). 2869 of 2870 filter runs identical to Rust (`tools/filtercases.json`, 410 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
 | io (PSD/PSB ↔ document, layered TIFF, multi-part EXR, flat formats, facade) | ported, tested; see "io notes" below |
 | io: OpenRaster, Paint.NET | ported, tested |
 | io: SVG, camera raw, Affinity | pending (the facade reports "unsupported" until they land; SVG needs a usvg-style normalizer) |

@@ -123,7 +123,7 @@ proc cbrt*(x: float64): float64 =
 proc asIdx*(v: float32): int {.inline.} =
   ## Rust `v as usize` (64-bit, capped at `high(int)`): NaN and negatives → 0.
   if v != v or v <= 0: 0
-  elif v >= 9.2e18'f32: high(int)
+  elif v >= 9.223372e18'f32: high(int)
   else: int(v)
 
 proc asU8*(v: float32): uint8 {.inline.} =

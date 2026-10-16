@@ -7,7 +7,7 @@
 
 import std/[os, strutils, options, math, tables, sequtils, json]
 import photocraft/[geom, raster]
-import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch, poisson, nonlocal, remove, perspective, scancrop, redeye, seam, magnetic, liquify, render2, pyramid, lens, vanishing, wideangle, transform, puppet, features, panorama, direct]
+import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch, poisson, nonlocal, remove, perspective, scancrop, redeye, seam, magnetic, liquify, render2, pyramid, lens, vanishing, wideangle, transform, puppet, features, panorama, direct, camera_raw]
 import photocraft/color as pcolor
 import photocraft/color/blend
 
@@ -200,6 +200,15 @@ proc genPano(dir: string) =
       sm2[o + 2] = 0.4'f32 + 0.005'f32 * float32(y)
       sm2[o + 3] = (if (x - 35) * (x - 35) + (y - 25) * (y - 25) < 900: 1'f32 else: 0'f32)
   writeF32(dir / "sm2.pcim", 70, 50, 4, sm2)
+  # Tiny RGBA strips (Camera Raw edge cases).
+  for (name, tw, th) in [("tiny1", 1, 40), ("tiny2", 3, 2), ("tiny3", 41, 1)]:
+    var t = newSeq[float32](tw * th * 4)
+    for i in 0 ..< tw * th:
+      t[i * 4] = float32(i mod 7) / 7'f32
+      t[i * 4 + 1] = 0.3'f32 + float32(i mod 3) * 0.2'f32
+      t[i * 4 + 2] = 1'f32 - float32(i mod 5) / 5'f32
+      t[i * 4 + 3] = 1
+    writeF32(dir / (name & ".pcim"), tw, th, 4, t)
 
 proc gen(dir: string) =
   createDir(dir)
@@ -1777,8 +1786,75 @@ proc panoCmd(a: seq[string]): bool =
   else: return false
   true
 
+# ---------------------------------------------------------------- camera raw
+
+proc bits32(v: openArray[float32]): string = v.mapIt($cast[uint32](it)).join(" ")
+
+proc crawDump(p: CameraRaw) =
+  let f = [p.temperature, p.tint, p.exposure, p.contrast, p.highlights, p.shadows, p.whites, p.blacks, p.texture, p.clarity,
+           p.dehaze, p.vibrance, p.saturation, p.curveHighlights, p.curveLights, p.curveDarks, p.curveShadows, p.gradeBlending,
+           p.gradeBalance, p.sharpenAmount, p.sharpenRadius, p.sharpenDetail, p.sharpenMasking, p.noiseLuminance,
+           p.noiseLuminanceDetail, p.noiseColor, p.noiseColorDetail, p.grainAmount, p.grainSize, p.grainRoughness,
+           p.vignetteAmount, p.vignetteMidpoint, p.vignetteRoundness, p.vignetteFeather, p.vignetteHighlights, p.pixelScale]
+  echo "f ", bits32(f)
+  echo "splits ", bits32(p.curveSplits), " hsl ", bits32(p.hslHue), " ", bits32(p.hslSat), " ", bits32(p.hslLum)
+  for c in [p.pointCurve, p.pointCurveRed, p.pointCurveGreen, p.pointCurveBlue]:
+    var flat: seq[float32]
+    for q in c: flat.add q
+    echo "curve ", bits32(flat)
+  for w in [p.gradeShadows, p.gradeMidtones, p.gradeHighlights, p.gradeGlobal]:
+    echo "wheel ", bits32([w.hue, w.sat, w.lum])
+  echo "style ", p.vignetteStyle, " seed ", p.seed, " identity ", p.isIdentity
+
+proc crawCmd(a: seq[string]): bool =
+  let o = a[^1]
+  case a[1]
+  of "cr.json":
+    var p: CameraRaw
+    try: p = cameraRawFromJson(parseJson(a[2]))
+    except ValueError, JsonParsingError:
+      echo "Err"
+      return true
+    crawDump(p)
+    var ok = true
+    try: p.validate
+    except ValueError: ok = false
+    echo "validate ", ok
+    ok = true
+    try: p.validateChanges(defaultCameraRaw())
+    except ValueError: ok = false
+    echo "changes ", ok
+    echo "roundtrip ", cameraRawFromJson(parseJson($p.toJ)) == p
+  of "cr.dev":
+    let im = readBuf(a[2])
+    var px = rgba(im)
+    let p = cameraRawFromJson(parseJson(a[3]))
+    develop(px, im.w, im.h, p, bl(a[4]))
+    writeF32(o, im.w, im.h, 4, flat4(px))
+  of "cr.misc":
+    var v: seq[float32]
+    if a[2].len > 0:
+      for t in a[2].split(','): v.add float32(parseFloat(t))
+    var pts: seq[array[2, float32]]
+    for i in 0 ..< v.len div 2: pts.add [v[2 * i], v[2 * i + 1]]
+    var ok = true
+    try: validateCurve(pts)
+    except ValueError: ok = false
+    echo "validate ", ok
+    echo "lut ", bits32(curveLut(pts, parseInt(a[3])))
+    var bw: seq[float32]
+    for k in -20 ..< 40: bw.add bandWeights(float32(k) * 11.3'f32 - 30'f32)
+    bw.add bandWeights(NaN.float32)
+    bw.add bandWeights(1e20'f32)
+    echo "bands ", bits32(bw)
+    var g: seq[float32]
+    for (t, n) in [(0'f32, 0'f32), (50'f32, -20'f32), (-100'f32, 100'f32), (1e30'f32, -1e30'f32)]: g.add whiteBalanceGains(t, n)
+    echo "wb ", bits32(g)
+  else: return false
+  true
+
 when isMainModule:
   let a = @[getAppFilename()] & commandLineParams()
   if a.len < 2: quit("usage: algocheck gen <dir> | <command> <args…> <out>")
   if a[1] == "gen": gen(a[2])
-  elif not (selectionCmd(a) or toneCmd(a) or hdrCmd(a) or exifCmd(a) or quantizeCmd(a) or retouchCmd(a) or fillCmd(a) or warpCmd(a) or reshapeCmd(a) or photoCmd(a) or panoCmd(a)): quit("unknown command " & a[1])
+  elif not (selectionCmd(a) or toneCmd(a) or hdrCmd(a) or exifCmd(a) or quantizeCmd(a) or retouchCmd(a) or fillCmd(a) or warpCmd(a) or reshapeCmd(a) or photoCmd(a) or panoCmd(a) or crawCmd(a)): quit("unknown command " & a[1])
