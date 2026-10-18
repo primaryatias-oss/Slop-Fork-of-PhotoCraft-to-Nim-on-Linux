@@ -32,3 +32,4 @@ import t_algo_wideangle
 import t_algo_puppet
 import t_algo_photomerge
 import t_algo_camera_raw
+import t_algo_inpaint

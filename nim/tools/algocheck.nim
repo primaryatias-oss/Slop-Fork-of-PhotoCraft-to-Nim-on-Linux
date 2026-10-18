@@ -7,7 +7,7 @@
 
 import std/[os, strutils, options, math, tables, sequtils, json]
 import photocraft/[geom, raster]
-import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch, poisson, nonlocal, remove, perspective, scancrop, redeye, seam, magnetic, liquify, render2, pyramid, lens, vanishing, wideangle, transform, puppet, features, panorama, direct, camera_raw]
+import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch, poisson, nonlocal, remove, perspective, scancrop, redeye, seam, magnetic, liquify, render2, pyramid, lens, vanishing, wideangle, transform, puppet, features, panorama, direct, camera_raw, inpaint]
 import photocraft/color as pcolor
 import photocraft/color/blend
 
@@ -80,6 +80,46 @@ proc hashU(x, y, s: uint32): uint32 =
   h = h * 0x2c1b3c6d'u32
   h = h xor (h shr 12)
   h
+
+proc genInpaint(dir: string) =
+  ## Hole-filling inputs: the 97 × 71 test image in 1, 3, 5 and 9 channels, holes and role maps
+  ## for it, and holes in the 700 × 530 texture.
+  let im = readBuf(dir / "img.pcim")
+  let (w, h) = (im.w, im.h)
+  for nc in [1, 3, 5, 9]:
+    var v = newSeq[float32](w * h * nc)
+    for i in 0 ..< w * h:
+      for c in 0 ..< nc: v[i * nc + c] = (if c < 3: im.f[i * 4 + c] else: im.f[i * 4 + (c mod 3)] * 0.5'f32 + float32(c) * 0.05'f32)
+    writeF32(dir / ("ic" & $nc & ".pcim"), w, h, nc, v)
+  var hole1, hole2, hole3 = newSeq[float32](w * h)
+  for y in 0 ..< h:
+    for x in 0 ..< w:
+      let i = y * w + x
+      if (x in 40 ..< 54 and y in 30 ..< 40) or (x - 20) * (x - 20) + (y - 15) * (y - 15) < 20: hole1[i] = 1
+      if abs(x - y - 10) <= 1 and x in 20 .. 80: hole2[i] = 1
+      if x in 5 ..< 92 and y in 25 ..< 46: hole3[i] = 1
+  writeF32(dir / "ihole1.pcim", w, h, 1, hole1)
+  writeF32(dir / "ihole2.pcim", w, h, 1, hole2)
+  writeF32(dir / "ihole3.pcim", w, h, 1, hole3)
+  # Roles: 0 void (left columns), 1 known (a band), 2 source, 3 hole.
+  var roles = newSeq[float32](w * h)
+  for y in 0 ..< h:
+    for x in 0 ..< w:
+      roles[y * w + x] = (if x < 6: 0'f32 elif y in 50 ..< 60: 1'f32 elif hole1[y * w + x] > 0: 3'f32 else: 2'f32)
+  writeF32(dir / "iroles.pcim", w, h, 1, roles)
+  var roles2 = roles
+  for y in 0 ..< h:
+    for x in 0 ..< w:
+      if x >= 60 and roles2[y * w + x] == 2: roles2[y * w + x] = 1
+  writeF32(dir / "iroles2.pcim", w, h, 1, roles2)
+  let (tw, th) = (700, 530)
+  var thole, thole2 = newSeq[float32](tw * th)
+  for y in 0 ..< th:
+    for x in 0 ..< tw:
+      if (x - 350) * (x - 350) + (y - 260) * (y - 260) < 900 or (x in 100 ..< 140 and y in 400 ..< 420): thole[y * tw + x] = 1
+      if x in 200 ..< 520 and y in 150 ..< 380: thole2[y * tw + x] = 1
+  writeF32(dir / "thole.pcim", tw, th, 1, thole)
+  writeF32(dir / "thole2.pcim", tw, th, 1, thole2)
 
 proc genPano(dir: string) =
   ## Photomerge / Auto-Align inputs: views of blob scenes (panorama tests' recipe), direct
@@ -209,6 +249,7 @@ proc genPano(dir: string) =
       t[i * 4 + 2] = 1'f32 - float32(i mod 5) / 5'f32
       t[i * 4 + 3] = 1
     writeF32(dir / (name & ".pcim"), tw, th, 4, t)
+  genInpaint(dir)
 
 proc gen(dir: string) =
   createDir(dir)
@@ -1853,8 +1894,49 @@ proc crawCmd(a: seq[string]): bool =
   else: return false
   true
 
+# ---------------------------------------------------------------- inpaint
+
+proc ipParams(a: seq[string]): CompleteParams =
+  CompleteParams(patchRadius: parseInt(a[0]), emIters: parseInt(a[1]), minEmIters: parseInt(a[2]), pmIters: parseInt(a[3]),
+                 refineExtent: parseInt(a[4]), adapt: Adapt(gain: (f(a[5]), f(a[6])), bias: f(a[7])),
+                 seed: uint64(parseBiggestUInt(a[8])))
+
+proc inpaintCmd(a: seq[string]): bool =
+  let o = a[^1]
+  case a[1]
+  of "ip.complete", "ip.masked":
+    let im = readBuf(a[2])
+    let m = readBuf(a[3])
+    let p = ipParams(a[4 .. 12])
+    var r: Option[seq[float32]]
+    if a[1] == "ip.complete":
+      r = complete(im.w, im.h, im.ch, im.f, m.f.mapIt(it > 0.5'f32), p)
+    else:
+      var px: seq[Px]
+      for v in m.f:
+        px.add (case int(v)
+          of 0: pxVoid
+          of 1: pxKnown
+          of 2: pxSource
+          else: pxHole)
+      r = completeMasked(im.w, im.h, im.ch, im.f, px, p, NoInterrupt)
+    if r.isSome:
+      echo "some ", r.get.len
+      writeF32(o, r.get.len, 1, 1, r.get)
+    else: echo "none"
+  of "ip.offset":
+    let im = readBuf(a[2])
+    let r = bestOffset(im.w, im.h, im.ch, im.f, readBuf(a[3]).f.mapIt(it > 0.5'f32), parseInt(a[4]), parseInt(a[5]))
+    echo (if r.isSome: "Some((" & $r.get[0] & ", " & $r.get[1] & "))" else: "None")
+  of "ip.synth":
+    let im = readBuf(a[2])
+    let v = synthesize(im.w, im.h, im.ch, im.f, readBuf(a[3]).f.mapIt(it > 0.5'f32), parseInt(a[4]), uint64(parseBiggestUInt(a[5])))
+    writeF32(o, v.len, 1, 1, v)
+  else: return false
+  true
+
 when isMainModule:
   let a = @[getAppFilename()] & commandLineParams()
   if a.len < 2: quit("usage: algocheck gen <dir> | <command> <args…> <out>")
   if a[1] == "gen": gen(a[2])
-  elif not (selectionCmd(a) or toneCmd(a) or hdrCmd(a) or exifCmd(a) or quantizeCmd(a) or retouchCmd(a) or fillCmd(a) or warpCmd(a) or reshapeCmd(a) or photoCmd(a) or panoCmd(a) or crawCmd(a)): quit("unknown command " & a[1])
+  elif not (selectionCmd(a) or toneCmd(a) or hdrCmd(a) or exifCmd(a) or quantizeCmd(a) or retouchCmd(a) or fillCmd(a) or warpCmd(a) or reshapeCmd(a) or photoCmd(a) or panoCmd(a) or crawCmd(a) or inpaintCmd(a)): quit("unknown command " & a[1])
