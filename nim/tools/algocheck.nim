@@ -9,6 +9,8 @@ import std/[os, strutils, options, math, tables, sequtils, json]
 import photocraft/[geom, raster]
 import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch, poisson, nonlocal, remove, perspective, scancrop, redeye, seam, magnetic, liquify, render2, pyramid, lens, vanishing, wideangle, transform, puppet, features, panorama, direct, camera_raw, inpaint, segment, grabcut, slic, quick, sky, subject, focus, matting, content_aware]
 import photocraft/color as pcolor
+import photocraft/paint as ppaint
+import photocraft/serde
 import photocraft/color/blend
 
 type Buf = object
@@ -258,7 +260,7 @@ proc genPano(dir: string) =
   let (dw, dh) = (320, 240)
   let dref = texture(dw, dh, 3)
   writeF32(dir / "dref.pcim", dw, dh, 1, dref)
-  let truth = Pose(dx: 3.3 / float64(dw), dy: -2.1 / float64(dh), scale: 1.012, rot: 0.6 * PI / 180.0, aspect: 1.0)
+  let truth = direct.Pose(dx: 3.3 / float64(dw), dy: -2.1 / float64(dh), scale: 1.012, rot: 0.6 * PI / 180.0, aspect: 1.0)
   let m = truth.matrix(dw, dh)
   var dsim, dtr, dcov: seq[float32]
   for i in 0 ..< dw * dh:
@@ -281,7 +283,7 @@ proc genPano(dir: string) =
   for v in dbright.mitems: v = v * 2'f32
   writeF32(dir / "dbright.pcim", dw, dh, 1, dbright)
   # A projective target (perspective terms) for the homography search.
-  let tp = Pose(dx: -1.7 / float64(dw), dy: 2.4 / float64(dh), scale: 0.993, rot: -0.4 * PI / 180.0, aspect: 1.01,
+  let tp = direct.Pose(dx: -1.7 / float64(dw), dy: 2.4 / float64(dh), scale: 0.993, rot: -0.4 * PI / 180.0, aspect: 1.01,
                 shear: 0.008, px: 0.012, py: -0.009)
   let mp = tp.matrix(dw, dh)
   var dproj: seq[float32]
@@ -331,6 +333,19 @@ proc genPano(dir: string) =
     writeF32(dir / (name & ".pcim"), tw, th, 4, t)
   genInpaint(dir)
   genSeg(dir)
+
+proc genPaint(dir: string) =
+  # Flat green on the left, dark blue on the right, a blue wall column cutting off a green
+  # island, and a transparent strip (Color Replacement and Background Eraser inputs).
+  let (w, h) = (97, 71)
+  var v = newSeq[float32](w * h * 4)
+  for y in 0 ..< h:
+    for x in 0 ..< w:
+      var p = if x < 50: [0.2'f32, 0.6, 0.2, 1] else: [0.1'f32, 0.1, 0.5, 1]
+      if x >= 30 and x < 34: p = [0'f32, 0, 1, 1]
+      if y >= 64: p[3] = 0
+      for c in 0 .. 3: v[(y * w + x) * 4 + c] = p[c]
+  writeF32(dir / "ptsplit.pcim", w, h, 4, v)
 
 proc gen(dir: string) =
   createDir(dir)
@@ -578,6 +593,7 @@ proc gen(dir: string) =
     writeF32(dir / ("fs" & $k & ".pcim"), fw, fh, 4, shot)
 
   genPano(dir)
+  genPaint(dir)
 
 # ---------------------------------------------------------------- selection
 
@@ -1746,9 +1762,9 @@ proc canvasOf(w, h: int; rs: seq[RoiImage]): (seq[seq[float32]], seq[seq[bool]])
     result[0].add l
     result[1].add c
 
-proc poseS(p: Pose): string = p.toVec.mapIt(b64(it)).join(" ")
+proc poseS(p: direct.Pose): string = p.toVec.mapIt(b64(it)).join(" ")
 
-proc poseArg(a: string): Pose =
+proc poseArg(a: string): direct.Pose =
   let v = nums64(a)
   fromVec([v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7]])
 
@@ -2258,8 +2274,10 @@ proc segCmd(a: seq[string]): bool =
   else: return false
   true
 
+include ac_paint
+
 when isMainModule:
   let a = @[getAppFilename()] & commandLineParams()
   if a.len < 2: quit("usage: algocheck gen <dir> | <command> <args…> <out>")
   if a[1] == "gen": gen(a[2])
-  elif not (selectionCmd(a) or toneCmd(a) or hdrCmd(a) or exifCmd(a) or quantizeCmd(a) or retouchCmd(a) or fillCmd(a) or warpCmd(a) or reshapeCmd(a) or photoCmd(a) or panoCmd(a) or crawCmd(a) or inpaintCmd(a) or segCmd(a)): quit("unknown command " & a[1])
+  elif not (selectionCmd(a) or toneCmd(a) or hdrCmd(a) or exifCmd(a) or quantizeCmd(a) or retouchCmd(a) or fillCmd(a) or warpCmd(a) or reshapeCmd(a) or photoCmd(a) or panoCmd(a) or crawCmd(a) or inpaintCmd(a) or segCmd(a) or paintCmd(a)): quit("unknown command " & a[1])

@@ -82,13 +82,16 @@ proc toJ*[T: tuple](x: T): JsonNode =
   result = newJArray()
   for v in x.fields: result.add toJ(v)
 
-proc toJ*[T: object](x: T): JsonNode =
+proc objectToJ*[T: object](x: T): JsonNode =
+  ## The generic struct form (for custom `toJ` overloads that adjust it).
   mixin toJ
   result = newJObject()
   for name, v in x.fieldPairs:
     when v.hasCustomPragma(skipJson): discard
     elif v.hasCustomPragma(jsonName): result[v.getCustomPragmaVal(jsonName)] = toJ(v)
     else: result[fieldKey(T, name)] = toJ(v)
+
+proc toJ*[T: object](x: T): JsonNode = objectToJ(x)
 
 proc toJ*[T: ref object](x: T): JsonNode =
   mixin toJ
@@ -184,21 +187,29 @@ proc fromJ*[T: tuple](n: JsonNode; x: var T) =
     fromJ(n.elems[i], v)
     inc i
 
-proc fromJ*[T: object](n: JsonNode; x: var T) =
+proc objectFromJ*[T: object](n: JsonNode; x: var T) =
+  ## The generic struct form (for custom `fromJ` overloads that adjust it).
+  ## Like serde's derived `Deserialize`, a JSON array fills the fields in declaration order
+  ## (missing trailing fields keep their defaults).
   mixin fromJ, defaultOf
-  if n.kind != JObject: raise serdeError("expected an object for " & $T)
+  if n.kind notin {JObject, JArray}: raise serdeError("expected an object for " & $T)
+  var idx = 0
   for name, v in x.fieldPairs:
     when v.hasCustomPragma(skipJson): discard
     else:
       let key = when v.hasCustomPragma(jsonName): v.getCustomPragmaVal(jsonName) else: fieldKey(T, name)
-      let e = n.getOrDefault(key)
+      let e = if n.kind == JArray: (if idx < n.len: n.elems[idx] else: nil) else: n.getOrDefault(key)
+      inc idx
       if not e.isNil:
         # A nested struct read from JSON starts from its own defaults (serde's `#[serde(default)]`),
         # not from a zeroed value.
         when v is object and compiles(defaultOf(typeof(v))):
-          if e.kind == JObject: v = defaultOf(typeof(v))
+          if e.kind in {JObject, JArray}: v = defaultOf(typeof(v))
         try: fromJ(e, v)
         except SerdeError as err: raise serdeError(key & ": " & err.msg)
+  if n.kind == JArray and n.len > idx: raise serdeError("invalid length " & $n.len & ", expected fewer elements")
+
+proc fromJ*[T: object](n: JsonNode; x: var T) = objectFromJ(n, x)
 
 proc fromJ*[T: ref object](n: JsonNode; x: var T) =
   mixin fromJ

@@ -36,3 +36,6 @@ import t_algo_inpaint
 import t_algo_segment
 import t_algo_matting
 import t_algo_content_aware
+import t_paint_engine
+import t_paint_tools
+import t_io_abr

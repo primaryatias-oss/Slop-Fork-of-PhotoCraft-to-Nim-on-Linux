@@ -33,6 +33,7 @@ own nimcache (`.nimcache/<name>`), so different test files can compile at the sa
 | vector | `photocraft/vector`, `vector/*` | paths, exact-area rasterizer, strokes, shapes, editing |
 | compose | `photocraft/compose`, `compose/*` | the CPU compositor (reference renderer) |
 | algo | `photocraft/algo`, `algo/*` | filters and imaging algorithms |
+| paint | `photocraft/paint`, `paint/*` | the brush engine; `retouch::Region` is `PxRegion` |
 | (serde/serde_json) | `photocraft/serde` | generic `toJ`/`fromJ` with serde naming |
 
 ## Conventions
@@ -72,7 +73,7 @@ own nimcache (`.nimcache/<name>`), so different test files can compile at the sa
 * Rust's `f32::cbrt`/`f64::cbrt` are not glibc's (they come from Rust's bundled `libm`); use
   `photocraft/rmath.cbrt`. Every other libm function the port uses matches glibc bit for bit
   (checked on 200k inputs each). Rust's `powi(n)` at run time is repeated multiplication
-  (`x * x * x`), but a constant-folded `powi` equals `pow`.
+  (`x * x * x`; `powi(4)` squares twice, `(x²)²`), but a constant-folded `powi` equals `pow`.
 * Rust's float `Iterator::sum` starts at `-0.0` (an empty or all-`-0.0` sum is `-0.0`); start
   ported sums at `-0.0` so zero signs match. Explicit `fold(0.0, …)` starts at `+0.0`.
 * Rust's `binary_search_by` returns a specific one of several equal elements (its branch-free
@@ -113,6 +114,11 @@ own nimcache (`.nimcache/<name>`), so different test files can compile at the sa
 * An object field shadows a proc of the same name in method-call syntax (`l.name` finds the field).
 * `let x = s[i]` copies objects that own `seq`s; index in place or pass as a parameter (non-`var`
   object parameters are passed by reference).
+* Paint: the Rust paint API trusts its caller to bound stroke coordinates (the engine rejects
+  points beyond ±1e6). The Nim `PathWalker` additionally skips distance spacing on a segment
+  longer than 1e7 px (a non-finite or absurd point), where the Rust loop never finishes.
+* `photocraft/paint` exports `Pose` (Brush Pose) and `algo/direct` exports `Pose` (registration):
+  a module importing both qualifies them (`direct.Pose`).
 
 ## Status
 
@@ -126,7 +132,7 @@ See the bottom of this file (updated as crates land) and `git log`.
 | doc, ops, vector | ported, tested |
 | compose | ported, tested (GPU compositor intentionally not ported: SDL3 textures display the CPU result) |
 | format (.pcraft, zstd, BLAKE3, autosave/recovery) | ported, tested; files interchange with the Rust build both ways |
-| algo | in progress: foundation, resample, transform, warp; filter dispatcher (`algo/filters`: halos, tiled apply, selection mixing, registry); blur family (`blur`, `sharpen`, `blur2`, `gallery`, `radial_plan`: Gaussian/Box with the separable fast path, Motion with the FFT fast path, Radial, Surface, Unsharp Mask, Smart Sharpen, High Pass, Smart/Lens/Shape Blur, Tilt-Shift, Iris, Field, Spin, Path); noise, median, custom, HSB/HSL, color to alpha, video, stylize part 2; Other, Stylize, Distort, Pixelate, Oil Paint, Render (clouds, fibers, lens flare, lighting), Relight, Reduce Noise, Filter Gallery (`artistic_fx`, all 47 effects); selection (magic wand/regions, colour and Lab
+| algo | ported, tested: foundation, resample, transform, warp; filter dispatcher (`algo/filters`: halos, tiled apply, selection mixing, registry); blur family (`blur`, `sharpen`, `blur2`, `gallery`, `radial_plan`: Gaussian/Box with the separable fast path, Motion with the FFT fast path, Radial, Surface, Unsharp Mask, Smart Sharpen, High Pass, Smart/Lens/Shape Blur, Tilt-Shift, Iris, Field, Spin, Path); noise, median, custom, HSB/HSL, color to alpha, video, stylize part 2; Other, Stylize, Distort, Pixelate, Oil Paint, Render (clouds, fibers, lens flare, lighting), Relight, Reduce Noise, Filter Gallery (`artistic_fx`, all 47 effects); selection (magic wand/regions, colour and Lab
 ranges, modify incl. the cosine-series feather, polygon, marquee tiles, combines), histogram, tone
 (Shadows/Highlights, Replace/Match Color, HDR Toning), HDR merge (exposures, MTB, Debevec–Malik
 response, ghosts, tone mapping), EXIF, Indexed Color/Bitmap (`quantize`), Magic Eraser, stack modes,
@@ -143,9 +149,10 @@ synthesis), smart selection (`segbase`, `maxflow` (Boykov–Kolmogorov + push/re
 `segment` graph cuts, `grabcut`, `slic`, `quick`, `sky`, `subject`, `focus`), Select and Mask
 (`matting`: guided filters, refine edge brush, octagonal morphology, decontamination) and
 Content-Aware Fill (`content_aware`). Non-filter APIs are checked with `tools/algocheck.py`
-(`tools/algocases/*.json`, 3625 command runs identical). 2869 of 2870 filter runs identical to Rust (`tools/filtercases.json`, 410 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
+(`tools/algocases/*.json` other than `paint.json`, 3625 command runs identical). 2869 of 2870 filter runs identical to Rust (`tools/filtercases.json`, 410 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
 | io (PSD/PSB ↔ document, layered TIFF, multi-part EXR, flat formats, facade) | ported, tested; see "io notes" below |
 | io: OpenRaster, Paint.NET | ported, tested |
+| io: Photoshop brushes (`.abr` v1/v2/v6+ → brush presets, `io/abr_map`) | ported, tested |
 | io: SVG, camera raw, Affinity | pending (the facade reports "unsupported" until they land; SVG needs a usvg-style normalizer) |
 | text: font reading (`font/sfnt`: TrueType/CFF outlines, cmap, metrics, names) | ported; outlines, metrics and charmaps identical to skrifa on the bundled and system fonts |
 | text: shaping (`font/otl`, `font/shape`: HarfBuzz default, Hebrew, Arabic, Thai/Lao, Hangul shapers) | ported; glyphs, clusters and positions identical to HarfRust on 324 test strings across 17 fonts. Indic, USE, Khmer and Myanmar shapers pending (those scripts shape with the default shaper) |
@@ -154,7 +161,8 @@ Content-Aware Fill (`content_aware`). Non-filter APIs are checked with `tools/al
 | text: rendering (`text/raster`, `text/render`, `text/warp`; skrifa-exact 26.6/16.16 outline scaling in `font/sfnt`), `TextEngine` (`text.nim`) | ported; rasterized text bit-identical to the Rust engine on 31 layers (warps, transforms, faux bold/italic, colours, aliasing, vertical, Arabic) |
 | text: PSD type (`text/engine_data`: EngineData parse/write; `text/psd_text`: `TySh` ⇄ `TextLayer`, Photoshop's kerning pair fields, `Txt2` auto-kern modes; `text/psd_styles`: named style sheets), io wiring (`io/text_import`, `io/text_styles_map`, `TySh`/`Txt2` regeneration on PSD export) | ported; models, rebuilt `TySh`, EngineData and `Txt2` bytes identical to Rust on every type layer of the corpus at 0/72/96.5/300 dpi, and on generated layers (kerning, Optical, box, vertical, warp, named styles) |
 | text: spelling (`text/spell`, SCOWL dictionary), UI fallback scripts (`text/scripts`), Glyphs panel (`text/glyphs`) | ported; checks, suggestions, charmaps, category counts, previews and candidate lists identical to Rust |
-| paint, raw, affinity, engine, UI, CLI | in progress |
+| paint (brush model and serde, dynamics, stroke renderer, procedural tips/patterns, presets, Mixer Brush, Color Replacement, Background Eraser, retouch dab machinery and Smudge, cursor outlines, symmetry) | ported, tested; dabs, rendered strokes at every depth/model, coverage, tool effects, outlines, symmetry and the preset JSON identical to Rust (`tools/algocases/paint.json`, 1140 command runs) |
+| raw, affinity, engine, UI, CLI | in progress |
 | heif (HEVC decoding), plugins (WebAssembly runtime) | not ported: they need a video decoder / wasm interpreter; the commands report "unsupported" |
 
 ## Checking against Rust

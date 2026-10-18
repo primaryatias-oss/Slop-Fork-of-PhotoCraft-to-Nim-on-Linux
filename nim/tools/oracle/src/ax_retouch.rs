@@ -36,7 +36,7 @@ fn mask(path: &str, area: Rect) -> Option<Surface> {
     (path != "-").then(|| sel::mask_to_surface(&axio::read(path).f, area))
 }
 
-fn blend(s: &str) -> BlendMode {
+pub(crate) fn blend(s: &str) -> BlendMode {
     match s {
         "multiply" => BlendMode::Multiply,
         "screen" => BlendMode::Screen,

@@ -178,3 +178,14 @@ proc signum*[T: SomeFloat](x: T): T {.inline.} =
 
 const F64Max* = 1.7976931348623157e308
   ## Rust's `f64::MAX` (Nim's `high(float64)` is +∞).
+
+proc asI64*(v: float64): int64 {.inline.} =
+  ## Rust `v as i64`: truncates toward zero, saturates, NaN → 0.
+  if v != v: 0'i64
+  elif v >= 9.223372036854775807e18: high(int64)
+  elif v <= -9.223372036854775807e18: low(int64)
+  else: int64(v)
+
+proc fract*[T: SomeFloat](x: T): T {.inline.} =
+  ## Rust `f32::fract`: `x - x.trunc()` (negative for negative `x`).
+  x - trunc(x)
