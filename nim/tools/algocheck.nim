@@ -7,7 +7,7 @@
 
 import std/[os, strutils, options, math, tables, sequtils, json]
 import photocraft/[geom, raster]
-import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch, poisson, nonlocal, remove, perspective, scancrop, redeye, seam, magnetic, liquify, render2, pyramid, lens, vanishing, wideangle, transform, puppet, features, panorama, direct, camera_raw, inpaint]
+import photocraft/algo/[selection, util, histogram, tone, hdr, exif, quantize, erase, stack, trap, paint, retouch, poisson, nonlocal, remove, perspective, scancrop, redeye, seam, magnetic, liquify, render2, pyramid, lens, vanishing, wideangle, transform, puppet, features, panorama, direct, camera_raw, inpaint, segment, grabcut, slic, quick, sky, subject, focus, matting, content_aware]
 import photocraft/color as pcolor
 import photocraft/color/blend
 
@@ -80,6 +80,86 @@ proc hashU(x, y, s: uint32): uint32 =
   h = h * 0x2c1b3c6d'u32
   h = h xor (h shr 12)
   h
+
+proc genSeg(dir: string) =
+  ## Smart-selection inputs: a landscape with sky and a tree, an object on a plain ground, a
+  ## half-sharp scene, role maps for the graph cut and soft masks for Select and Mask.
+  let (lw, lh) = (160, 100)
+  var land = newSeq[float32](lw * lh * 4)
+  let horizon = lh * 3 div 5
+  for y in 0 ..< lh:
+    for x in 0 ..< lw:
+      let (cx, cy, rr) = (float32(lw) * 0.7'f32, float32(lh) * 0.35'f32, float32(lh) * 0.18'f32)
+      let inCrown = sqrt((float32(x) - cx) * (float32(x) - cx) + (float32(y) - cy) * (float32(y) - cy)) < rr
+      let inTrunk = abs(float32(x) - cx) < 3'f32 and float32(y) > cy and y < horizon
+      let n = (float32((x * 7919 + y * 104_729) mod 97) / 97'f32 - 0.5'f32) * 0.25'f32
+      var c: array[3, float32]
+      if inCrown: c = [0.1'f32 + n * 0.5'f32, 0.35'f32 + n, 0.1'f32 + n * 0.5'f32]
+      elif inTrunk: c = [0.3'f32 + n * 0.3'f32, 0.2'f32, 0.1'f32]
+      elif y < horizon:
+        let t = float32(y) / float32(horizon)
+        c = [0.25'f32 + 0.4'f32 * t, 0.5'f32 + 0.3'f32 * t, 0.9'f32 + 0.05'f32 * t]
+      else: c = [0.35'f32 + n, 0.3'f32 + n, 0.15'f32 + n * 0.5'f32]
+      let o = (y * lw + x) * 4
+      for k in 0 .. 2: land[o + k] = c[k]
+      land[o + 3] = 1
+  writeF32(dir / "land.pcim", lw, lh, 4, land)
+  # Overcast: a grey sky over dark ground.
+  var over = newSeq[float32](64 * 64 * 4)
+  for i in 0 ..< 64 * 64:
+    let c = (if i div 64 < 30: [0.85'f32, 0.86, 0.88] else: [0.2'f32, 0.3, 0.1])
+    for k in 0 .. 2: over[i * 4 + k] = c[k]
+    over[i * 4 + 3] = 1
+  writeF32(dir / "over.pcim", 64, 64, 4, over)
+  # An orange disc and a square on a textured blue-grey ground.
+  let (sw, sh) = (120, 90)
+  var subj = newSeq[float32](sw * sh * 4)
+  for y in 0 ..< sh:
+    for x in 0 ..< sw:
+      let n = float32((x * 31 + y * 17) mod 13) / 13'f32 * 0.06'f32
+      var c = [0.35'f32 + n, 0.4'f32 + n, 0.5'f32 + n]
+      if (x - 60) * (x - 60) + (y - 45) * (y - 45) < 22 * 22: c = [0.9'f32, 0.5'f32 + n, 0.1'f32]
+      if x in 90 ..< 105 and y in 10 ..< 25: c = [0.1'f32, 0.6'f32, 0.2'f32 + n]
+      let o = (y * sw + x) * 4
+      for k in 0 .. 2: subj[o + k] = c[k]
+      subj[o + 3] = 1
+  writeF32(dir / "subj.pcim", sw, sh, 4, subj)
+  # Left half sharp texture, right half smooth.
+  let (fw, fh) = (100, 70)
+  var foc = newSeq[float32](fw * fh * 4)
+  for y in 0 ..< fh:
+    for x in 0 ..< fw:
+      let sharp = float32((x * 7 + y * 13) mod 5) / 5'f32
+      let v = (if x < 50: 0.3'f32 + 0.4'f32 * sharp else: 0.3'f32 + 0.4'f32 * (0.5'f32 + 0.3'f32 * sin(float32(x) * 0.1'f32)))
+      let o = (y * fw + x) * 4
+      foc[o] = v
+      foc[o + 1] = v * 0.9'f32
+      foc[o + 2] = v * 0.8'f32
+      foc[o + 3] = 1
+  writeF32(dir / "focimg.pcim", fw, fh, 4, foc)
+  # Roles for the 97 × 71 image: free with a few hard seeds.
+  var roles = newSeq[float32](97 * 71)
+  for y in 0 ..< 71:
+    for x in 0 ..< 97:
+      roles[y * 97 + x] = (if x < 3: 2'f32 elif x > 93: 1'f32 elif (x - 50) * (x - 50) + (y - 35) * (y - 35) < 16: 1'f32 else: 0'f32)
+  writeF32(dir / "sgroles.pcim", 97, 71, 1, roles)
+  var roles2 = newSeq[float32](97 * 71)
+  for i in 0 ..< roles2.len: roles2[i] = (if i mod 97 < 40: 1'f32 elif i mod 97 > 60: 2'f32 else: 0'f32)
+  writeF32(dir / "sgroles2.pcim", 97, 71, 1, roles2)
+  # Soft selection masks for Select and Mask.
+  var sm1 = newSeq[float32](120 * 90)
+  for y in 0 ..< 90:
+    for x in 0 ..< 120:
+      let d = sqrt(float32((x - 60) * (x - 60) + (y - 45) * (y - 45)))
+      sm1[y * 120 + x] = clamp(23'f32 - d, 0'f32, 1'f32)
+  writeF32(dir / "smask.pcim", 120, 90, 1, sm1)
+  var sm2 = newSeq[float32](160 * 100)
+  for i in 0 ..< sm2.len: sm2[i] = (if i div 160 < 58: 1'f32 else: 0'f32)
+  writeF32(dir / "smask2.pcim", 160, 100, 1, sm2)
+  var shm = newSeq[float32](240 * 180)
+  for y in 0 ..< 180:
+    for x in 0 ..< 240: shm[y * 240 + x] = float32(clamp((60.0 - hypot(float64(x - 120), float64(y - 90))) / 6.0, 0.0, 1.0))
+  writeF32(dir / "shapesm.pcim", 240, 180, 1, shm)
 
 proc genInpaint(dir: string) =
   ## Hole-filling inputs: the 97 × 71 test image in 1, 3, 5 and 9 channels, holes and role maps
@@ -250,6 +330,7 @@ proc genPano(dir: string) =
       t[i * 4 + 3] = 1
     writeF32(dir / (name & ".pcim"), tw, th, 4, t)
   genInpaint(dir)
+  genSeg(dir)
 
 proc gen(dir: string) =
   createDir(dir)
@@ -1935,8 +2016,250 @@ proc inpaintCmd(a: seq[string]): bool =
   else: return false
   true
 
+# ---------------------------------------------------------------- smart selection / matting / content-aware fill
+
+proc rgbOf(b: Buf): RgbImage =
+  result = RgbImage(w: b.w, h: b.h)
+  for i in 0 ..< b.f.len div b.ch:
+    let o = i * b.ch
+    result.px.add(if b.ch >= 3: [b.f[o], b.f[o + 1], b.f[o + 2]] else: [b.f[o], b.f[o], b.f[o]])
+
+proc rectDbg(r: Rect): string = "Rect { x0: " & $r.x0 & ", y0: " & $r.y0 & ", x1: " & $r.x1 & ", y1: " & $r.y1 & " }"
+
+proc regionOut(o: string; r: Option[Region]) =
+  if r.isNone:
+    echo "none"
+    return
+  let g = r.get
+  echo "region ", g.bbox.x0, " ", g.bbox.y0, " ", g.bbox.x1, " ", g.bbox.y1
+  writeU8(o, g.bbox.width, g.bbox.height, 1, g.mask)
+
+proc gmmLine(g: Gmm): string =
+  var parts: seq[string]
+  for c in g.comps:
+    var cov: seq[float32]
+    for row in c.cov: cov.add row
+    parts.add $cast[uint32](c.weight) & " " & bits32(c.mean) & " " & bits32(cov)
+  parts.join(" | ")
+
+proc strokesArg(s: string): seq[EdgeStroke] =
+  if s == "-": return
+  for t in s.split('|'):
+    let p = t.split(':')
+    var st = EdgeStroke(size: f(p[0]), add: p[1] == "1")
+    let v = p[2].split(',').mapIt(f(it))
+    for i in 0 ..< v.len div 2: st.points.add (v[2 * i], v[2 * i + 1])
+    result.add st
+
+proc segCmd(a: seq[string]): bool =
+  let o = a[^1]
+  case a[1]
+  of "sg.cut":
+    let im = readBuf(a[2])
+    let img = rgbOf(im)
+    let roles = readBuf(a[3])
+    let fixed = roles.f.mapIt(uint8(it))
+    let cf = img.px.mapIt((1'f32 - it[0]) * 2'f32)
+    let cb = img.px.mapIt(it[0] * 2'f32 + 0.1'f32 * it[2])
+    let beta = contrastBeta(img)
+    echo "beta ", cast[uint32](beta)
+    let c1 = gridCut(img, cf, cb, fixed, f(a[4]), beta)
+    let c2 = gridCutWith(img, cf, newSeq[float32](cf.len), fixed,
+      proc(d2: float32): float32 = 0.02'f32 + 1'f32 / (1'f32 + pow(sqrt(d2) / 0.05'f32, 2'f32)))
+    let v = (c1 & c2).mapIt(if it: 1'f32 else: 0'f32)
+    writeF32(o, v.len, 1, 1, v)
+  of "sg.graph":
+    let n = parseInt(a[2])
+    var rng = newSegRng(uint64(parseBiggestUInt(a[3])))
+    var g = initGraph(n, n * 3)
+    for i in 0 ..< n:
+      let s = rng.f32 * 2'f32 - 0.6'f32
+      let t = rng.f32 * 2'f32 - 0.6'f32
+      g.addTweights(i, rmax(s, 0'f32), rmax(t, 0'f32))
+    for i in 0 ..< n:
+      for _ in 0 ..< 3:
+        let j = int(rng.nextU64 mod uint64(n))
+        if j != i:
+          let c1 = rng.f32
+          let c2 = rng.f32
+          g.addEdge(i, j, c1, c2)
+    let fl = g.maxflow
+    echo "flow ", b64(fl), " residual ", cast[uint32](g.residualOutOfSourceSide)
+    var line = ""
+    for i in 0 ..< n: line.add(if g.inSource(i): '1' else: '0')
+    echo line
+  of "sg.gmm":
+    let img = rgbOf(readBuf(a[2]))
+    let k = parseInt(a[3])
+    var km: seq[float32]
+    for c in kmeans(img.px, k, 10): km.add c
+    echo "kmeans ", bits32(km)
+    let g = fitEm(img.px, k, f(a[4]), parseInt(a[5]))
+    if g.isNone: echo "none"
+    else:
+      echo "gmm ", gmmLine(g.get)
+      var probe: seq[float32]
+      var comp: seq[string]
+      var i = 0
+      while i < img.px.len:
+        probe.add g.get.negLog(img.px[i])
+        comp.add $g.get.componentOf(img.px[i])
+        i += 37
+      echo "neglog ", bits32(probe)
+      echo "comp ", comp.join(" ")
+      let r = g.get.refit(img.px)
+      echo(if r.isSome: "refit " & gmmLine(r.get) else: "refit none")
+  of "sg.misc":
+    let m = readBuf(a[2])
+    let (w, h) = (m.w, m.h)
+    let mask = m.f.mapIt(it > 0.5'f32)
+    let (lab, sizes) = components(mask, w, h)
+    echo "sizes [", sizes.mapIt($it).join(", "), "]"
+    var seeds = newSeq[bool](w * h)
+    for i in 0 ..< w * h: seeds[i] = i mod 97 == 3
+    let kept = keepSeeded(mask, seeds, w, h)
+    let clean = cleanMask(mask, w, h, f(a[3]), f(a[4]))
+    var u8m = clean.mapIt(if it: 255'u8 else: 0'u8)
+    antialiasU8(u8m, w, h)
+    let tr = trimRegion(Region(bbox: rect(3, 4, 3 + w, 4 + h), mask: u8m))
+    echo(if tr.isSome: "trim " & rectDbg(tr.get.bbox) & " " & $tr.get.mask.len else: "trim none")
+    let v = lab.mapIt(float32(it)) & kept.mapIt(if it: 1'f32 else: 0'f32) & u8m.mapIt(float32(it))
+    writeF32(o, v.len, 1, 1, v)
+  of "sg.slic":
+    let img = rgbOf(readBuf(a[2]))
+    let sp = slic(img, parseInt(a[3]), f(a[4]), parseInt(a[5]))
+    echo "count ", sp.count, " step ", cast[uint32](sp.step)
+    let v = sp.labels.mapIt(float32(it))
+    writeF32(o, v.len, 1, 1, v)
+    var labv: seq[float32]
+    var i = 0
+    while i < img.px.len:
+      labv.add rgbToLab(img.px[i])
+      i += 13
+    echo "lab ", bits32(labv)
+  of "sg.quick":
+    let img = rgbOf(readBuf(a[2]))
+    let v = a[3].split(',').mapIt(f(it))
+    var pts: seq[(float32, float32)]
+    for i in 0 ..< v.len div 2: pts.add (v[2 * i], v[2 * i + 1])
+    regionOut(o, quickSelect(imageSampler(img), rect(0, 0, img.w, img.h), pts, f(a[4])))
+  of "sg.object":
+    let img = rgbOf(readBuf(a[2]))
+    regionOut(o, objectSelect(imageSampler(img), rect(0, 0, img.w, img.h), rectArg(a[3]), parseInt(a[4])))
+  of "sg.sky":
+    let img = rgbOf(readBuf(a[2]))
+    let like = likelihood(img)
+    var s: seq[float32]
+    var i = 0
+    while i < like.len:
+      s.add like[i]
+      i += 11
+    echo "like ", bits32(s)
+    regionOut(o, selectSky(imageSampler(img), rect(0, 0, img.w, img.h), SkyParams(threshold: f(a[3]), softness: f(a[4]))))
+  of "sg.subject":
+    let img = rgbOf(readBuf(a[2]))
+    let sal = saliency(img)
+    var s: seq[float32]
+    var i = 0
+    while i < sal.len:
+      s.add sal[i]
+      i += 7
+    echo "sal ", bits32(s)
+    regionOut(o, selectSubject(imageSampler(img), rect(0, 0, img.w, img.h)))
+  of "sg.focus":
+    let img = rgbOf(readBuf(a[2]))
+    let sh = sharpness(img, f(a[4]))
+    var s: seq[float32]
+    var i = 0
+    while i < sh.len:
+      s.add sh[i]
+      i += 7
+    echo "sharp ", bits32(s)
+    regionOut(o, focusArea(imageSampler(img), rect(0, 0, img.w, img.h), f(a[3]), f(a[4])))
+  of "mt.filters":
+    let img = rgbOf(readBuf(a[2]))
+    let (w, h) = (img.w, img.h)
+    let r = parseInt(a[3])
+    let eps = f(a[4])
+    let luma = img.px.mapIt(0.3'f32 * it[0] + 0.6'f32 * it[1] + 0.1'f32 * it[2])
+    let p = img.px.mapIt(if it[1] > 0.5'f32: 1'f32 else: 0'f32)
+    var v = matting.boxMean(luma, w, h, r)
+    v.add guidedFilterGray(luma, p, w, h, r, eps)
+    v.add guidedFilterColor(img, p, r, eps)
+    v.add gaussianBlur(luma, w, h, f(a[5]))
+    let mr = parseInt(a[6])
+    v.add morph(luma, w, h, mr, true)
+    v.add morph(luma, w, h, mr, false)
+    v.add edgeWidth(img, r)
+    writeF32(o, v.len, 1, 1, v)
+  of "mt.refine":
+    let img = rgbOf(readBuf(a[2]))
+    let m = readBuf(a[3])
+    let canvas = rect(0, 0, img.w, img.h)
+    let reg = Region(bbox: canvas, mask: m.f.mapIt(asU8(round(clamp(it, 0'f32, 1'f32) * 255'f32))))
+    let p = refineParamsFromJson(parseJson(a[4]))
+    echo "halo ", p.halo, " spread ", p.spread
+    let st = strokesArg(a[5])
+    let brush = newEdgeBrush(st, canvas)
+    if brush.isSome:
+      let b = brush.get
+      let rd = b.read(canvas)
+      var s: seq[float32]
+      var i = 0
+      while i < rd.len:
+        s.add rd[i]
+        i += 5
+      echo "brush ", rectDbg(b.bounds), " ", rectDbg(b.addedBounds), " ", b.window, " ", bits32(s)
+    echo "swept ", b64(sweptArea(st))
+    regionOut(o, refineMaskBrushed(imageSampler(img), regionReader(reg), rect(5, 5, img.w - 5, img.h - 5), canvas, p, brush))
+  of "mt.decon":
+    let im = readBuf(a[2])
+    let src = surfaceArg(a[3], im)
+    let m = readBuf(a[4])
+    let reg = Region(bbox: rect(0, 0, m.w, m.h), mask: m.f.mapIt(asU8(round(clamp(it, 0'f32, 1'f32) * 255'f32))))
+    let d = decontaminate(src, reg, f(a[5]), f(a[6]))
+    let mc = maskedCopy(src, reg)
+    let rs = regionSurface(reg)
+    echo "masked PixelFormat { mode: ", mc.format.mode, ", sample: ", mc.format.sample, ", alpha: ", mc.format.alpha, " } ",
+         mc.tileCount, " region ", rs.tileCount
+    let full = rect(0, 0, im.w, im.h)
+    let v = d.readRegion(full) & mc.readRegion(full)
+    writeF32(o, v.len, 1, 1, v)
+  of "ca.fill":
+    let im = readBuf(a[2])
+    let hole = readBuf(a[3]).f.mapIt(it > 0.5'f32)
+    let source = (if a[4] == "-": hole.mapIt(not it) else: readBuf(a[4]).f.mapIt(it > 0.5'f32))
+    let opts = FillOptions(colorAdaptation: colorLevel(a[5]), rotations: rotationLevel(a[6]), scale: bl(a[7]),
+                           mirror: bl(a[8]), seed: uint64(parseBiggestUInt(a[9])))
+    let v = content_aware.fill(im.w, im.h, im.ch, im.f, hole, source, opts)
+    writeF32(o, v.len, 1, 1, v)
+  of "ca.auto":
+    let im = readBuf(a[2])
+    let hole = readBuf(a[3]).f.mapIt(it > 0.5'f32)
+    let v = autoSampling(im.w, im.h, im.ch, im.f, hole).mapIt(if it: 1'f32 else: 0'f32)
+    writeF32(o, v.len, 1, 1, v)
+  of "ca.misc":
+    for (hole, canvas) in [(rect(10, 10, 40, 30), rect(0, 0, 1000, 800)), (rect(0, 0, 5, 5), rect(0, 0, 1000, 800)),
+                           (rect(990, 700, 1000, 800), rect(0, 0, 1000, 800)), (rect(100, 100, 900, 120), rect(0, 0, 1000, 800)),
+                           (rect(-50, -20, 30, 41), rect(-100, -100, 100, 100)), (rect(0, 0, 0, 0), rect(0, 0, 10, 10)),
+                           (rect(3, 3, 7, 9), rect(0, 0, 50, 50))]:
+      echo rectDbg(samplingWindow(hole, canvas))
+    for c in 0'u8 .. 12'u8:
+      let ad = colorAmount(c)
+      echo "amount ", cast[uint32](ad.gain[0]), " ", cast[uint32](ad.gain[1]), " ", cast[uint32](ad.bias)
+    var frm, to: seq[float32]
+    for i in 0 ..< 60: frm.add float32(i mod 7) / 9'f32
+    for i in 0 ..< 45: to.add 0.3'f32 + float32(i mod 5) / 11'f32
+    for lvl in ["none", "default", "high", "veryHigh"]:
+      let t = levelTransform(3, frm, to, colorLevel(lvl))
+      echo "level ", t.mapIt($cast[uint32](it[0]) & " " & $cast[uint32](it[1])).join(" ")
+    let t = levelTransform(3, newSeq[float32](), to, colorLevel("high"))
+    echo "empty [", t.mapIt("(" & (if it[0] == 1'f32: "1.0" else: $it[0]) & ", " & (if it[1] == 0'f32: "0.0" else: $it[1]) & ")").join(", "), "]"
+  else: return false
+  true
+
 when isMainModule:
   let a = @[getAppFilename()] & commandLineParams()
   if a.len < 2: quit("usage: algocheck gen <dir> | <command> <args…> <out>")
   if a[1] == "gen": gen(a[2])
-  elif not (selectionCmd(a) or toneCmd(a) or hdrCmd(a) or exifCmd(a) or quantizeCmd(a) or retouchCmd(a) or fillCmd(a) or warpCmd(a) or reshapeCmd(a) or photoCmd(a) or panoCmd(a) or crawCmd(a) or inpaintCmd(a)): quit("unknown command " & a[1])
+  elif not (selectionCmd(a) or toneCmd(a) or hdrCmd(a) or exifCmd(a) or quantizeCmd(a) or retouchCmd(a) or fillCmd(a) or warpCmd(a) or reshapeCmd(a) or photoCmd(a) or panoCmd(a) or crawCmd(a) or inpaintCmd(a) or segCmd(a)): quit("unknown command " & a[1])

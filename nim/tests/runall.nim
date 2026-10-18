@@ -33,3 +33,6 @@ import t_algo_puppet
 import t_algo_photomerge
 import t_algo_camera_raw
 import t_algo_inpaint
+import t_algo_segment
+import t_algo_matting
+import t_algo_content_aware

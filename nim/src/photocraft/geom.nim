@@ -48,7 +48,7 @@ proc asI32*(v: float64): int {.inline.} =
 proc asUsize*(v: float64): int {.inline.} =
   ## Rust `v as usize` (on 64-bit, capped at `high(int)`): NaN and negatives → 0.
   if v != v or v <= 0: 0
-  elif v >= 9.2e18: high(int)
+  elif v >= 9.223372036854775807e18: high(int)
   else: int(v)
 
 # ---- Size ----

@@ -97,6 +97,9 @@ own nimcache (`.nimcache/<name>`), so different test files can compile at the sa
 * serde parity for settings structs: missing fields default, unknown fields are ignored, a struct
   may also be written as a sequence of its fields (in declaration order). `std/json` keeps the last
   of duplicate keys where serde_json rejects the object; that leniency is the one known difference.
+* Nim 2.2.8 bug: at module top level (which includes `unittest` `test` bodies), reassigning the
+  rows of a seq-of-seqs through `mitems` (`for row in cap.mitems: row = newSeq[float64](n)`)
+  inside a loop corrupts the heap and segfaults; inside a proc it is fine. Use an index loop.
 * Tests that need a module's private procs `include` it (`include photocraft/algo/inpaint`)
   rather than exporting test hooks.
 * A nested proc that captures an `openArray` (or `var`) parameter is only rejected when its
@@ -136,8 +139,11 @@ Vanishing Point, Adaptive Wide Angle (`wideangle`), Puppet Warp, Photomerge / Au
 steered BRIEF `features`, `panorama` matching, bundle adjustment, photometric, seams, multi-band;
 `direct` intensity registration), the Camera Raw Filter (`camera_raw`), hole filling (`inpaint`:
 PatchMatch/EM completion with onion-peel init and colour adaptation, proximity match, texture
-synthesis). Non-filter APIs are checked with `tools/algocheck.py` (`tools/algocases/*.json`, 3465
-command runs identical). 2869 of 2870 filter runs identical to Rust (`tools/filtercases.json`, 410 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
+synthesis), smart selection (`segbase`, `maxflow` (Boykov–Kolmogorov + push/relabel), `gmm`,
+`segment` graph cuts, `grabcut`, `slic`, `quick`, `sky`, `subject`, `focus`), Select and Mask
+(`matting`: guided filters, refine edge brush, octagonal morphology, decontamination) and
+Content-Aware Fill (`content_aware`). Non-filter APIs are checked with `tools/algocheck.py`
+(`tools/algocases/*.json`, 3625 command runs identical). 2869 of 2870 filter runs identical to Rust (`tools/filtercases.json`, 410 parameter sets × 7 documents); the other differs by ≤1.5e-8 (FFT motion blur, f32) |
 | io (PSD/PSB ↔ document, layered TIFF, multi-part EXR, flat formats, facade) | ported, tested; see "io notes" below |
 | io: OpenRaster, Paint.NET | ported, tested |
 | io: SVG, camera raw, Affinity | pending (the facade reports "unsupported" until they land; SVG needs a usvg-style normalizer) |

@@ -16,6 +16,7 @@ mod ax_photo;
 mod ax_pano;
 mod ax_craw;
 mod ax_inpaint;
+mod ax_segment;
 
 fn write_f32(path: &str, px: &[[f32; 4]]) {
     let mut out = Vec::with_capacity(px.len() * 16);
@@ -291,7 +292,7 @@ fn main() {
             std::fs::write(&args[4], photocraft_format::save_to_bytes(&d, &Default::default()).unwrap()).unwrap();
         }
         _ => {
-            let _ = ax_blur::run(&args) || ax_fx::run(&args) || ax_geometry::run(&args) || ax_retouch::run(&args) || ax_selection::run(&args) || ax_tone::run(&args) || ax_tone::run_hdr(&args) || ax_tone::run_exif(&args) || ax_warp::run(&args) || ax_reshape::run(&args) || ax_photo::run(&args) || ax_pano::run(&args) || ax_craw::run(&args) || ax_inpaint::run(&args) || ax_retouch::run_fill(&args);
+            let _ = ax_blur::run(&args) || ax_fx::run(&args) || ax_geometry::run(&args) || ax_retouch::run(&args) || ax_selection::run(&args) || ax_tone::run(&args) || ax_tone::run_hdr(&args) || ax_tone::run_exif(&args) || ax_warp::run(&args) || ax_reshape::run(&args) || ax_photo::run(&args) || ax_pano::run(&args) || ax_craw::run(&args) || ax_inpaint::run(&args) || ax_segment::run(&args) || ax_retouch::run_fill(&args);
         }
     }
 }
