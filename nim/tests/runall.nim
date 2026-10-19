@@ -39,3 +39,7 @@ import t_algo_content_aware
 import t_paint_engine
 import t_paint_tools
 import t_io_abr
+import t_raw_units
+import t_raw_dng
+import t_raw_vendors
+import t_raw_hostile

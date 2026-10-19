@@ -91,6 +91,12 @@ suite "codecs":
     let jpg = readFile(Dir / "rgb.jpg").toBytes
     let t = decode(jpg[0 ..< jpg.len div 2])
     check t.warnings.len == 1
+    # An over-subscribed Huffman table (more codes than a length allows) is an error, not an
+    # index past the 9-bit lookup table.
+    var dht = @[0xFF'u8, 0xD8, 0xFF, 0xC4, 0x00, 0x16, 0x00, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    dht.add [0'u8, 1, 2, 3]
+    dht[5] = byte(dht.len - 4)
+    expect CodecError: discard decode(dht & @[0xFF'u8, 0xD9])
 
   test "simple formats decode like Pillow":
     for n in ["rgb.bmp", "rgb.gif", "rgb.tga", "rgba.tga", "rgb.ppm", "gray.pgm", "rgb.qoi", "rgb.ico"]:

@@ -3,7 +3,8 @@
 
 Usage: algocheck.py [--tol X] cases.json...
 Each file holds a JSON list of argument lists: `["sel.wand", "@img", "10", "20", "32", "1", "0"]`.
-`@name` stands for `$WORK/name.pcim` (`@a:@b` for a pair of them) (written by `algocheck gen`); both programs get the same
+`@name` stands for `$WORK/name.pcim` (`@a:@b` for a pair of them) (written by `algocheck gen`), `%name`
+for `$WORK/raw/name` (raw files written by the oracle's `raw.gen`); both programs get the same
 arguments plus an output path, and their stdout and output files must match byte for byte (or,
 with --tol, f32 outputs to within X).
 Environment: ORACLE (Rust oracle binary), ALGOCHECK (Nim binary), WORK (scratch dir).
@@ -30,11 +31,14 @@ def main():
         if a == "--tol": tol = float(args.pop(0))
         else: cases.extend(json.load(open(a)))
     os.makedirs(WORK, exist_ok=True)
-    if not os.path.exists(os.path.join(WORK, "img.pcim")):
+    if any(x.startswith("@") for c in cases for x in c) and not os.path.exists(os.path.join(WORK, "img.pcim")):
         subprocess.run([NIM, "gen", WORK], check=True)
+    if any(x.startswith("%") for c in cases for x in c) and not os.path.exists(os.path.join(WORK, "raw")):
+        subprocess.run([ORACLE, "raw.gen", os.path.join(WORK, "raw"), "-"], check=True)
     bad = 0
     for c in cases:
-        argv = [":".join(os.path.join(WORK, y[1:] + ".pcim") for y in x.split(":")) if x.startswith("@") else x for x in c]
+        argv = [":".join(os.path.join(WORK, y[1:] + ".pcim") for y in x.split(":")) if x.startswith("@")
+                else os.path.join(WORK, "raw", x[1:]) if x.startswith("%") else x for x in c]
         r, n = os.path.join(WORK, "r.out"), os.path.join(WORK, "n.out")
         for p in (r, n):
             if os.path.exists(p): os.remove(p)
@@ -50,6 +54,10 @@ def main():
         if os.path.exists(r) != os.path.exists(n):
             print(f"OUTPUT {label}: only one side wrote a file"); bad += 1; continue
         if os.path.exists(r) and open(r, "rb").read() != open(n, "rb").read():
+            rb, nb = open(r, "rb").read(), open(n, "rb").read()
+            if not rb.startswith(b"PCIM"):
+                first = next((i for i, (x, y) in enumerate(zip(rb, nb)) if x != y), min(len(rb), len(nb)))
+                print(f"DIFF {label}: {len(rb)} vs {len(nb)} bytes, first difference at {first}"); bad += 1; continue
             a, b = floats(r), floats(n)
             if len(a) != len(b):
                 print(f"DIFF {label}: sizes {len(a)} vs {len(b)}"); bad += 1; continue

@@ -143,6 +143,8 @@ proc buildTable(counts: array[16, int]; vals: seq[uint8]): HuffTable =
     result.valptr[l] = k
     result.mincode[l] = code
     for _ in 0 ..< counts[l - 1]:
+      # An over-subscribed table (more codes than the length allows) is malformed.
+      if code >= (1 shl l): raise err("over-subscribed Huffman table")
       if l <= 9:
         let shift = 9 - l
         let base = code shl shift

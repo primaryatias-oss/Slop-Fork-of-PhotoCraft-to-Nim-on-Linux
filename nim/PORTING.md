@@ -34,6 +34,7 @@ own nimcache (`.nimcache/<name>`), so different test files can compile at the sa
 | compose | `photocraft/compose`, `compose/*` | the CPU compositor (reference renderer) |
 | algo | `photocraft/algo`, `algo/*` | filters and imaging algorithms |
 | paint | `photocraft/paint`, `paint/*` | the brush engine; `retouch::Region` is `PxRegion` |
+| raw | `photocraft/raw`, `raw/*` | camera raw decode/develop; `Rect` is `RawRect`, `Limits` is `RawLimits` |
 | (serde/serde_json) | `photocraft/serde` | generic `toJ`/`fromJ` with serde naming |
 
 ## Conventions
@@ -119,6 +120,12 @@ own nimcache (`.nimcache/<name>`), so different test files can compile at the sa
   longer than 1e7 px (a non-finite or absurd point), where the Rust loop never finishes.
 * `photocraft/paint` exports `Pose` (Brush Pose) and `algo/direct` exports `Pose` (registration):
   a module importing both qualifies them (`direct.Pose`).
+* Result aliasing: `x = f(x.get)` (an argument read *through* the destination, here via `lent`
+  `Option.get`) can hand `f` the destination as its result buffer; `f` zeroes `result` first and
+  then reads a zeroed argument. Read into a temporary first (`let n = x.get; x = f(n)`). The raw
+  white balance lost the as-shot neutral this way until the cross-check caught it.
+* A nested proc that captures a non-`var` object parameter compiles, but copies the parameter
+  into the closure (a whole file buffer for `Tiff`): use a template or a top-level helper.
 
 ## Status
 
@@ -153,7 +160,7 @@ Content-Aware Fill (`content_aware`). Non-filter APIs are checked with `tools/al
 | io (PSD/PSB ↔ document, layered TIFF, multi-part EXR, flat formats, facade) | ported, tested; see "io notes" below |
 | io: OpenRaster, Paint.NET | ported, tested |
 | io: Photoshop brushes (`.abr` v1/v2/v6+ → brush presets, `io/abr_map`) | ported, tested |
-| io: SVG, camera raw, Affinity | pending (the facade reports "unsupported" until they land; SVG needs a usvg-style normalizer) |
+| io: SVG, camera raw import, Affinity | pending (the facade reports "unsupported" until they land; SVG needs a usvg-style normalizer) |
 | text: font reading (`font/sfnt`: TrueType/CFF outlines, cmap, metrics, names) | ported; outlines, metrics and charmaps identical to skrifa on the bundled and system fonts |
 | text: shaping (`font/otl`, `font/shape`: HarfBuzz default, Hebrew, Arabic, Thai/Lao, Hangul shapers) | ported; glyphs, clusters and positions identical to HarfRust on 324 test strings across 17 fonts. Indic, USE, Khmer and Myanmar shapers pending (those scripts shape with the default shaper) |
 | text: Unicode data (`text/ucd_data` from Perl's UCD 15.0 via `tools/ucdgen.nim`), line breaking (UAX #14), grapheme clusters (UAX #29) | ported (no dictionary breaking for Thai/Lao/Khmer/Burmese) |
@@ -162,7 +169,8 @@ Content-Aware Fill (`content_aware`). Non-filter APIs are checked with `tools/al
 | text: PSD type (`text/engine_data`: EngineData parse/write; `text/psd_text`: `TySh` ⇄ `TextLayer`, Photoshop's kerning pair fields, `Txt2` auto-kern modes; `text/psd_styles`: named style sheets), io wiring (`io/text_import`, `io/text_styles_map`, `TySh`/`Txt2` regeneration on PSD export) | ported; models, rebuilt `TySh`, EngineData and `Txt2` bytes identical to Rust on every type layer of the corpus at 0/72/96.5/300 dpi, and on generated layers (kerning, Optical, box, vertical, warp, named styles) |
 | text: spelling (`text/spell`, SCOWL dictionary), UI fallback scripts (`text/scripts`), Glyphs panel (`text/glyphs`) | ported; checks, suggestions, charmaps, category counts, previews and candidate lists identical to Rust |
 | paint (brush model and serde, dynamics, stroke renderer, procedural tips/patterns, presets, Mixer Brush, Color Replacement, Background Eraser, retouch dab machinery and Smudge, cursor outlines, symmetry) | ported, tested; dabs, rendered strokes at every depth/model, coverage, tool effects, outlines, symmetry and the preset JSON identical to Rust (`tools/algocases/paint.json`, 1140 command runs) |
-| raw, affinity, engine, UI, CLI | in progress |
+| raw (TIFF/EP reader, DNG incl. deflate / lossless-JPEG / lossy-JPEG tiles, opcodes and default crops, CR2, Nikon Huffman NEF, Sony cRAW, Panasonic RW2, Olympus ORF, Fujifilm RAF incl. X-Trans, embedded previews, camera profiles, demosaicing (bilinear, Malvar–He–Cutler, AHD, X-Trans), develop, the camera-look fit; testgen writers) | ported, tested; decoded sensors, developed images, previews, TIFF dumps and camera-look fits identical to Rust on 1535 runs over 75 oracle-written files, truncated and bit-flipped variants included (`tools/algocases/raw.json`, `tools/rawcheck.nim`); the Nim testgen writes byte-identical files. See "raw notes" |
+| affinity, engine, UI, CLI | in progress |
 | heif (HEVC decoding), plugins (WebAssembly runtime) | not ported: they need a video decoder / wasm interpreter; the commands report "unsupported" |
 
 ## Checking against Rust
@@ -171,6 +179,20 @@ Content-Aware Fill (`content_aware`). Non-filter APIs are checked with `tools/al
 `cargo build --release --manifest-path tools/oracle/Cargo.toml`, then
 `oracle write|read|render|import|export|conv|filter …` (see `src/main.rs`). The port is compared
 by document JSON + tile hashes (`.pcraft`), raw float renders, or output bytes.
+
+## raw notes
+
+* `tools/rawcheck.nim` is the Nim twin of the oracle's `ax_raw.rs`; `photocraft-oracle raw.gen
+  DIR -` writes the shared files (algocheck.py runs it for `%name` arguments), and
+  `tools/rawcases.py DIR` regenerates `tools/algocases/raw.json`. Run the cases with
+  `ALGOCHECK=<rawcheck binary> python3 tools/algocheck.py tools/algocases/raw.json`.
+* JPEG XL-compressed DNG tiles (DNG 1.7, Samsung Expert RAW) are not decoded: the Rust build uses
+  jxl-oxide; the port reports them as unsupported (like the Rust browser build).
+* Lossy-JPEG DNG tiles go through the port's JPEG decoder where Rust uses zune-jpeg: gray tiles
+  decode identically, colour tiles differ by up to 2 levels in about 1.4 % of samples (YCbCr
+  conversion), and corrupt tiles fail with different messages.
+* Rayon bands become plain loops; every band-structured sum (grey world, the look fit's
+  least-squares chunks) keeps Rust's partial-sum order, so results stay bit-identical.
 
 ## Filter notes
 

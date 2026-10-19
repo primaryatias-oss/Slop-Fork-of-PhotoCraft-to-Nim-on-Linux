@@ -4,6 +4,8 @@
 
 type
   ZlibError* = object of CatchableError
+  ZlibLimit* = object of ZlibError ## the output reached the caller's limit (the data so far is kept)
+  ZlibEof* = object of ZlibError   ## the input ended before the stream did
 
 const DefaultMaxOutput* = 1 shl 31 ## 2 GiB
 
@@ -78,7 +80,7 @@ proc refill(b: var BitIn) {.inline.} =
 proc need(b: var BitIn; n: int) {.inline.} =
   if b.bitCnt < n:
     b.refill
-    if b.bitCnt < n: raise zerr("unexpected end of deflate stream")
+    if b.bitCnt < n: raise newException(ZlibEof, "unexpected end of deflate stream")
 
 proc bits(b: var BitIn; n: int): int {.inline.} =
   if n == 0: return 0
@@ -181,8 +183,9 @@ proc inflateInto(b: var BitIn; outp: var seq[byte]; maxOut: int) =
       let len = b.bits(16)
       let nlen = b.bits(16)
       if (len xor 0xFFFF) != nlen: raise zerr("stored block length mismatch")
-      if outp.len + len > maxOut: raise zerr("inflated data exceeds the limit")
-      for _ in 0 ..< len: outp.add byte(b.bits(8))
+      for k in 0 ..< len:
+        if outp.len >= maxOut: raise newException(ZlibLimit, "inflated data exceeds the limit")
+        outp.add byte(b.bits(8))
     of 1, 2:
       var lit, dist: Huff
       if btype == 1:
@@ -221,7 +224,7 @@ proc inflateInto(b: var BitIn; outp: var seq[byte]; maxOut: int) =
       while true:
         let sym = decodeSym(b, lit)
         if sym < 256:
-          if outp.len >= maxOut: raise zerr("inflated data exceeds the limit")
+          if outp.len >= maxOut: raise newException(ZlibLimit, "inflated data exceeds the limit")
           outp.add byte(sym)
         elif sym == 256: break
         else:
@@ -232,11 +235,12 @@ proc inflateInto(b: var BitIn; outp: var seq[byte]; maxOut: int) =
           if ds >= 30: raise zerr("bad distance symbol")
           let d = DistBase[ds] + b.bits(DistExtra[ds])
           if d > outp.len: raise zerr("distance too far back")
-          if outp.len + length > maxOut: raise zerr("inflated data exceeds the limit")
           let start = outp.len - d
           let base = outp.len
-          outp.setLen(base + length)
-          for k in 0 ..< length: outp[base + k] = outp[start + k]
+          let fits = min(length, maxOut - base)
+          outp.setLen(base + fits)
+          for k in 0 ..< fits: outp[base + k] = outp[start + k]
+          if fits < length: raise newException(ZlibLimit, "inflated data exceeds the limit")
     else: raise zerr("invalid block type")
 
 proc bitIn(data: openArray[byte]; start: int): BitIn =
@@ -267,6 +271,23 @@ proc zlibDecompress*(data: openArray[byte]; maxOut = DefaultMaxOutput; checkAdle
     if p + 4 <= data.len:
       let want = (uint32(data[p]) shl 24) or (uint32(data[p + 1]) shl 16) or (uint32(data[p + 2]) shl 8) or uint32(data[p + 3])
       if want != adler32(result): raise zerr("zlib checksum mismatch")
+
+proc zlibDecompressUpTo*(data: openArray[byte]; maxOut: int): seq[byte] =
+  ## A zlib stream decompressed into at most `maxOut` bytes, the way a fixed output buffer is
+  ## filled (`flate2::Decompress` with `Finish`): output past the limit and a truncated input
+  ## end the data silently; a bad header, corrupt codes or a wrong checksum raise `ZlibError`.
+  if data.len < 2: raise zerr("zlib stream too short")
+  let cmf = int(data[0])
+  let flg = int(data[1])
+  if (cmf and 0x0F) != 8 or ((cmf shl 8) or flg) mod 31 != 0: raise zerr("bad zlib header")
+  if (flg and 0x20) != 0: raise zerr("preset dictionaries are not supported")
+  var b = bitIn(data, 2)
+  try: inflateInto(b, result, maxOut)
+  except ZlibLimit, ZlibEof: return
+  let p = b.pos - b.bitCnt div 8
+  if p + 4 <= data.len:
+    let want = (uint32(data[p]) shl 24) or (uint32(data[p + 1]) shl 16) or (uint32(data[p + 2]) shl 8) or uint32(data[p + 3])
+    if want != adler32(result): raise zerr("zlib checksum mismatch")
 
 proc gzipDecompress*(data: openArray[byte]; maxOut = DefaultMaxOutput): seq[byte] =
   ## Decompresses a gzip member. Raises `ZlibError`.

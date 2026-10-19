@@ -17,6 +17,7 @@ photocraft-compose = { path = "../../../crates/compose" }
 photocraft-io = { path = "../../../crates/io" }
 photocraft-algo = { path = "../../../crates/algo" }
 photocraft-paint = { path = "../../../crates/paint" }
+photocraft-raw = { path = "../../../crates/raw", features = ["testgen"] }
 serde_json = "1"
 skrifa = "0.44"
 harfrust = "0.12"
