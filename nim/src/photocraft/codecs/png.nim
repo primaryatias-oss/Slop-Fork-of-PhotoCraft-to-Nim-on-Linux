@@ -56,6 +56,26 @@ proc latin1ToUtf8(s: openArray[byte]): string =
       result.add char(0xC0 or (int(b) shr 6))
       result.add char(0x80 or (int(b) and 0x3F))
 
+
+proc chunkTypeDebug(kind: string): string =
+  ## The png crate's `Debug` form of a chunk type.
+  template lower(c: char): bool = c >= 'a' and c <= 'z'
+  template upper(c: char): bool = c >= 'A' and c <= 'Z'
+  "ChunkType { type: " & kind & ", critical: " & $upper(kind[0]) & ", private: " & $lower(kind[1]) &
+    ", reserved: " & $lower(kind[2]) & ", safecopy: " & $lower(kind[3]) & " }"
+
+proc deflateMessage(e: ref ZlibError): string =
+  ## The png crate's message for an image-data inflate failure (`fdeflate` error names) where the
+  ## failure maps onto one; this inflater's own message otherwise.
+  let name =
+    if e of ZlibEof or e.msg == "zlib stream too short": "InsufficientInput"
+    elif e.msg in ["bad zlib header", "preset dictionaries are not supported"]: "BadZlibHeader"
+    elif e.msg == "invalid block type": "InvalidBlockType"
+    elif e.msg == "stored block length mismatch": "InvalidUncompressedBlockLength"
+    elif e.msg == "distance too far back": "DistanceTooFarBack"
+    else: ""
+  if name.len > 0: "Corrupt deflate stream. " & name else: e.msg
+
 proc decodePng*(bytes: openArray[byte]; limits: Limits): Image =
   ## Decodes a PNG file. Raises `CodecError`.
   if bytes.len < 8: raise err("not a PNG file")
@@ -79,6 +99,14 @@ proc decodePng*(bytes: openArray[byte]; limits: Limits): Image =
     var kind = ""
     for i in 0..3: kind.add char(bytes[p + 4 + i])
     let ds = p + 8
+    # The png crate checks these lengths as soon as it reads the chunk header.
+    let lengthOk = case kind
+      of "IHDR": length == 13
+      of "PLTE": length >= 3 and length <= 768
+      of "IEND": length == 0
+      of "fcTL": length == 26
+      else: true
+    if not lengthOk: raise err("Chunk length wrong: " & chunkTypeDebug(kind))
     if ds + length + 4 > bytes.len:
       if seenIdat and kind != "IDAT": break  # tolerate a broken tail after the pixels
       raise err("chunk " & kind & " is truncated")
@@ -103,7 +131,6 @@ proc decodePng*(bytes: openArray[byte]; limits: Limits): Image =
       if not okDepth: raise err("invalid colour type/bit depth " & $colorType & "/" & $depth)
       if interlace notin [0, 1]: raise err("unknown interlace method")
     of "PLTE":
-      if length mod 3 != 0 or length > 768: raise err("bad palette")
       for i in 0 ..< length div 3: palette.add [bytes[ds + 3 * i], bytes[ds + 3 * i + 1], bytes[ds + 3 * i + 2]]
     of "tRNS": trns = @(data)
     of "IDAT":
@@ -171,7 +198,8 @@ proc decodePng*(bytes: openArray[byte]; limits: Limits): Image =
     else: discard
     p = ds + length + 4
   if width < 0: raise err("missing IHDR")
-  if idat.len == 0: raise err("missing IDAT")
+  if idat.len == 0:
+    raise err(if seenIdat: "Corrupt deflate stream. InsufficientInput" else: "missing IDAT")
   if colorType == 3 and palette.len == 0: raise err("missing palette")
   let channelsIn = case colorType
     of 0: 1
@@ -183,7 +211,7 @@ proc decodePng*(bytes: openArray[byte]; limits: Limits): Image =
   let bpp = max(1, bitsPP div 8)
   var raw: seq[byte]
   try: raw = zlibDecompress(idat, maxOut = int(min(limits.maxAlloc, int64(high(int32)))) + height * 8, checkAdler = false)
-  except ZlibError as e: raise err(e.msg)
+  except ZlibError as e: raise err(deflateMessage(e))
   # Output layout
   var layout: ChannelLayout
   var hasTrnsKey = false

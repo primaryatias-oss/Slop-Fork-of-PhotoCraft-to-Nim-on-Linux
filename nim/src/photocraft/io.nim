@@ -1,12 +1,13 @@
 ## Document import/export across formats (Rust `photocraft_io` lib.rs): `.pcraft`, PSD/PSB,
-## OpenRaster, Paint.NET (import), camera raws, layered TIFF and every flat codec format. SVG and
-## Affinity plug in through `formatHooks` as they are ported (see PORTING.md); until then they
-## report "unsupported".
+## Affinity (import), OpenRaster, Paint.NET (import), camera raws, layered TIFF and every flat codec
+## format. SVG plugs in through `formatHooks` once it is ported (see PORTING.md); until then it
+## reports "unsupported".
 
 import std/[options, strutils]
 import geom, color, raster, doc, psd, compose, format, codecs
-import io/[common, pixels, psd_import, psd_export, psd_thumbnail, flat, tiff_layers, ora, pdn, text_import, raw_import]
-export common, psd_import, psd_export, flat, tiff_layers, raw_import
+import io/[common, pixels, psd_import, psd_export, psd_thumbnail, flat, tiff_layers, ora, pdn, text_import, raw_import,
+           affinity_import]
+export common, psd_import, psd_export, flat, tiff_layers, raw_import, affinity_import
 
 const
   PcraftThumbnailDone = 0.15'f32
@@ -46,6 +47,7 @@ proc importStages(name: string; bytes: openArray[byte]; ctl: Interrupt; maxGroup
     d.name = name
     text_import.prepare(d)
     return ImportResult(document: d, warnings: warnings)
+  if affinity_import.isAffinity(bytes) or affinity_import.hasExtension(name): return importAffinity(name, bytes)
   if isOra(bytes) or hasExtension(name, "ora"): return importOra(name, bytes, ctl)
   if hasExtension(name, "pdn") or (bytes.len >= 4 and bytes[0] == byte('P') and bytes[1] == byte('D') and
                                    bytes[2] == byte('N') and bytes[3] == byte('3')):
@@ -54,8 +56,7 @@ proc importStages(name: string; bytes: openArray[byte]; ctl: Interrupt; maxGroup
   for h in formatHooks:
     if not h.detect.isNil and not h.importer.isNil and h.detect(name, bytes):
       return h.importer(name, @bytes, ctl, maxGroupDepth)
-  if hasExtension(name, "svg") or hasExtension(name, "svgz") or hasExtension(name, "afphoto") or
-     hasExtension(name, "afdesign"):
+  if hasExtension(name, "svg") or hasExtension(name, "svgz"):
     raise ioError(ieUnsupported, "this format is not available in this build yet")
   importFlat(name, bytes)
 
@@ -76,7 +77,7 @@ proc exportStages(d: Document; nameOrExt: string; opts: ExportOptions; ctl: Inte
   let ext = extension(nameOrExt)
   if ext == "pdn":
     raise ioError(ieUnsupported, "PDN is import-only; save as .pcraft to preserve all layers and blend modes")
-  if ext in ["afphoto", "afdesign", "afpub"]:
+  if ext in affinity_import.Extensions:
     raise ioError(ieUnsupported, "Affinity export is not implemented; save a new PSD, PNG or .pcraft copy")
   if ext == "ora": return exportOra(d)
   for h in formatHooks:

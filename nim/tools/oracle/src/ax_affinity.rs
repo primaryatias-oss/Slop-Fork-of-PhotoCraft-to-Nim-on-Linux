@@ -221,3 +221,20 @@ pub fn run_zstd(args: &[String]) -> bool {
     }
     true
 }
+
+/// Debug: `skr.d FONT SIZE` prints skrifa's 'd' bounds and cap height (text first baselines).
+pub fn run_skr(args: &[String]) -> bool {
+    if args[1] != "skr.d" {
+        return false;
+    }
+    use skrifa::MetadataProvider;
+    let data = std::fs::read(&args[2]).unwrap();
+    let font = skrifa::FontRef::from_index(&data, 0).unwrap();
+    let size = skrifa::instance::Size::new(args[3].parse().unwrap());
+    let loc = skrifa::instance::LocationRef::default();
+    let g = font.charmap().map('d');
+    let b = g.and_then(|g| font.glyph_metrics(size, loc).bounds(g));
+    let m = font.metrics(size, loc);
+    println!("d={:?} bounds={:?} cap={:?} ascent={}", g, b, m.cap_height, m.ascent);
+    true
+}

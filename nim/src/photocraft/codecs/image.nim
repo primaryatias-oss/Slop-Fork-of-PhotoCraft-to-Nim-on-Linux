@@ -81,13 +81,32 @@ type
     layouts*: seq[ChannelLayout]
     alpha*, icc*, exif*, xmp*, dpi*, text*, animation*, lossy*: bool
 
+proc debugName*(f: Format): string =
+  ## The Rust variant name (`{:?}`), used in messages shared with the Rust build (errors, warnings).
+  case f
+  of fmtPng: "Png"
+  of fmtJpeg: "Jpeg"
+  of fmtTiff: "Tiff"
+  of fmtWebP: "WebP"
+  of fmtGif: "Gif"
+  of fmtBmp: "Bmp"
+  of fmtTga: "Tga"
+  of fmtIco: "Ico"
+  of fmtPnm: "Pnm"
+  of fmtQoi: "Qoi"
+  of fmtOpenExr: "OpenExr"
+  of fmtHdr: "Hdr"
+  of fmtAvif: "Avif"
+  of fmtHeif: "Heif"
+  of fmtFits: "Fits"
+
 proc codecError*(kind: CodecErrorKind; format: Format; msg: string): ref CodecError =
   let m = case kind
     of ceUnknownFormat: "unrecognized image format"
-    of ceUnsupported: $format & ": " & msg
-    of ceMalformed: $format & ": malformed data: " & msg
+    of ceUnsupported: debugName(format) & ": " & msg
+    of ceMalformed: debugName(format) & ": malformed data: " & msg
     of ceLimitExceeded: "limit exceeded: " & msg
-    of ceEncode: $format & ": encode failed: " & msg
+    of ceEncode: debugName(format) & ": encode failed: " & msg
     of ceInvalidImage: "invalid image: " & msg
   result = newException(CodecError, m)
   result.kind = kind
@@ -326,24 +345,6 @@ proc toRgbaF32*(i: Image): seq[float32] = convertLayout(i.toNormalized, i.layout
 const AllFormats* = [fmtPng, fmtJpeg, fmtTiff, fmtWebP, fmtGif, fmtBmp, fmtTga, fmtIco, fmtPnm, fmtQoi, fmtOpenExr, fmtHdr, fmtAvif, fmtHeif, fmtFits]
 
 proc name*(f: Format): string = $f
-proc debugName*(f: Format): string =
-  ## The Rust variant name (`{:?}`), used in messages shared with the Rust build.
-  case f
-  of fmtPng: "Png"
-  of fmtJpeg: "Jpeg"
-  of fmtTiff: "Tiff"
-  of fmtWebP: "WebP"
-  of fmtGif: "Gif"
-  of fmtBmp: "Bmp"
-  of fmtTga: "Tga"
-  of fmtIco: "Ico"
-  of fmtPnm: "Pnm"
-  of fmtQoi: "Qoi"
-  of fmtOpenExr: "OpenExr"
-  of fmtHdr: "Hdr"
-  of fmtAvif: "Avif"
-  of fmtHeif: "Heif"
-  of fmtFits: "Fits"
 
 proc extensions*(f: Format): seq[string] =
   case f

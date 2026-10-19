@@ -434,9 +434,10 @@ proc firstAscent(l: ParaLayout; line: int): Option[float32] =
     var h = none(float32)
     let g = (try: face.glyphIndex(ord('d')) except FontError: 0)
     if g != 0:
-      if face.hasTable("CFF ") or face.hasTable("CFF2"):
-        let bb = face.glyphBounds(g)
-        if bb.isSome: h = some(bb.get[3] * rd.fontSize / float32(face.unitsPerEm))
+      if face.hasTable("CFF ") or face.hasTable("CFF2") or face.hasTable("gvar"):
+        # skrifa bounds these from the scaled outline (on the 26.6 grid), control points included.
+        let bb = face.scaledControlBounds(g, rd.fontSize)
+        if bb.isSome: h = some(bb.get[3])
       else:
         let e = face.glyfExtents(g)
         if e.isSome: h = some(fixedScaled(rd.fontSize, face.unitsPerEm, e.get[1]))

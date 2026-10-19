@@ -162,7 +162,8 @@ Content-Aware Fill (`content_aware`). Non-filter APIs are checked with `tools/al
 | io: OpenRaster, Paint.NET | ported, tested |
 | io: Photoshop brushes (`.abr` v1/v2/v6+ → brush presets, `io/abr_map`) | ported, tested |
 | io: camera raw import (`io/raw_import`: develop to 16-bit ProPhoto, colour fitted to the embedded JPEG, open-time tuning, preview fallback) and Camera Raw smart filters in PSD (`io/camera_raw_map`) | ported, tested; imports of the 62 oracle raw files give identical documents and notes, except two whose stub preview JPEG fails with the JPEG decoders' different messages |
-| io: SVG, Affinity | pending (the facade reports "unsupported" until they land; SVG needs a usvg-style normalizer) |
+| io: Affinity documents (`io/affinity_import`: spreads side by side, pages and artboards, groups, shape layers with even-odd compounds, gradients and strokes, type layers, pixel layers, placed images as embedded smart objects, layer and vector masks; the embedded preview as a warned fallback) | ported, tested; imports identical to Rust (manifest JSON with tile hashes, warnings, errors) on 394 generated documents, 4481 mutated ones and 3000 preview-fallback files (`tools/importcheck.nim`) |
+| io: SVG | pending (the facade reports "unsupported" until it lands; it needs a usvg-style normalizer) |
 | text: font reading (`font/sfnt`: TrueType/CFF outlines, cmap, metrics, names) | ported; outlines, metrics and charmaps identical to skrifa on the bundled and system fonts |
 | text: shaping (`font/otl`, `font/shape`: HarfBuzz default, Hebrew, Arabic, Thai/Lao, Hangul shapers) | ported; glyphs, clusters and positions identical to HarfRust on 324 test strings across 17 fonts. Indic, USE, Khmer and Myanmar shapers pending (those scripts shape with the default shaper) |
 | text: Unicode data (`text/ucd_data` from Perl's UCD 15.0 via `tools/ucdgen.nim`), line breaking (UAX #14), grapheme clusters (UAX #29) | ported (no dictionary breaking for Thai/Lao/Khmer/Burmese) |
@@ -223,6 +224,13 @@ by document JSON + tile hashes (`.pcraft`), raw float renders, or output bytes.
   value). Pies with large but finite gaps (Rust's `while end < start { end += TAU }` running
   hundreds of millions of times) are fast-forwarded per binade with the same rounding, so the
   results stay bit-identical.
+* `tools/importcheck.nim ORACLE FILE…` compares whole imports (`io.importDoc` against the oracle's
+  `import`): error or warnings, then the saved `.pcraft` manifests with fresh ids left out, which
+  covers the document model and every tile by hash. It found two engine-level differences, both
+  fixed: box text measured its first baseline from the unscaled bounds of 'd' where skrifa bounds
+  CFF and variable glyphs from the scaled outline (on the 26.6 grid), and codec errors named the
+  format by its display name (`PNG:`) where Rust prints the variant (`Png:`). The PNG decoder now
+  also checks chunk lengths up front and words inflate failures as the png crate does.
 
 ## Filter notes
 

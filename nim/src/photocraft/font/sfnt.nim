@@ -1385,3 +1385,18 @@ proc scaledOutline*(f: Face; gid: int; ppem: float32): Outline =
         result.add d
     elif f.hasTable("glyf"): result = f.scaledGlyfOutline(gid, ppem)
   except FontError: result = @[]
+
+proc scaledControlBounds*(f: Face; gid: int; ppem: float32): Option[array[4, float32]] =
+  ## (xMin, yMin, xMax, yMax) over every point of the glyph's scaled outline, control points
+  ## included: skrifa's `GlyphMetrics::bounds` for CFF and variable `glyf` fonts.
+  let o = f.scaledOutline(gid, ppem)
+  var b = [Inf.float32, Inf.float32, NegInf.float32, NegInf.float32]
+  for c in o:
+    if c.verb == pvClose: continue
+    let k0 = if c.verb == pvCubic or c.verb == pvQuad: 0 else: 2
+    for k in k0 .. 2:
+      if c.verb == pvQuad and k == 1: continue
+      let p = c.pts[k]
+      b[0] = min(b[0], p[0]); b[1] = min(b[1], p[1]); b[2] = max(b[2], p[0]); b[3] = max(b[3], p[1])
+  if b[0] > b[2]: return
+  some(b)
