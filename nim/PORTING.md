@@ -160,7 +160,8 @@ Content-Aware Fill (`content_aware`). Non-filter APIs are checked with `tools/al
 | io (PSD/PSB ↔ document, layered TIFF, multi-part EXR, flat formats, facade) | ported, tested; see "io notes" below |
 | io: OpenRaster, Paint.NET | ported, tested |
 | io: Photoshop brushes (`.abr` v1/v2/v6+ → brush presets, `io/abr_map`) | ported, tested |
-| io: SVG, camera raw import, Affinity | pending (the facade reports "unsupported" until they land; SVG needs a usvg-style normalizer) |
+| io: camera raw import (`io/raw_import`: develop to 16-bit ProPhoto, colour fitted to the embedded JPEG, open-time tuning, preview fallback) and Camera Raw smart filters in PSD (`io/camera_raw_map`) | ported, tested; imports of the 62 oracle raw files give identical documents and notes, except two whose stub preview JPEG fails with the JPEG decoders' different messages |
+| io: SVG, Affinity | pending (the facade reports "unsupported" until they land; SVG needs a usvg-style normalizer) |
 | text: font reading (`font/sfnt`: TrueType/CFF outlines, cmap, metrics, names) | ported; outlines, metrics and charmaps identical to skrifa on the bundled and system fonts |
 | text: shaping (`font/otl`, `font/shape`: HarfBuzz default, Hebrew, Arabic, Thai/Lao, Hangul shapers) | ported; glyphs, clusters and positions identical to HarfRust on 324 test strings across 17 fonts. Indic, USE, Khmer and Myanmar shapers pending (those scripts shape with the default shaper) |
 | text: Unicode data (`text/ucd_data` from Perl's UCD 15.0 via `tools/ucdgen.nim`), line breaking (UAX #14), grapheme clusters (UAX #29) | ported (no dictionary breaking for Thai/Lao/Khmer/Burmese) |
@@ -193,6 +194,8 @@ by document JSON + tile hashes (`.pcraft`), raw float renders, or output bytes.
   conversion), and corrupt tiles fail with different messages.
 * Rayon bands become plain loops; every band-structured sum (grey world, the look fit's
   least-squares chunks) keeps Rust's partial-sum order, so results stay bit-identical.
+* The colour fit to a camera's embedded preview decodes that JPEG with the port's decoder, so a
+  fit from a real colour preview can differ slightly from Rust's (see the lossy-tile note).
 
 ## Filter notes
 

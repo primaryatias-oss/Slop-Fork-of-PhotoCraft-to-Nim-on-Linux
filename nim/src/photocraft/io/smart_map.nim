@@ -1,13 +1,11 @@
 ## Smart objects ↔ PSD placed-layer data: the `SoLd`/`SoLE` descriptor (identity, transform quad,
 ## warp, size, smart filter stack), legacy `PlLd`, smart filters (known ones become editable
 ## commands, the rest are kept verbatim as `psd.unsupportedFilter`), and smart filter masks and
-## unfiltered pixels (`FEid`).
-##
-## Deviation: Camera Raw smart filters are kept verbatim (not yet editable) until the camera raw
-## filter is ported.
+## unfiltered pixels (`FEid`). Camera Raw filters of the verified processing version are editable
+## (`camera_raw_map`).
 
 import std/[options, json, math, strutils]
-import ../geom, ../geom/warp, ../color, ../raster, ../doc, ../psd, ../blake3, ./blocks, ./effects_map, ./pixels
+import ../geom, ../geom/warp, ../color, ../raster, ../doc, ../psd, ../blake3, ./blocks, ./effects_map, ./pixels, ./camera_raw_map
 
 const UnsupportedFilter* = "psd.unsupportedFilter"
 
@@ -175,32 +173,7 @@ proc knownParams(class: string; f: Option[Descriptor]): Option[(string, JsonNode
   else: return none((string, JsonNode))
   some((k.command, params))
 
-proc toHex(bytes: openArray[byte]): string =
-  const digits = "0123456789abcdef"
-  for b in bytes:
-    result.add digits[int(b shr 4)]
-    result.add digits[int(b and 15)]
-
-proc fromHex(s: string): Option[seq[byte]] =
-  if s.len mod 2 != 0: return none(seq[byte])
-  var outp: seq[byte]
-  for i in countup(0, s.len - 2, 2):
-    if s[i] notin HexDigits or s[i + 1] notin HexDigits: return none(seq[byte])
-    outp.add byte(parseHexInt(s[i .. i + 1]))
-  some(outp)
-
 proc unit(u: string; v: float64): Value = vUnit(u, v)
-
-proc blendOptions(opacity0: float32; blend: BlendMode): Value =
-  let opacity = (if opacity0.classify notin {fcNan, fcInf, fcNegInf}: float64(clamp(opacity0, 0'f32, 1'f32)) * 100 else: 100.0)
-  vDesc(newDescriptor("blendOptions").with("Opct", unit("#Prc", opacity)).with("Md  ", blendLongValue(blend)))
-
-proc setKey(d: var Descriptor; key: string; v: Value) =
-  for e in d.items.mitems:
-    if e[0].s == key:
-      e[1] = v
-      return
-  d.items.add (id(key), v)
 
 proc filterFromItem*(item: Descriptor): SmartFilter =
   let opts = getD(item, "blendOptions")
@@ -215,7 +188,11 @@ proc filterFromItem*(item: Descriptor): SmartFilter =
   if class.isNone:
     for k in KnownFilters:
       if k.filterId == filterId: class = some(k.class)
-  let known = (if class.isSome: knownParams(class.get, fltr) else: none((string, JsonNode)))
+  var known = none((string, JsonNode))
+  if class == some(CameraRawClass):
+    let p = importParams(item)
+    if p.isSome: known = some((CameraRawCommand, p.get))
+  elif class.isSome: known = knownParams(class.get, fltr)
   var command: string
   var params: JsonNode
   if known.isSome:
@@ -227,7 +204,7 @@ proc filterFromItem*(item: Descriptor): SmartFilter =
       if e[0].s == "blendOptions": e[1] = blendOptions(1, bmNormal)
       elif e[0].s == "enab": e[1] = vBool(true)
     command = UnsupportedFilter
-    params = %*{"name": name.replace("&", ""), "filterID": filterId, "psd": toHex(neutral.toBytes)}
+    params = %*{"name": name.replace("&", ""), "filterID": filterId, "psd": bytesToHex(neutral.toBytes)}
   SmartFilter(command: command, params: params, blend: blend, opacity: opacity, visible: visible)
 
 proc filterStack*(fx: Descriptor): FilterStack =
@@ -332,9 +309,14 @@ proc fltrFor(k: Known; p: JsonNode): Option[Descriptor] =
 
 proc itemForFilter*(f: SmartFilter): Descriptor =
   ## The PSD smart filter item; raises ValueError when the filter has no PSD equivalent.
+  if f.command == CameraRawCommand:
+    var d = exportItem(f.params)
+    setKey(d, "blendOptions", blendOptions(f.opacity, f.blend))
+    setKey(d, "enab", vBool(f.visible))
+    return d
   if f.command == UnsupportedFilter:
     let hex = (if not f.params.isNil and f.params.kind == JObject and f.params.hasKey("psd") and f.params["psd"].kind == JString:
-                 fromHex(f.params["psd"].getStr) else: none(seq[byte]))
+                 hexToBytes(f.params["psd"].getStr) else: none(seq[byte]))
     if hex.isNone: raise newException(ValueError, "its filter data is missing")
     var d: Descriptor
     try: d = descriptorFromBytes(hex.get)
@@ -558,5 +540,5 @@ proc feidItem*(placed: string; unfiltered: Surface; mask: Option[doc.LayerMask];
   some(item)
 
 proc uuidFrom*(seed: openArray[byte]): string =
-  let x = toHex(blake3(seed)[0 ..< 16])
+  let x = bytesToHex(blake3(seed)[0 ..< 16])
   x[0 ..< 8] & "-" & x[8 ..< 12] & "-" & x[12 ..< 16] & "-" & x[16 ..< 20] & "-" & x[20 ..< 32]

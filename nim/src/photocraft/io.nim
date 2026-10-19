@@ -1,12 +1,12 @@
 ## Document import/export across formats (Rust `photocraft_io` lib.rs): `.pcraft`, PSD/PSB,
-## OpenRaster, Paint.NET (import), layered TIFF and every flat codec format. SVG, camera raw and
+## OpenRaster, Paint.NET (import), camera raws, layered TIFF and every flat codec format. SVG and
 ## Affinity plug in through `formatHooks` as they are ported (see PORTING.md); until then they
 ## report "unsupported".
 
 import std/[options, strutils]
 import geom, color, raster, doc, psd, compose, format, codecs
-import io/[common, pixels, psd_import, psd_export, psd_thumbnail, flat, tiff_layers, ora, pdn, text_import]
-export common, psd_import, psd_export, flat, tiff_layers
+import io/[common, pixels, psd_import, psd_export, psd_thumbnail, flat, tiff_layers, ora, pdn, text_import, raw_import]
+export common, psd_import, psd_export, flat, tiff_layers, raw_import
 
 const
   PcraftThumbnailDone = 0.15'f32
@@ -50,6 +50,7 @@ proc importStages(name: string; bytes: openArray[byte]; ctl: Interrupt; maxGroup
   if hasExtension(name, "pdn") or (bytes.len >= 4 and bytes[0] == byte('P') and bytes[1] == byte('D') and
                                    bytes[2] == byte('N') and bytes[3] == byte('3')):
     return importPdn(name, bytes, ctl)
+  if raw_import.isRaw(bytes): return importRaw(name, bytes)
   for h in formatHooks:
     if not h.detect.isNil and not h.importer.isNil and h.detect(name, bytes):
       return h.importer(name, @bytes, ctl, maxGroupDepth)
