@@ -169,7 +169,23 @@ proc fixedTables() =
     fixedDist = buildHuff(d)
     fixedReady = true
 
-proc inflateInto(b: var BitIn; outp: var seq[byte]; maxOut: int) =
+proc complete(lengths: openArray[int]): bool =
+  ## Whether the code lengths form a complete prefix code (Kraft sum exactly one).
+  var counts: array[16, int]
+  for l in lengths:
+    if l > 0 and l < 16: inc counts[l]
+  var left = 1
+  for i in 1 ..< 16:
+    left = left * 2 - counts[i]
+  left == 0
+
+proc maxLength(lengths: openArray[int]): int =
+  for l in lengths: result = max(result, l)
+
+proc inflateInto(b: var BitIn; outp: var seq[byte]; maxOut: int; stream = false) =
+  ## `stream`: decode as miniz does through a streaming reader (`flate2::read::ZlibDecoder`):
+  ## table sizes and incomplete codes are checked like zlib, and a distance reaching before the
+  ## start of the output reads the zero-initialised 32 KiB window instead of failing.
   fixedTables()
   var final = false
   while not final:
@@ -196,8 +212,10 @@ proc inflateInto(b: var BitIn; outp: var seq[byte]; maxOut: int) =
         let hlit = b.bits(5) + 257
         let hdist = b.bits(5) + 1
         let hclen = b.bits(4) + 4
+        if stream and (hlit > 286 or hdist > 30): raise zerr("bad literal or distance table length")
         var cl: array[19, int]
         for i in 0 ..< hclen: cl[ClOrder[i]] = b.bits(3)
+        if stream and not complete(cl): raise zerr("incomplete code length code")
         let clh = buildHuff(cl)
         var lens = newSeq[int](hlit + hdist)
         var i = 0
@@ -219,6 +237,10 @@ proc inflateInto(b: var BitIn; outp: var seq[byte]; maxOut: int) =
             if i + r > lens.len: raise zerr("code lengths overflow")
             i += r
         if lens[256] == 0: raise zerr("no end-of-block code")
+        if stream:
+          for (a, z) in [(0, hlit - 1), (hlit, hlit + hdist - 1)]:
+            if maxLength(lens.toOpenArray(a, z)) > 1 and not complete(lens.toOpenArray(a, z)):
+              raise zerr("incomplete huffman code")
         lit = buildHuff(lens.toOpenArray(0, hlit - 1))
         dist = buildHuff(lens.toOpenArray(hlit, hlit + hdist - 1))
       while true:
@@ -234,12 +256,13 @@ proc inflateInto(b: var BitIn; outp: var seq[byte]; maxOut: int) =
           let ds = decodeSym(b, dist)
           if ds >= 30: raise zerr("bad distance symbol")
           let d = DistBase[ds] + b.bits(DistExtra[ds])
-          if d > outp.len: raise zerr("distance too far back")
+          if d > outp.len and not stream: raise zerr("distance too far back")
           let start = outp.len - d
           let base = outp.len
           let fits = min(length, maxOut - base)
           outp.setLen(base + fits)
-          for k in 0 ..< fits: outp[base + k] = outp[start + k]
+          for k in 0 ..< fits:
+            outp[base + k] = (if start + k >= 0: outp[start + k] else: 0'u8)
           if fits < length: raise newException(ZlibLimit, "inflated data exceeds the limit")
     else: raise zerr("invalid block type")
 
@@ -288,6 +311,31 @@ proc zlibDecompressUpTo*(data: openArray[byte]; maxOut: int): seq[byte] =
   if p + 4 <= data.len:
     let want = (uint32(data[p]) shl 24) or (uint32(data[p + 1]) shl 16) or (uint32(data[p + 2]) shl 8) or uint32(data[p + 3])
     if want != adler32(result): raise zerr("zlib checksum mismatch")
+
+proc zlibReadBounded*(data: openArray[byte]; cap: int): seq[byte] =
+  ## At most `cap` bytes of a zlib stream, read the way `flate2::read::ZlibDecoder` (miniz) is read
+  ## through `take(cap).read_to_end`: miniz decodes ahead into its 32 KiB window, so a corrupt code
+  ## or a wrong Adler-32 anywhere in the window chunks the reader reaches raises `ZlibError`, even
+  ## past `cap`; a stream that ends early raises once fewer than `cap` bytes came out of it.
+  if data.len < 2: raise newException(ZlibEof, "incomplete deflate stream")
+  let cmf = int(data[0])
+  let flg = int(data[1])
+  if (cmf and 0x0F) != 8 or ((cmf shl 8) or flg) mod 31 != 0 or (cmf shr 4) > 7: raise zerr("bad zlib header")
+  if (flg and 0x20) != 0: raise zerr("preset dictionaries are not supported")
+  let chunk = 32768
+  let ahead = if cap > high(int) - chunk: high(int) else: (cap + chunk - 1) div chunk * chunk
+  var b = bitIn(data, 2)
+  var complete = false
+  try:
+    inflateInto(b, result, ahead, stream = true)
+    let p = b.pos - b.bitCnt div 8
+    if p + 4 <= data.len:
+      let want = (uint32(data[p]) shl 24) or (uint32(data[p + 1]) shl 16) or (uint32(data[p + 2]) shl 8) or uint32(data[p + 3])
+      if want != adler32(result): raise zerr("zlib checksum mismatch")
+      complete = true
+  except ZlibLimit, ZlibEof: discard
+  if result.len >= cap: result.setLen(cap)
+  elif not complete: raise newException(ZlibEof, "incomplete deflate stream")
 
 proc gzipDecompress*(data: openArray[byte]; maxOut = DefaultMaxOutput): seq[byte] =
   ## Decompresses a gzip member. Raises `ZlibError`.

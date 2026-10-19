@@ -57,3 +57,20 @@ suite "blake3":
       var d = newSeq[byte](n)
       for i in 0 ..< n: d[i] = byte(i mod 251)
       check blake3Hex(d) == want
+
+suite "zstd streaming reads (ruzstd)":
+  test "frames are read block by block up to the cap":
+    var d: seq[byte]
+    for i in 0 ..< 300_000: d.add byte((i * 13) mod 251)
+    let z = zstdCompress(d)
+    var pos = 0
+    check zstdReadFrame(z, pos, d.len + 1, 64 shl 20) == d
+    check pos == z.len
+    pos = 0
+    check zstdReadFrame(z, pos, 1000, 64 shl 20) == d[0 ..< 1000]
+    # Windows above the ceiling and skippable frames are errors, not skipped.
+    pos = 0
+    expect ZstdError: discard zstdReadFrame(z, pos, 10, 1000)
+    var skip = @[0x50'u8, 0x2A, 0x4D, 0x18, 0, 0, 0, 0]
+    pos = 0
+    expect ZstdError: discard zstdReadFrame(skip, pos, 10, 64 shl 20)

@@ -415,7 +415,11 @@ proc readTable(d: openArray[byte]; pos: var int; mode: int; def: openArray[int];
     if not have: raise zerr("repeat table without a previous table")
   have = true
 
-proc decodeBlock(d: openArray[byte]; st: var FrameState; outp: var seq[byte]; frameStart, window, maxOut: int) =
+proc decodeBlock(d: openArray[byte]; st: var FrameState; outp: var seq[byte]; frameStart, window, maxOut: int;
+                 seqMax = -1) =
+  ## `seqMax` >= 0 checks blocks as `ruzstd` does: the bytes the sequences produce may not pass
+  ## `seqMax` (trailing literals are not counted), and an empty sequence section must end the block.
+  let blockStart = outp.len
   var pos = 0
   var lits: seq[byte]
   decodeLiterals(d, pos, st, lits)
@@ -441,7 +445,7 @@ proc decodeBlock(d: openArray[byte]; st: var FrameState; outp: var seq[byte]; fr
     if pos >= d.len: raise zerr("truncated sequences header")
     let modes = int(d[pos])
     inc pos
-    if (modes and 3) != 0: raise zerr("reserved sequence mode bits set")
+    if (modes and 3) != 0 and seqMax < 0: raise zerr("reserved sequence mode bits set") # ruzstd ignores them
     readTable(d, pos, (modes shr 6) and 3, LLDefault, 6, 35, 9, st.haveLl, st.ll)
     readTable(d, pos, (modes shr 4) and 3, OFDefault, 5, 31, 8, st.haveOf, st.oft)
     readTable(d, pos, (modes shr 2) and 3, MLDefault, 6, 52, 9, st.haveMl, st.ml)
@@ -484,7 +488,9 @@ proc decodeBlock(d: openArray[byte]; st: var FrameState; outp: var seq[byte]; fr
       if outp.len + ml > maxOut: raise zerr("output larger than allowed")
       let start = outp.len - offset
       for k in 0 ..< ml: outp.add outp[start + k]
+      if seqMax >= 0 and outp.len - blockStart > seqMax: raise zerr("block decompresses past its maximum")
     if b.bitPos != 0: raise zerr("sequence bitstream not fully consumed")
+  elif seqMax >= 0 and pos < d.len: raise zerr("extra bits after an empty sequence section")
   emitLiterals(lits.len - litPos)
 
 proc zstdDecompress*(data: openArray[byte]; maxOut = high(int)): seq[byte] =
@@ -587,6 +593,86 @@ proc zstdDecompress*(data: openArray[byte]; maxOut = high(int)): seq[byte] =
       let got = uint32(xxh64(result.toOpenArray(frameStart, result.len - 1)) and 0xFFFF_FFFF'u64)
       if want != got: raise zerr("checksum mismatch")
       pos += 4
+
+proc zstdReadFrame*(data: openArray[byte]; pos: var int; cap: int; maxWindow: int): seq[byte] =
+  ## At most `cap` bytes of the frame at `pos`, read the way `ruzstd::StreamingDecoder` is read
+  ## through `take(cap).read_to_end`: whole blocks are decoded until the bytes beyond the window
+  ## cover `cap` (or the frame ends), so a corrupt block that far raises `ZstdError` even past
+  ## `cap`. Skippable frames and windows above `maxWindow` raise; the checksum is read, not
+  ## checked, and the content size is not compared. `pos` ends after the bytes consumed.
+  if pos + 4 > data.len: raise zerr("truncated frame header")
+  let magic = le32(data, pos)
+  if (magic and 0xFFFFFFF0'u32) == 0x184D2A50'u32: raise zerr("skippable frame")
+  if magic != 0xFD2FB528'u32: raise zerr("bad magic number")
+  pos += 4
+  if pos >= data.len: raise zerr("truncated frame header")
+  let desc = int(data[pos])
+  inc pos
+  let fcsFlag = desc shr 6
+  let single = ((desc shr 5) and 1) != 0
+  if ((desc shr 3) and 1) != 0: raise zerr("reserved frame header bit set")
+  let checksum = ((desc shr 2) and 1) != 0
+  let dictFlag = desc and 3
+  var window = 0'i64
+  if not single:
+    if pos >= data.len: raise zerr("truncated frame header")
+    let wd = int(data[pos])
+    inc pos
+    let base = 1'i64 shl (10 + (wd shr 3))
+    window = base + (base div 8) * int64(wd and 7)
+  let dictBytes = [0, 1, 2, 4][dictFlag]
+  if pos + dictBytes > data.len: raise zerr("truncated frame header")
+  var dictId = 0'u64
+  for k in 0 ..< dictBytes: dictId = dictId or (uint64(data[pos + k]) shl (8 * k))
+  pos += dictBytes
+  if dictId != 0: raise zerr("dictionaries are not supported")
+  let fcsBytes = (case fcsFlag
+    of 0: (if single: 1 else: 0)
+    of 1: 2
+    of 2: 4
+    else: 8)
+  if pos + fcsBytes > data.len: raise zerr("truncated frame header")
+  var fcs = 0'u64
+  for k in 0 ..< fcsBytes: fcs = fcs or (uint64(data[pos + k]) shl (8 * k))
+  if fcsBytes == 2: fcs += 256
+  pos += fcsBytes
+  if single: window = (if fcs > uint64(high(int64)): high(int64) else: int64(fcs))
+  if window > int64(maxWindow): raise zerr("window too large")
+  let win = int(window)
+  let blockMax = min(win, BlockMax)
+  var st = FrameState(rep: [1, 4, 8])
+  while true:
+    if pos + 3 > data.len: raise zerr("truncated block header")
+    let bh = int(data[pos]) or (int(data[pos + 1]) shl 8) or (int(data[pos + 2]) shl 16)
+    pos += 3
+    let last = (bh and 1) != 0
+    let btype = (bh shr 1) and 3
+    let bsize = bh shr 3
+    if btype == 3: raise zerr("reserved block type")
+    if bsize > BlockMax: raise zerr("block too large")
+    case btype
+    of 0:
+      if bsize > blockMax: raise zerr("block too large")
+      if pos + bsize > data.len: raise zerr("truncated raw block")
+      result.add data.toOpenArray(pos, pos + bsize - 1)
+      pos += bsize
+    of 1:
+      if bsize > blockMax: raise zerr("block too large")
+      if pos + 1 > data.len: raise zerr("truncated RLE block")
+      let v = data[pos]
+      for _ in 0 ..< bsize: result.add v
+      pos += 1
+    else:
+      if pos + bsize > data.len: raise zerr("truncated compressed block")
+      decodeBlock(data.toOpenArray(pos, pos + bsize - 1), st, result, 0, high(int), high(int), blockMax)
+      pos += bsize
+    if last:
+      if checksum:
+        if pos + 4 > data.len: raise zerr("truncated checksum")
+        pos += 4
+      break
+    if result.len - win >= cap: break
+  if result.len > cap: result.setLen(cap)
 
 # ---------------------------------------------------------------- encoding
 

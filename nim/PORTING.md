@@ -35,6 +35,7 @@ own nimcache (`.nimcache/<name>`), so different test files can compile at the sa
 | algo | `photocraft/algo`, `algo/*` | filters and imaging algorithms |
 | paint | `photocraft/paint`, `paint/*` | the brush engine; `retouch::Region` is `PxRegion` |
 | raw | `photocraft/raw`, `raw/*` | camera raw decode/develop; `Rect` is `RawRect`, `Limits` is `RawLimits` |
+| affinity | `photocraft/affinity`, `affinity/*` | Affinity reader; model types carry an `Af` prefix (`AfDocument`, `AfNode`, `AfPaint`…) |
 | (serde/serde_json) | `photocraft/serde` | generic `toJ`/`fromJ` with serde naming |
 
 ## Conventions
@@ -171,7 +172,8 @@ Content-Aware Fill (`content_aware`). Non-filter APIs are checked with `tools/al
 | text: spelling (`text/spell`, SCOWL dictionary), UI fallback scripts (`text/scripts`), Glyphs panel (`text/glyphs`) | ported; checks, suggestions, charmaps, category counts, previews and candidate lists identical to Rust |
 | paint (brush model and serde, dynamics, stroke renderer, procedural tips/patterns, presets, Mixer Brush, Color Replacement, Background Eraser, retouch dab machinery and Smudge, cursor outlines, symmetry) | ported, tested; dabs, rendered strokes at every depth/model, coverage, tool effects, outlines, symmetry and the preset JSON identical to Rust (`tools/algocases/paint.json`, 1140 command runs) |
 | raw (TIFF/EP reader, DNG incl. deflate / lossless-JPEG / lossy-JPEG tiles, opcodes and default crops, CR2, Nikon Huffman NEF, Sony cRAW, Panasonic RW2, Olympus ORF, Fujifilm RAF incl. X-Trans, embedded previews, camera profiles, demosaicing (bilinear, Malvar–He–Cutler, AHD, X-Trans), develop, the camera-look fit; testgen writers) | ported, tested; decoded sensors, developed images, previews, TIFF dumps and camera-look fits identical to Rust on 1535 runs over 75 oracle-written files, truncated and bit-flipped variants included (`tools/algocases/raw.json`, `tools/rawcheck.nim`); the Nim testgen writes byte-identical files. See "raw notes" |
-| affinity, engine, UI, CLI | in progress |
+| affinity (archive with zlib/zstd entries and byte predictors, the tagged object stream, the document model: spreads, pages, artboards, groups, curves with live corners, every parametric shape, compounds, fills, gradients, strokes, artistic and frame text, pixel layers in every tile format, placed and embedded images, masks; the indexed preview; synth builders) | ported, tested; model dumps identical to Rust on about 30,000 generated documents (every node kind, colour model, shape and tile state, plus stream, container and compressed-payload mutations) and on 3000 mutated previews (`tools/afgen.nim`, `tools/afcheck.nim`, `tools/afcompare.py`). See "affinity notes" |
+| engine, UI, CLI | in progress |
 | heif (HEVC decoding), plugins (WebAssembly runtime) | not ported: they need a video decoder / wasm interpreter; the commands report "unsupported" |
 
 ## Checking against Rust
@@ -196,6 +198,31 @@ by document JSON + tile hashes (`.pcraft`), raw float renders, or output bytes.
   least-squares chunks) keeps Rust's partial-sum order, so results stay bit-identical.
 * The colour fit to a camera's embedded preview decodes that JPEG with the port's decoder, so a
   fit from a real colour preview can differ slightly from Rust's (see the lossy-tile note).
+
+## affinity notes
+
+* `tools/afgen.nim DIR [MUTATIONS [SEED]]` writes synthetic documents (and stream-mutated copies);
+  `photocraft-oracle af.read FILE…` and `tools/afcheck.nim read FILE…` print the same canonical
+  dump (floats as bit patterns); `python3 -I tools/afcompare.py ORACLE AFCHECK DIR [read|preview]`
+  compares them. The public Affinity corpus (`cargo xtask corpus --affinity`) could not be fetched
+  here, so the real-file tests (`tests/real_files.rs`) are not ported yet.
+* Compressed entries are read with the decoders' own streaming behaviour, because the reader's
+  "corrupt compressed entry" / "archive entry size mismatch" distinction depends on it:
+  `zlib.zlibReadBounded` follows flate2's `ZlibDecoder` over miniz (32 KiB look-ahead, Adler-32
+  checked when the stream ends inside it, zero-initialised window for distances before the start,
+  zlib's table checks, "incomplete deflate stream" when it ends early) and `zstd.zstdReadFrame`
+  follows `ruzstd::StreamingDecoder` (whole blocks until the bytes beyond the window cover the
+  request, checksum read but not verified, skippable frames rejected, reserved sequence bits
+  ignored, block limits counted on sequences only).
+* The Rust reader panics or never returns on some hostile documents; the port returns instead and
+  these files are left out of the comparison: `f64::clamp` with min > max in the rectangle callout
+  (`ShCR` with an inverted box: Rust panics; the port clamps to the low bound), a compound listing
+  itself among its operands and a spot colour whose `srgb`/`base` refers back to it (Rust
+  overflows its stack; the port stops at 384 and 64 levels), and a pie whose end angle is so far
+  below its start that adding 2π no longer changes it (Rust loops forever; the port keeps the
+  value). Pies with large but finite gaps (Rust's `while end < start { end += TAU }` running
+  hundreds of millions of times) are fast-forwarded per binade with the same rounding, so the
+  results stay bit-identical.
 
 ## Filter notes
 

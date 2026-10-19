@@ -45,3 +45,4 @@ import t_raw_vendors
 import t_raw_hostile
 import t_io_raw
 import t_io_camera_raw
+import t_affinity
