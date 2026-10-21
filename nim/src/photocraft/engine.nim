@@ -9,10 +9,10 @@
 import engine/core
 import engine/[selection_cmds, eraser_cmds, retouch_cmds, redeye_cmds, perspective_crop_cmds,
                layer_panel_cmds, trap_wia_cmds, magnetic_cmds, fill_layer_cmds,
-               type_mask_cmds, profiles_migrate_cmds]
+               type_mask_cmds, profiles_migrate_cmds, key_cmds]
 export core, selection_cmds, eraser_cmds, retouch_cmds, redeye_cmds, perspective_crop_cmds, layer_panel_cmds,
        trap_wia_cmds, magnetic_cmds, fill_layer_cmds, type_mask_cmds,
-       profiles_migrate_cmds
+       profiles_migrate_cmds, key_cmds
 
 proc build(): seq[CommandSpec] =
   ## `commands::build()`: the base table, then every module's `specs()` in Rust's order. Modules
@@ -52,10 +52,13 @@ proc build(): seq[CommandSpec] =
   result.add smartSpecs()
   result.add layerMultiSpecs()
   result.add layerCopySpecs()
-  # prefs, edit_menu_cmds, fill_key_cmds
+  # prefs, edit_menu_cmds,
+  result.add fillKeySpecs()
   result.add sampleSpecs()
   # sampler_cmds,
-  # brush_key_cmds, stamp_cmds, align_cmds, photo_cmds, lens_cmds, vp_cmds
+  result.add brushKeySpecs()
+  result.add stampSpecs()
+  # align_cmds, photo_cmds, lens_cmds, vp_cmds
   result.add channelSpecs()
   result.add adjustSpecs()
   # layer_menu_cmds
@@ -70,7 +73,9 @@ proc build(): seq[CommandSpec] =
   # document_preset_cmds, render_cmds, slice_cmds, web_cmds, automate_cmds,
   # print_cmds,
   result.add installedProfilesSpecs()
-  # pick_cmds, layer_nav_cmds, frame_cmds,
+  # pick_cmds,
+  result.add layerNavSpecs()
+  # frame_cmds,
   result.add migrateSpecs()
   result.add trapSpecs()
   # timeline_cmds, video_cmds, jobs,

@@ -68,7 +68,10 @@ proc colorParam*(value: JsonNode; original: Color; mode: ColorMode): Color =
       alpha = a.get
     result = rgba(r.get, g.get, b.get, alpha).inMode(mode)
   of JObject:
-    try: fromJ(value, result)
+    # serde's derived `Color`: every field is required.
+    if not (value.hasKey("mode") and value.hasKey("c") and value.hasKey("alpha")): raise sbad("invalid stored Color")
+    try:
+      withSerdeStrict: fromJ(value, result)
     except CatchableError: raise sbad("invalid stored Color")
   else: raise sbad("color must be hexadecimal RGB, [r,g,b,a?], or a stored Color")
   for v in result.c:
