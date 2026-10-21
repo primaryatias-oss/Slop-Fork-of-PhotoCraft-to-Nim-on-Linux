@@ -37,7 +37,7 @@ proc build(): seq[CommandSpec] =
   result.add extraSpecs()
   result.add backgroundSpecs()
   # file_cmds, exr_cmds, type_extra_cmds, type_styles_cmds, type_spell_cmds, type_caret_cmds,
-  # smart_cmds
+  result.add smartSpecs()
   result.add layerMultiSpecs()
   result.add layerCopySpecs()
   # prefs, edit_menu_cmds, fill_key_cmds

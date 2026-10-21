@@ -246,6 +246,17 @@ def step(r, areas):
     add("image", 2, lambda: {"cmd": r.choice(["edit.transform.warp", "layer.smartObjects.warp"]), "params": dict(wparams(r), **({"rect": r.choice([[0, 0, 20, 15], [5, 5, 5, 9], [0, 0, 200000, 5]])} if r.random() < 0.4 else {}), **({"interpolation": r.choice(["nearest", "bilinear"])} if r.random() < 0.3 else {}))})
     add("image", 1, lambda: {"cmd": "edit.transform." + r.choice(["splitWarpCrosswise", "splitWarpHorizontally", "splitWarpVertically", "removeWarpSplit", "warpGrid"]), "params": dict({"warp": wobj(r)} if r.random() < 0.6 else wparams(r), **({"at": [r.uniform(0, 20), r.uniform(0, 20)]} if r.random() < 0.5 else {}), **({"size": r.choice([1, 3, "4", "5x5", "default", 0, 65, "x", [1]])} if r.random() < 0.6 else {}))})
     add("vector", 1, lambda: {"cmd": "path.transform", "params": dict({"name": r.choice(["work", "P1", "layer"])}, **wparams(r))})
+    def sfparams(r):
+        return r.choice([{}, {"layer": layer_id(r)}, {"index": r.choice([0, 1, 2, 5, -1, "x", None])}])
+    add("smart", 4, lambda: {"cmd": r.choice(["layer.smartObjects.convertToSmartObject", "filter.convertForSmartFilters"]), "params": r.choice([{}, {}, {"layer": layer_id(r)}])})
+    add("smart", 2, lambda: {"cmd": r.choice(["layer.smartObjects.newSmartObjectViaCopy", "layer.smartObjects.rasterize", "layer.smartObjects.convertToLayers", "layer.smartObjects.updateAllModifiedContent", "layer.smartObjects.updateChanged", "layer.smartObjects.updateModifiedContent", "layer.smartObjects.convertToEmbedded", "layer.smartObjects.saveContents"]), "params": r.choice([{}, {}, {"layer": layer_id(r)}])})
+    add("smart", 1, lambda: {"cmd": r.choice(["layer.smartObjects.replaceContents", "layer.smartObjects.exportContents", "layer.smartObjects.relinkToFile", "layer.smartObjects.convertToLinked"]), "params": r.choice([{}, {"path": ""}, {"path": "/nonexistent-dir/x.png"}, {"path": 5}])})
+    add("smart", 1, lambda: {"cmd": "layer.smartObjects.editContents", "params": r.choice([{}, {"layer": layer_id(r)}])})
+    add("smart", 3, lambda: {"cmd": r.choice(["filter.blur.gaussianBlur", "filter.other.offset", "filter.noise.addNoise", "filter.stylize.solarize", "filter.blur.boxBlur", "image.adjustments.invert", "image.adjustments.levels", "image.adjustments.hueSaturation"]), "params": r.choice([{}, {"radius": r.choice([1, 3.5])}, {"horizontal": 5, "vertical": -3, "undefined": r.choice(["wrap", "repeat", "background"])}, {"amount": 20, "seed": 3}, {"saturation": 40}])})
+    add("smart", 3, lambda: {"cmd": r.choice(["layer.smartFilter.setVisible", "layer.smartFilter.delete", "layer.smartFilter.disableSmartFilters", "layer.smartFilter.deleteFilterMask", "layer.smartFilter.disableFilterMask", "layer.smartFilter.clearSmartFilters"]), "params": dict(sfparams(r), **({"visible": r.choice([True, False, 1])} if r.random() < 0.4 else {}), **({"enabled": r.choice([True, False])} if r.random() < 0.3 else {}))})
+    add("smart", 2, lambda: {"cmd": "layer.smartFilter.setParams", "params": dict(sfparams(r), **r.choice([{"params": {"radius": r.choice([0.5, 2, 6])}}, {"params": {"amount": 40}}, {"params": 5}, {"params": None}, {}]))})
+    add("smart", 2, lambda: {"cmd": "layer.smartFilter.blendingOptions", "params": dict(sfparams(r), **r.choice([{"blend": r.choice(["Multiply", "screen", "pass-through", "Pass Through", "zz", 3])}, {"opacity": r.choice([0.5, 40, 150, -1, "x"])}, {"blend": "Overlay", "opacity": 0.7}]))})
+    add("smart", 1, lambda: {"cmd": "layer.smartFilter.move", "params": dict(sfparams(r), **{"to": r.choice([0, 1, 3, -1, "x"])})})
     if not pool:
         return {"cmd": "session.inspect"}
     tot = sum(w for w, _ in pool)
@@ -256,14 +267,62 @@ def step(r, areas):
             return f()
     return pool[-1][1]()
 
+def smart_block(r):
+    """A smart object with smart filters, then edits that mostly succeed."""
+    b = []
+    if r.random() < 0.5:
+        b.append({"cmd": "edit.fill", "params": {"contents": "color", "color": r.choice(["#ff0000", "#3060c0"])}})
+    if r.random() < 0.4:
+        b.append({"cmd": "select.rect", "params": rect(r)})
+        b.append({"cmd": "edit.fill", "params": {"contents": "color", "color": "#20ff40"}})
+    b.append({"cmd": r.choice(["layer.smartObjects.convertToSmartObject", "filter.convertForSmartFilters"])})
+    if r.random() < 0.3:
+        b.append({"cmd": "select.rect", "params": dict(rect(r), **({"feather": 3} if r.random() < 0.5 else {}))})
+    for _ in range(r.randint(1, 3)):
+        b.append(r.choice([
+            {"cmd": "filter.blur.gaussianBlur", "params": {"radius": r.choice([1, 2.5])}},
+            {"cmd": "filter.blur.boxBlur", "params": {"radius": 2}},
+            {"cmd": "filter.other.offset", "params": {"horizontal": r.randint(-9, 9), "vertical": r.randint(-9, 9), "undefined": r.choice(["wrap", "repeat", "background"])}},
+            {"cmd": "filter.noise.addNoise", "params": {"amount": 12, "seed": r.randint(0, 9)}},
+            {"cmd": "filter.stylize.solarize"},
+            {"cmd": "image.adjustments.invert"},
+            {"cmd": "image.adjustments.hueSaturation", "params": {"hue": 40}}]))
+    if r.random() < 0.5:
+        b.append({"cmd": "select.deselect"})
+    for _ in range(r.randint(1, 5)):
+        i = r.choice([0, 1, 2])
+        b.append(r.choice([
+            {"cmd": "layer.smartFilter.setVisible", "params": {"index": i, **({"visible": r.choice([True, False])} if r.random() < 0.5 else {})}},
+            {"cmd": "layer.smartFilter.setParams", "params": {"index": i, "params": r.choice([{"radius": 4}, {"amount": 30}, {"horizontal": 3}])}},
+            {"cmd": "layer.smartFilter.blendingOptions", "params": {"index": i, "blend": r.choice(["Multiply", "Screen", "Difference"]), "opacity": r.choice([0.4, 60, 1])}},
+            {"cmd": "layer.smartFilter.move", "params": {"index": i, "to": r.choice([0, 1])}},
+            {"cmd": "layer.smartFilter.delete", "params": {"index": i}},
+            {"cmd": r.choice(["layer.smartFilter.disableSmartFilters", "layer.smartFilter.disableFilterMask", "layer.smartFilter.deleteFilterMask", "layer.smartFilter.clearSmartFilters"])},
+            {"cmd": "layer.translate", "params": {"dx": r.randint(-6, 6), "dy": r.randint(-6, 6)}},
+            {"cmd": "edit.transform", "params": r.choice([{"matrix": [0.5, 0, 0, 0.5, 3, 2]}, {"matrix": [1, 0, 0, 1, 4, -2]}, {"quad": [[0, 0], [30, 2], [28, 25], [1, 20]]}])},
+            {"cmd": "layer.smartObjects.newSmartObjectViaCopy"},
+            {"cmd": "layer.duplicate"},
+            {"cmd": "layer.smartObjects.convertToLayers"},
+            {"cmd": "layer.smartObjects.rasterize"},
+            {"cmd": "edit.undo"},
+            {"cmd": "image.imageSize", "params": {"width": r.choice([30, 80])}},
+        ]))
+    if r.random() < 0.3:
+        b.append({"cmd": "layer.smartObjects.editContents"})
+        b.append({"cmd": "edit.fill", "params": {"contents": "color", "color": "#ffff00"}})
+        b.append({"cmd": "layer.smartObjects.saveContents"})
+    return b
+
 def main():
     out, count = sys.argv[1], int(sys.argv[2])
     seed = int(sys.argv[3]) if len(sys.argv) > 3 else 1
-    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector"}
+    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart"}
     os.makedirs(out, exist_ok=True)
     r = random.Random(seed)
     for i in range(count):
         steps = [new_doc(r) if r.random() < 0.3 else valid_doc(r)]
+        if "smart" in areas and r.random() < 0.6:
+            steps.extend(smart_block(r))
         for _ in range(r.randint(3, 25)):
             steps.append(new_doc(r) if r.random() < 0.03 else step(r, areas))
         # Inspect at the end so view state is compared too.

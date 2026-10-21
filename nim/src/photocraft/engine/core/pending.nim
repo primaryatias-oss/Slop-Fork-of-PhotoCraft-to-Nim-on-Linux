@@ -6,7 +6,6 @@ proc notPorted(what: string): ref EngineError = other("`" & what & "` is not por
 
 # ---------------------------------------------------------------- dispatch hooks (jobs.rs)
 
-proc onCloseDocument(s: var Session; index: int) = discard
 proc beforeCommandHook(s: var Session; id: string): Option[JsonNode] = floatBeforeCommand(s, id)
 proc editMenuAfterCommand*(s: var Session; id: string) = discard
 proc automateAfterCommand*(s: var Session; id: string) = discard
@@ -115,9 +114,6 @@ proc validateNewParams*(s: Session; p: JsonNode) =
 # ---------------------------------------------------------------- not ported yet
 
 proc refreshText*(doc: Document; t: var TextLayer) = raise notPorted("type_cmds::refresh")
-proc shiftSmart*(sm: var SmartObject; dx, dy: int) = raise notPorted("smart_cmds::shift_smart")
-proc transformPlacement*(sm: var SmartObject; a: Affine) = raise notPorted("smart_cmds::transform_placement")
-proc refreshSmartLayer*(doc: Document; l: var Layer) = raise notPorted("smart_cmds::refresh_layer")
 proc placeCopy*(doc: var Document; id: LayerId) = discard
 proc fitCanvas*(doc: var Document) = discard
 proc paintStroke*(s: var Session; p: JsonNode): JsonNode = raise notPorted("brush_cmds::paint_stroke")
@@ -128,7 +124,6 @@ proc ignoreExifProfileTag*(s: Session): bool = false
 proc prefsTouch*(s: var Session) = discard
 proc convertFromMultichannel*(s: var Session; mode: ColorMode; p: JsonNode): JsonNode = raise notPorted("multichannel_cmds::convert_from")
 proc presetsChanged*(s: var Session) = discard
-proc addSmartFilter*(doc: var Document; id: LayerId; sf: SmartFilter; sel: Option[Surface]) = raise notPorted("smart_cmds::add_smart_filter")
 proc distortApplyToSurface*(id: string; params: JsonNode; surf: Surface; canvas: Rect): Option[Surface] = none(Surface)
 proc lensApplyToSurface*(id: string; params: JsonNode; surf: Surface; canvas: Rect): Option[Surface] = none(Surface)
 proc pluginApplyToSurface*(id: string; params: JsonNode; surf: Surface; selection: Option[Surface]; canvas: Rect): Option[Surface] = none(Surface)
@@ -146,9 +141,6 @@ proc fileImport*(name: string; bytes: openArray[byte]): Document =
   if r.previewOnly:
     raise other(name & ": only this Affinity file's embedded preview could be read; open it with File › Open to see the warning, or export PSD or PNG from Affinity before using it here")
   r.document
-proc smartPlacement*(sm: SmartObject): Homography = raise notPorted("smart_cmds::placement")
-proc setPlacement*(sm: var SmartObject; h: Homography) = raise notPorted("smart_cmds::set_placement")
-proc smartRefresh*(doc: var Document; id: LayerId): bool = raise notPorted("smart_cmds::refresh")
 
 # ---------------------------------------------------------------- brush_cmds (part)
 

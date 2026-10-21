@@ -968,7 +968,9 @@ proc layer(ld: var Loader; m: JsonNode; depth: int): Layer =
       if ok: so.perspective = persp
     lc = LayerContent(kind: lkSmart, smart: so)
   else: raise fmtError(feJson, "unknown layer content kind `" & kind & "`")
-  result = newLayer(m.get("name", string), lc)
+  # Built directly (not `newLayer`): its id comes from the file, so none is minted here.
+  result = Layer(name: m.get("name", string), visible: true, blend: bmNormal, opacity: 1, fillOpacity: 1,
+                 effects: newEffects(), label: lcNone, content: lc, advanced: defaultAdvancedBlending())
   let mm = m.field("mask")
   if mm.kind != JNull: result.mask = some(ld.mask(mm))
   let fc = m.field("fill_cache")

@@ -128,7 +128,7 @@ proc refreshRec(snapshot: Document; layers: var seq[Layer]; what: Refresh) =
       if what == rfAll: refreshText(snapshot, l.content.text)
     of lkSmart:
       if what == rfAll:
-        try: refreshSmartLayer(snapshot, l)
+        try: discard refreshSmartLayer(snapshot, l)
         except CatchableError: discard
     else: discard
 

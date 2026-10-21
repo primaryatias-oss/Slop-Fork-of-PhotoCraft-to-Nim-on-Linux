@@ -174,7 +174,8 @@ Content-Aware Fill (`content_aware`). Non-filter APIs are checked with `tools/al
 | paint (brush model and serde, dynamics, stroke renderer, procedural tips/patterns, presets, Mixer Brush, Color Replacement, Background Eraser, retouch dab machinery and Smudge, cursor outlines, symmetry) | ported, tested; dabs, rendered strokes at every depth/model, coverage, tool effects, outlines, symmetry and the preset JSON identical to Rust (`tools/algocases/paint.json`, 1140 command runs) |
 | raw (TIFF/EP reader, DNG incl. deflate / lossless-JPEG / lossy-JPEG tiles, opcodes and default crops, CR2, Nikon Huffman NEF, Sony cRAW, Panasonic RW2, Olympus ORF, Fujifilm RAF incl. X-Trans, embedded previews, camera profiles, demosaicing (bilinear, Malvar–He–Cutler, AHD, X-Trans), develop, the camera-look fit; testgen writers) | ported, tested; decoded sensors, developed images, previews, TIFF dumps and camera-look fits identical to Rust on 1535 runs over 75 oracle-written files, truncated and bit-flipped variants included (`tools/algocases/raw.json`, `tools/rawcheck.nim`); the Nim testgen writes byte-identical files. See "raw notes" |
 | affinity (archive with zlib/zstd entries and byte predictors, the tagged object stream, the document model: spreads, pages, artboards, groups, curves with live corners, every parametric shape, compounds, fills, gradients, strokes, artistic and frame text, pixel layers in every tile format, placed and embedded images, masks; the indexed preview; synth builders) | ported, tested; model dumps identical to Rust on about 30,000 generated documents (every node kind, colour model, shape and tile state, plus stream, container and compressed-payload mutations) and on 3000 mutated previews (`tools/afgen.nim`, `tools/afcheck.nim`, `tools/afcompare.py`). See "affinity notes" |
-| engine, UI, CLI | in progress |
+| engine (`engine/core/*`: Session, dispatch and 434 of the 884 commands: layers, selections, fill, channels, edit, colour, styles, adjustments, filters, Image menu, transforms, warps, vector shapes and paths, floating selections, smart objects and smart filters) | in progress; step results, errors and `.pcraft` documents identical to Rust on thousands of generated scripts (`tools/enginecases.py`, `tools/enginecheck.nim`). See "engine notes" |
+| UI, CLI | not started |
 | heif (HEVC decoding), plugins (WebAssembly runtime) | not ported: they need a video decoder / wasm interpreter; the commands report "unsupported" |
 
 ## Checking against Rust
@@ -309,3 +310,24 @@ Checked against the Rust build on the psd-tools corpus with a Rust oracle (`impo
 * Flat enum types (`Effect`, `Fill`, `Adjustment`, …) compare only their active variant (as Rust's
   derived `PartialEq` does), through their serde form.
 
+## engine notes
+
+`tools/enginecases.py OUTDIR N SEED [AREAS]` writes random command scripts (valid and hostile
+params); `enginecheck ORACLE OUTDIR/*.json` runs each in a fresh Rust process and a fresh Nim
+session and compares every step's result or error and every open document's `.pcraft` manifest
+(tiles by hash; embedded smart-object sources by their nested manifest, since the two builds'
+bundle bytes differ). `enginecheck --specs ORACLE` compares the registry.
+
+* serde_json maps are `BTreeMap`s: iterate params in sorted key order (`sortedPairs`) wherever the
+  order shows (first error reported, merged objects).
+* `Layer::surface_mut` is raster-only (`surfaceMut`); caches of type, shapes and smart objects are
+  never edited in place.
+* Ids come from one process-wide counter (layers, documents, smart contents): every id the Rust
+  code mints must be minted here too, in the same order. The `.pcraft` loader used to burn one per
+  layer through `newLayer`; a decode also reserves one (`reserveIdsThrough`'s probe), so a smart
+  object source decoded from the cache mints fewer ids than a cold decode. `enginecheck` clears the
+  smart-object caches per script (`clearSourceCache`, `purgeStackCache`) to match a fresh process.
+* `geom::Warp` serializes camelCase (`hDistort`), unlike `TextWarp` (snake_case): types opt in with
+  `serdeCamel`.
+* SVG sources (`io::svg`) are not ported: SVG smart objects report "can't render the SVG smart
+  object"; linked-file stamps are taken synchronously (no worker thread).

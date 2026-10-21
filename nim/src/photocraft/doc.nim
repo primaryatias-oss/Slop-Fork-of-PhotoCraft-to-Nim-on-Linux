@@ -527,6 +527,7 @@ proc defaultAdvancedBlending*(): AdvancedBlending =
   AdvancedBlending(knockout: koNone, blendClipped: true, transparencyShapes: true)
 proc defaultOf*(_: typedesc[AdvancedBlending]): AdvancedBlending = defaultAdvancedBlending()
 proc serdeCamel*(_: typedesc[AdvancedBlending]): bool = true
+proc serdeCamel*(_: typedesc[Warp]): bool = true ## `hDistort`, `vDistort` (serde camelCase)
 proc isDefault*(a: AdvancedBlending): bool = a == defaultAdvancedBlending()
 
 const FullRange* = BlendRange(black: [0'u8, 0], white: [255'u8, 255])

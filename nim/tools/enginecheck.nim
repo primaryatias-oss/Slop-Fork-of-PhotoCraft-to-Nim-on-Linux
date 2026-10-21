@@ -5,7 +5,7 @@
 ## `enginecheck --specs ORACLE` compares the registry (ids, labels, menus, shortcuts, params).
 
 import std/[os, osproc, strutils, json, tables, math]
-import photocraft/[engine, format]
+import photocraft/[engine, format, zstd]
 
 const Volatile = ["generator"]
 
@@ -47,6 +47,26 @@ proc firstDiff(a, b: JsonNode; path: string): string =
     if a != b: return path & ": " & ($a)[0 ..< min(($a).len, 300)] & " vs " & ($b)[0 ..< min(($b).len, 300)]
   ""
 
+proc expandBlobs(n: JsonNode; bundle: seq[byte]; depth = 0): JsonNode =
+  ## Embedded smart object sources are `.pcraft` bundles whose bytes differ between the builds
+  ## (generator, zip layout): compare their manifests instead of their hashes.
+  case n.kind
+  of JObject:
+    result = newJObject()
+    for k, v in n.fields:
+      if k == "blob" and v.kind == JString and n{"kind"}.getStr == "embedded" and depth < 8:
+        try:
+          let raw = zstdDecompress(newZipSource(bundle).get("blobs/" & v.getStr & ".zst", 1 shl 30))
+          if raw.len > 2 and raw[0] == byte('P') and raw[1] == byte('K'):
+            result[k] = expandBlobs(strip(readManifest(raw)), raw, depth + 1)
+            continue
+        except CatchableError: discard
+      result[k] = expandBlobs(v, bundle, depth)
+  of JArray:
+    result = newJArray()
+    for v in n.elems: result.add expandBlobs(v, bundle, depth)
+  else: result = n
+
 proc bytesOf(path: string): seq[byte] =
   let t = readFile(path)
   result = newSeq[byte](t.len)
@@ -54,6 +74,8 @@ proc bytesOf(path: string): seq[byte] =
 
 proc runNim(steps: JsonNode): (JsonNode, seq[Document]) =
   resetIdsForTesting()
+  clearSourceCache()
+  discard purgeStackCache()
   var s = newSession()
   var log = newJArray()
   for step in steps.elems:
@@ -138,8 +160,10 @@ when isMainModule:
       if k != docs.len: problem = "documents: rust " & $k & " nim " & $docs.len
       else:
         for i in 0 ..< k:
-          let a = strip(readManifest(bytesOf(tmp / ("doc" & $i & ".pcraft"))))
-          let b = strip(readManifest(saveToBytes(docs[i])))
+          let ra = bytesOf(tmp / ("doc" & $i & ".pcraft"))
+          let rb = saveToBytes(docs[i])
+          let a = expandBlobs(strip(readManifest(ra)), ra)
+          let b = expandBlobs(strip(readManifest(rb)), rb)
           let d = firstDiff(a, b, "doc" & $i)
           if d.len > 0:
             problem = d

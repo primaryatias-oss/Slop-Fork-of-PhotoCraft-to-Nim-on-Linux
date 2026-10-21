@@ -248,6 +248,17 @@ type
     maskTargeted*: bool
     otherColors*: array[2, array[4, float32]]
 
+  SmartLink* = object
+    ## An open Edit Contents document and the shared contents it updates when saved or closed.
+    child*, parent*: DocId
+    layer*: LayerId
+    contentsId*: SmartContentsId
+
+  Stamp* = (uint64, int64, int64)
+    ## A file's size and modification time (seconds and nanoseconds since 1970).
+  LinkScan* = (uint64, seq[(string, seq[uint64], Option[Stamp])])
+    ## Stamps of a document's linked files: (document id, [(file, layer ids, stamp)]).
+
   RunProc* = proc(s: var Session; p: JsonNode): JsonNode
   EnabledProc* = proc(s: Session): string
     ## "" when the command can run; otherwise why not.
@@ -280,6 +291,9 @@ type
     pathStrokeClipboard*: Option[ShapeStroke] ## Copy Complete Stroke
     colorRestrict: Option[int]
     authorize*: AuthorizeProc
+    smartLinks*: seq[SmartLink]                  ## open Edit Contents documents
+    linkStamps*: Table[(uint64, string), Stamp]  ## last seen stamps of linked files, per document
+    linkScan*: Option[LinkScan]                  ## a finished look at the linked files
     jobs: Jobs
     samplersRemoved: int
     samplerMap: Option[Affine]

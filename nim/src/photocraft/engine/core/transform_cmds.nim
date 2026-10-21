@@ -294,7 +294,7 @@ proc refreshRendered*(doc: Document; l: var Layer) =
   of lkShape: refreshShape(doc, l.content.shape)
   of lkSmart:
     # Unavailable sources keep the warped cache.
-    try: refreshSmartLayer(doc, l)
+    try: discard refreshSmartLayer(doc, l)
     except EngineError: discard
   of lkGroup:
     for c in l.content.group.children.mitems: refreshRendered(doc, c)
