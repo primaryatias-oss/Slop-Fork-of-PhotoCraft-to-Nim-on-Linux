@@ -369,6 +369,10 @@ def step(r, areas):
     add("small", 2, lambda: {"cmd": "layer.rasterize.layerStyle", "params": r.choice([{}, {"layer": layer_id(r)}])})
     add("small", 1, lambda: {"cmd": "file.import.wiaSupport", "params": {}})
     add("small", 1, lambda: {"cmd": "image.mode.multichannel", "params": {}})
+    add("small", 2, lambda: {"cmd": "layer.new.frame", "params": {k: r.choice(v) for k, v in [("x", [2, -5, 10.6, "x", 2**40]), ("y", [3, 20]), ("width", [10, 30, 0, 400000, 1.4]), ("height", [8, 25]), ("shape", ["rectangle", "ellipse", "zz", None]), ("layer", [1, 2, 3, 4, "x", None]), ("name", ["F", 3])] if r.random() < 0.75}})
+    add("small", 1, lambda: {"cmd": "layer.new.frameFromLayers", "params": r.choice([{}, {"name": "Fr"}, {"name": 3}])})
+    add("small", 2, lambda: {"cmd": "layer.pickAt", "params": {k: r.choice(v) for k, v in [("x", [5, 20.7, -3, 1e12, "x"]), ("y", [6, 15]), ("target", ["layer", "group", "zz"]), ("select", [True, False]), ("mode", ["replace", "add", "toggle", "zz"]), ("list", [True, False])] if r.random() < 0.7}})
+    add("small", 2, lambda: {"cmd": "layer.selectInRect", "params": {k: r.choice(v) for k, v in [("x", [0, 5, 30, -10, "x"]), ("y", [0, 10]), ("width", [20, -15, 0, 1e12]), ("height", [20, -8, 5]), ("target", ["layer", "group"]), ("mode", ["replace", "add", "zz"])] if r.random() < 0.8}})
     add("small", 2, lambda: {"cmd": r.choice(["notes.add", "notes.set"]), "params": {k: r.choice(v) for k, v in [("x", [5, 20.5, -3, 1e300, "x"]), ("y", [7, 30]), ("text", ["hello", "", 3]), ("author", ["me", None]), ("color", ["#ff0000", [0, 0.5, 1], "zz", 3]), ("open", [False, True, "x"]), ("index", [0, 1, 5, -1, "x"])] if r.random() < 0.5}})
     add("small", 1, lambda: {"cmd": r.choice(["notes.delete", "notes.list"]), "params": r.choice([{}, {"index": r.choice([0, 1, 9])}, {"all": True}, {"all": "x"}])})
     add("small", 1, lambda: {"cmd": "file.import.notes", "params": r.choice([{}, {"path": "/nonexistent/a.psd"}, {"path": "/tmp"}, {"path": 5}])})
@@ -550,6 +554,9 @@ def small_block(r):
         for _ in range(r.randint(1, 3)):
             steps.append({"cmd": "view.colorSamplers.add", "params": {"x": r.uniform(0, 30), "y": r.uniform(0, 30)}})
         steps.append({"cmd": r.choice(["view.colorSamplers.move", "view.colorSamplers.delete", "view.colorSamplers.list", "view.colorSamplers.clear"]), "params": {"index": r.choice([0, 1]), "x": r.uniform(0, 30), "y": r.uniform(0, 30)}})
+    if r.random() < 0.5:
+        steps.append({"cmd": "layer.new.frame", "params": dict({"x": r.randint(-5, 20), "y": r.randint(-5, 20), "width": r.randint(1, 40), "height": r.randint(1, 40)}, **{k: r.choice(v) for k, v in [("shape", ["ellipse", "rectangle"]), ("layer", [2, 3, 4, 5]), ("name", ["Fr"])] if r.random() < 0.4})})
+        steps.append({"cmd": r.choice(["layer.pickAt", "layer.selectInRect"]), "params": dict({"x": r.randint(0, 30), "y": r.randint(0, 30), "width": r.randint(-20, 30), "height": r.randint(-20, 30)}, **{k: r.choice(v) for k, v in [("target", ["group", "layer"]), ("mode", ["add", "replace"]), ("list", [True]), ("select", [False])] if r.random() < 0.3})})
     if r.random() < 0.4:
         steps.append({"cmd": "type.create", "params": {"text": r.choice(["Mask", "Ab"]), "x": 4, "y": 24, "size": 18}})
         steps.append({"cmd": "type.createSelection", "params": {"layer": r.choice([3, 4, 5, 6]), "removeLayer": r.choice([True, False]), **({"operation": r.choice(["add", "intersect"])} if r.random() < 0.3 else {})}})
