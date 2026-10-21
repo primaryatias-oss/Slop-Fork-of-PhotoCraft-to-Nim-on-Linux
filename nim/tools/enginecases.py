@@ -249,6 +249,12 @@ def step(r, areas):
     add("image", 2, lambda: {"cmd": r.choice(["edit.transform.warp", "layer.smartObjects.warp"]), "params": dict(wparams(r), **({"rect": r.choice([[0, 0, 20, 15], [5, 5, 5, 9], [0, 0, 200000, 5]])} if r.random() < 0.4 else {}), **({"interpolation": r.choice(["nearest", "bilinear"])} if r.random() < 0.3 else {}))})
     add("image", 1, lambda: {"cmd": "edit.transform." + r.choice(["splitWarpCrosswise", "splitWarpHorizontally", "splitWarpVertically", "removeWarpSplit", "warpGrid"]), "params": dict({"warp": wobj(r)} if r.random() < 0.6 else wparams(r), **({"at": [r.uniform(0, 20), r.uniform(0, 20)]} if r.random() < 0.5 else {}), **({"size": r.choice([1, 3, "4", "5x5", "default", 0, 65, "x", [1]])} if r.random() < 0.6 else {}))})
     add("vector", 1, lambda: {"cmd": "path.transform", "params": dict({"name": r.choice(["work", "P1", "layer"])}, **wparams(r))})
+    pe_tgt = lambda r: {"name": r.choice(["work", "work", "P1", "layer", "nope"]), **({"layer": layer_id(r)} if r.random() < 0.15 else {})}
+    pe_knot = lambda r: {k: r.choice(v) for k, v in [("subpath", [0, 0, 1, 5, -1, "x"]), ("knot", [0, 1, 2, 3, 9, "x"])] if r.random() < 0.9}
+    add("vector", 2, lambda: {"cmd": "path.moveAnchors", "params": dict(pe_tgt(r), **{k: r.choice(v) for k, v in [("anchors", [[[0, 0]], [[0, 1], [0, 2], [0, 1]], [[1, 0]], [], [[0]], "x"]), ("move", [[5, -3], [0.5, 2.25], [1e7, 0], [1], "x"])] if r.random() < 0.9})})
+    add("vector", 2, lambda: {"cmd": "path.moveHandle", "params": dict(pe_tgt(r), **pe_knot(r), **{k: r.choice(v) for k, v in [("handle", ["in", "out", "zz"]), ("to", [[10, 12], {"x": 3, "y": 4}, [1e7, 1], "x"]), ("independent", [True, False])] if r.random() < 0.85})})
+    add("vector", 2, lambda: {"cmd": r.choice(["path.bendSegment", "path.addAnchor"]), "params": dict(pe_tgt(r), **pe_knot(r), **{k: r.choice(v) for k, v in [("t", [0.5, 0.25, 0, 1, 1.5, "x"]), ("move", [[4, 6], [0, -3], "x"])] if r.random() < 0.8})})
+    add("vector", 2, lambda: {"cmd": r.choice(["path.convertPoint", "path.deleteAnchor"]), "params": dict(pe_tgt(r), **pe_knot(r), **({"out": r.choice([[20, 5], [1e9, 0], "x"])} if r.random() < 0.4 else {}))})
     def sfparams(r):
         return r.choice([{}, {"layer": layer_id(r)}, {"index": r.choice([0, 1, 2, 5, -1, "x", None])}])
     add("smart", 4, lambda: {"cmd": r.choice(["layer.smartObjects.convertToSmartObject", "filter.convertForSmartFilters"]), "params": r.choice([{}, {}, {"layer": layer_id(r)}])})
@@ -600,6 +606,32 @@ def brush_block(r):
     steps.append({"cmd": "brush.presets.list", "params": {}})
     return steps
 
+def path_block(r):
+    """Point-level edits of a work path, a saved path or a shape layer's path."""
+    knots = [[r.randint(0, 40), r.randint(0, 40)] for _ in range(r.randint(2, 5))]
+    if r.random() < 0.5:
+        knots = [{"anchor": k, "in": [k[0] - 3, k[1] + 2], "out": [k[0] + 3, k[1] - 2], **({"smooth": True} if r.random() < 0.5 else {})} for k in knots]
+    closed = r.random() < 0.5
+    tgt = r.choice([{"name": "work"}, {"name": "P1"}, {"name": "layer"}])
+    steps = []
+    if tgt["name"] == "layer":
+        steps.append({"cmd": "shape.create", "params": {"kind": "path", "path": {"subpaths": [{"closed": closed, "knots": knots}]}, "fill": "#336699"}})
+    else:
+        steps.append({"cmd": "path.set", "params": {"name": tgt["name"], "path": {"subpaths": [{"closed": closed, "knots": knots}]}}})
+    n = len(knots)
+    for _ in range(r.randint(2, 6)):
+        k = {"subpath": 0, "knot": r.randint(0, n)}
+        c = r.choice(["path.moveAnchors", "path.moveHandle", "path.bendSegment", "path.convertPoint", "path.addAnchor", "path.deleteAnchor"])
+        q = dict(tgt, **k)
+        if c == "path.moveAnchors": q = dict(tgt, anchors=[[0, r.randint(0, n - 1)] for _ in range(r.randint(1, 2))], move=[r.uniform(-8, 8), r.uniform(-8, 8)])
+        elif c == "path.moveHandle": q.update(handle=r.choice(["in", "out"]), to=[r.uniform(0, 40), r.uniform(0, 40)], independent=r.random() < 0.3)
+        elif c == "path.bendSegment": q.update(t=r.choice([0.3, 0.5, 0.8]), move=[r.uniform(-6, 6), r.uniform(-6, 6)])
+        elif c == "path.convertPoint" and r.random() < 0.5: q.update(out=[r.uniform(0, 40), r.uniform(0, 40)])
+        elif c == "path.addAnchor": q.update(t=r.choice([0.25, 0.5, 0.75]))
+        steps.append({"cmd": c, "params": q})
+    steps.append({"cmd": "path.info", "params": tgt})
+    return steps
+
 def main():
     out, count = sys.argv[1], int(sys.argv[2])
     seed = int(sys.argv[3]) if len(sys.argv) > 3 else 1
@@ -620,6 +652,8 @@ def main():
             steps.extend(history_block(r))
         if "paint" in areas and r.random() < 0.3:
             steps.extend(brush_block(r))
+        if "vector" in areas and r.random() < 0.5:
+            steps.extend(path_block(r))
         for _ in range(r.randint(3, 25)):
             steps.append(new_doc(r) if r.random() < 0.03 else step(r, areas))
         # Inspect at the end so view state is compared too.
