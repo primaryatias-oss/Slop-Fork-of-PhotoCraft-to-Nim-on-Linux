@@ -893,9 +893,9 @@ proc loadFace*(blob: FontBlob; index = 0): Face =
   f.parseNames()
   f.selectCmap()
   f.parseFvar()
+  # A face without outlines (a bitmap-only colour emoji font: CBDT, sbix) still loads, as in
+  # fontique: it has names, metrics and a charmap, and its glyphs draw nothing.
   if f.hasTable("CFF "): f.parseCff()
-  elif not f.hasTable("glyf") and not f.hasTable("CFF2"):
-    raise fontError("the font has no glyph outlines")
 
 proc loadFaces*(data: seq[byte]): seq[Face] =
   ## Every usable face of a font file (none when it is not a font).

@@ -69,7 +69,7 @@ proc pairKerning*(e: TextEngine; layer: TextLayer; dpi: float32; at: int): Optio
   var start = 0
   for r in runs:
     let stop = start + r.len
-    proc push(s, e: int; unkern: bool) =
+    template push(s, e: int; unkern: bool) =
       if e > s:
         var style = r.style
         if unkern:

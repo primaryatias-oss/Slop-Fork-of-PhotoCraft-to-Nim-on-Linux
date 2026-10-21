@@ -6,6 +6,7 @@
 
 import std/[os, osproc, strutils, json, tables, math]
 import photocraft/[engine, format, zstd]
+import photocraft/compose/psblend
 
 const Volatile = ["generator"]
 
@@ -76,6 +77,7 @@ proc runNim(steps: JsonNode): (JsonNode, seq[Document]) =
   resetIdsForTesting()
   clearSourceCache()
   discard purgeStackCache()
+  setTextGamma(TextGammaDefault) # Color Settings' Blend Text Colors Using Gamma is process-wide
   var s = newSession()
   var log = newJArray()
   for step in steps.elems:
@@ -150,6 +152,10 @@ when isMainModule:
       if i >= rustLog.len or i >= nimLog.len:
         problem = "step count"
         break
+      # The byte size of exported contents depends on each build's zstd encoder.
+      if steps[i]{"cmd"}.getStr == "layer.smartObjects.exportContents":
+        for log in [rustLog[i], nimLog[i]]:
+          if log.hasKey("ok") and log["ok"].kind == JObject: log["ok"].delete("bytes")
       let d = firstDiff(rustLog[i], nimLog[i], "")
       if d.len > 0:
         problem = "step " & $i & " (" & steps[i]{"cmd"}.getStr & ")" & d

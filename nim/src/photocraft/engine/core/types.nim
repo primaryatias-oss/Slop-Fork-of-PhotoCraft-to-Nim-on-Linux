@@ -292,6 +292,7 @@ type
     colorRestrict: Option[int]
     authorize*: AuthorizeProc
     smartLinks*: seq[SmartLink]                  ## open Edit Contents documents
+    typeDefaults*: Option[(CharStyle, ParagraphStyle)] ## Type › Save Default Type Styles
     linkStamps*: Table[(uint64, string), Stamp]  ## last seen stamps of linked files, per document
     linkScan*: Option[LinkScan]                  ## a finished look at the linked files
     jobs: Jobs

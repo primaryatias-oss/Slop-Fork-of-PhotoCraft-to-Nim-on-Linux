@@ -20,7 +20,9 @@ proc build(): seq[CommandSpec] =
   result.add colorToAlphaSpecs()
   result.add gallerySpecs()
   # gradient_fill_cmds,
-  # solid_fill_cmds, pattern_fill_cmds, type_cmds, type_mask_cmds
+  # solid_fill_cmds, pattern_fill_cmds
+  result.add typeSpecs()
+  # type_mask_cmds
   result.add transformSpecs()
   result.add floatSpecs()
   result.add vectorSpecs()

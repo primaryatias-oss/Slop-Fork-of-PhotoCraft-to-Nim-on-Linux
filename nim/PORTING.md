@@ -174,7 +174,7 @@ Content-Aware Fill (`content_aware`). Non-filter APIs are checked with `tools/al
 | paint (brush model and serde, dynamics, stroke renderer, procedural tips/patterns, presets, Mixer Brush, Color Replacement, Background Eraser, retouch dab machinery and Smudge, cursor outlines, symmetry) | ported, tested; dabs, rendered strokes at every depth/model, coverage, tool effects, outlines, symmetry and the preset JSON identical to Rust (`tools/algocases/paint.json`, 1140 command runs) |
 | raw (TIFF/EP reader, DNG incl. deflate / lossless-JPEG / lossy-JPEG tiles, opcodes and default crops, CR2, Nikon Huffman NEF, Sony cRAW, Panasonic RW2, Olympus ORF, Fujifilm RAF incl. X-Trans, embedded previews, camera profiles, demosaicing (bilinear, Malvar–He–Cutler, AHD, X-Trans), develop, the camera-look fit; testgen writers) | ported, tested; decoded sensors, developed images, previews, TIFF dumps and camera-look fits identical to Rust on 1535 runs over 75 oracle-written files, truncated and bit-flipped variants included (`tools/algocases/raw.json`, `tools/rawcheck.nim`); the Nim testgen writes byte-identical files. See "raw notes" |
 | affinity (archive with zlib/zstd entries and byte predictors, the tagged object stream, the document model: spreads, pages, artboards, groups, curves with live corners, every parametric shape, compounds, fills, gradients, strokes, artistic and frame text, pixel layers in every tile format, placed and embedded images, masks; the indexed preview; synth builders) | ported, tested; model dumps identical to Rust on about 30,000 generated documents (every node kind, colour model, shape and tile state, plus stream, container and compressed-payload mutations) and on 3000 mutated previews (`tools/afgen.nim`, `tools/afcheck.nim`, `tools/afcompare.py`). See "affinity notes" |
-| engine (`engine/core/*`: Session, dispatch and 434 of the 884 commands: layers, selections, fill, channels, edit, colour, styles, adjustments, filters, Image menu, transforms, warps, vector shapes and paths, floating selections, smart objects and smart filters) | in progress; step results, errors and `.pcraft` documents identical to Rust on thousands of generated scripts (`tools/enginecases.py`, `tools/enginecheck.nim`). See "engine notes" |
+| engine (`engine/core/*`: Session, dispatch and 444 of the 884 commands: layers, selections, fill, channels, edit, colour, styles, adjustments, filters, Image menu, transforms, warps, vector shapes and paths, floating selections, smart objects and smart filters, type layers) | in progress; step results, errors and `.pcraft` documents identical to Rust on thousands of generated scripts (`tools/enginecases.py`, `tools/enginecheck.nim`). See "engine notes" |
 | UI, CLI | not started |
 | heif (HEVC decoding), plugins (WebAssembly runtime) | not ported: they need a video decoder / wasm interpreter; the commands report "unsupported" |
 
@@ -329,5 +329,11 @@ bundle bytes differ). `enginecheck --specs ORACLE` compares the registry.
   smart-object caches per script (`clearSourceCache`, `purgeStackCache`) to match a fresh process.
 * `geom::Warp` serializes camelCase (`hDistort`), unlike `TextWarp` (snake_case): types opt in with
   `serdeCamel`.
+* Process-wide state outlives a script in the checker's one process: besides the smart-object
+  caches it resets Color Settings' text gamma (`setTextGamma`), which Rust also keeps per process.
+* A face without outlines (a bitmap-only colour emoji font) loads with empty glyphs, as fontique
+  lists it: `type.fonts` then names the same families as the Rust build.
+* `layer.smartObjects.exportContents` reports the bundle's byte size, which depends on each build's
+  zstd encoder; the contents themselves are identical.
 * SVG sources (`io::svg`) are not ported: SVG smart objects report "can't render the SVG smart
   object"; linked-file stamps are taken synchronously (no worker thread).

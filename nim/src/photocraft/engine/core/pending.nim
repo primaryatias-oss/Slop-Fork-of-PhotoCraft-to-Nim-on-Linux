@@ -113,7 +113,6 @@ proc validateNewParams*(s: Session; p: JsonNode) =
 
 # ---------------------------------------------------------------- not ported yet
 
-proc refreshText*(doc: Document; t: var TextLayer) = raise notPorted("type_cmds::refresh")
 proc placeCopy*(doc: var Document; id: LayerId) = discard
 proc fitCanvas*(doc: var Document) = discard
 proc paintStroke*(s: var Session; p: JsonNode): JsonNode = raise notPorted("brush_cmds::paint_stroke")

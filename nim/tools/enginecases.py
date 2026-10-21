@@ -250,13 +250,33 @@ def step(r, areas):
         return r.choice([{}, {"layer": layer_id(r)}, {"index": r.choice([0, 1, 2, 5, -1, "x", None])}])
     add("smart", 4, lambda: {"cmd": r.choice(["layer.smartObjects.convertToSmartObject", "filter.convertForSmartFilters"]), "params": r.choice([{}, {}, {"layer": layer_id(r)}])})
     add("smart", 2, lambda: {"cmd": r.choice(["layer.smartObjects.newSmartObjectViaCopy", "layer.smartObjects.rasterize", "layer.smartObjects.convertToLayers", "layer.smartObjects.updateAllModifiedContent", "layer.smartObjects.updateChanged", "layer.smartObjects.updateModifiedContent", "layer.smartObjects.convertToEmbedded", "layer.smartObjects.saveContents"]), "params": r.choice([{}, {}, {"layer": layer_id(r)}])})
-    add("smart", 1, lambda: {"cmd": r.choice(["layer.smartObjects.replaceContents", "layer.smartObjects.exportContents", "layer.smartObjects.relinkToFile", "layer.smartObjects.convertToLinked"]), "params": r.choice([{}, {"path": ""}, {"path": "/nonexistent-dir/x.png"}, {"path": 5}])})
+    add("smart", 1, lambda: {"cmd": r.choice(["layer.smartObjects.replaceContents", "layer.smartObjects.exportContents", "layer.smartObjects.relinkToFile", "layer.smartObjects.convertToLinked"]), "params": r.choice([{}, {"path": ""}, {"path": "/proc/nonexistent/x.png"}, {"path": 5}])})
     add("smart", 1, lambda: {"cmd": "layer.smartObjects.editContents", "params": r.choice([{}, {"layer": layer_id(r)}])})
     add("smart", 3, lambda: {"cmd": r.choice(["filter.blur.gaussianBlur", "filter.other.offset", "filter.noise.addNoise", "filter.stylize.solarize", "filter.blur.boxBlur", "image.adjustments.invert", "image.adjustments.levels", "image.adjustments.hueSaturation"]), "params": r.choice([{}, {"radius": r.choice([1, 3.5])}, {"horizontal": 5, "vertical": -3, "undefined": r.choice(["wrap", "repeat", "background"])}, {"amount": 20, "seed": 3}, {"saturation": 40}])})
     add("smart", 3, lambda: {"cmd": r.choice(["layer.smartFilter.setVisible", "layer.smartFilter.delete", "layer.smartFilter.disableSmartFilters", "layer.smartFilter.deleteFilterMask", "layer.smartFilter.disableFilterMask", "layer.smartFilter.clearSmartFilters"]), "params": dict(sfparams(r), **({"visible": r.choice([True, False, 1])} if r.random() < 0.4 else {}), **({"enabled": r.choice([True, False])} if r.random() < 0.3 else {}))})
     add("smart", 2, lambda: {"cmd": "layer.smartFilter.setParams", "params": dict(sfparams(r), **r.choice([{"params": {"radius": r.choice([0.5, 2, 6])}}, {"params": {"amount": 40}}, {"params": 5}, {"params": None}, {}]))})
     add("smart", 2, lambda: {"cmd": "layer.smartFilter.blendingOptions", "params": dict(sfparams(r), **r.choice([{"blend": r.choice(["Multiply", "screen", "pass-through", "Pass Through", "zz", 3])}, {"opacity": r.choice([0.5, 40, 150, -1, "x"])}, {"blend": "Overlay", "opacity": 0.7}]))})
     add("smart", 1, lambda: {"cmd": "layer.smartFilter.move", "params": dict(sfparams(r), **{"to": r.choice([0, 1, 3, -1, "x"])})})
+    def tstyle(r):
+        d = {}
+        for k, vals in [("font", ["Inter", "JetBrains Mono", "Nope Sans", 5]), ("fontStyle", ["Bold", "Italic", "SemiBold", "Light Italic", "zz"]), ("weight", [100, 700, 0, 5000]), ("italic", [True, False]),
+                        ("size", [8, 12, 36.5, 0.05, 2000, "x"]), ("color", ["#ff0000", "##00ff0080", [0.2, 0.4, 0.6], [1, 0], "#+f+f+f", "bad"]), ("tracking", [0, 50, -200, 1e9]), ("leading", [None, "auto", 30, "x"]),
+                        ("baselineShift", [3, -2]), ("horizontalScale", [50, 150, 0]), ("verticalScale", [80]), ("underline", [True]), ("strikethrough", [True]), ("fauxBold", [True]), ("fauxItalic", [True]),
+                        ("ligatures", [False]), ("kerning", [0, 50, "metrics", "optical", "Off", "zz", 20000, True]), ("caps", ["small", "allCaps", "x"]), ("features", [{"ss01": 1, "liga": False, "smcp": 70000}, {}]),
+                        ("variations", [{"wght": 650, "wdth": "x"}]), ("language", ["en", 3, None])]:
+            if r.random() < 0.15: d[k] = r.choice(vals)
+        return d
+    def tpara(r):
+        d = {}
+        for k, vals in [("align", ["center", "right", "justify", "justifyAll", "zz"]), ("firstLineIndent", [10]), ("startIndent", [5]), ("endIndent", [4]), ("spaceBefore", [6]), ("spaceAfter", [3]), ("autoLeading", [150]), ("direction", ["rtl", "ltr", "x"]), ("hyphenate", [True])]:
+            if r.random() < 0.15: d[k] = r.choice(vals)
+        return d
+    texts = ["Hello", "Hello world", "Line one\nLine two", "", "שלום עולם", "Ab\r\nCd\rEf", "Kerning AV To", "a\n", "\n\nGoodbye", "日本語テキスト"]
+    add("type", 5, lambda: {"cmd": "type.create", "params": dict({"text": r.choice(texts), "x": r.choice([0, 5, 10.3, -4]), "y": r.choice([20, 30.7, 0])}, **({"box": r.choice([[2, 2, 40, 30], [0, 0, 0, 5], [1, 1, 20]])} if r.random() < 0.3 else {}), **({"orientation": r.choice(["vertical", "horizontal", "diag", None])} if r.random() < 0.2 else {}), **({"name": r.choice(["T", 4])} if r.random() < 0.2 else {}), **tstyle(r), **tpara(r))})
+    add("type", 4, lambda: {"cmd": "type.edit", "params": dict({}, **r.choice([{"text": r.choice(texts)}, {"replace": {"start": r.randint(0, 6), "end": r.choice([2, 4, 99, None]), "text": r.choice(["X", "\n", "", "ü"])}}, {"runs": [dict({"start": r.randint(0, 4), "end": r.randint(0, 9)}, **tstyle(r))]}, {"box": [1, 2, 30, 20]}, {"point": [4, 25]}, {"move": [3, -2]}, {"transform": [2, 0, 0, 2, 5, 30]}, {"antialias": r.choice(["none", "sharp", "crisp", "strong", "x"])}, {"name": "Renamed"}, {"kerning": r.choice([40, "optical", "x"]), "range": [0, 3]}, {"kernPair": {"at": r.choice([1, 2, 0, 50]), "by": r.choice([20, -40, 1e9])}}, {"kernPair": {"by": 3}}]), **({"layer": layer_id(r)} if r.random() < 0.2 else {}))})
+    add("type", 3, lambda: {"cmd": "type.setStyle", "params": dict(tstyle(r), **tpara(r), **({"range": r.choice([[0, 3], [2, 1], [5, 50]])} if r.random() < 0.4 else {}), **({"metricsAsShown": True} if r.random() < 0.2 else {}), **({"layers": r.choice([[layer_id(r)], "x", [1.5]])} if r.random() < 0.15 else {}), **({"layer": layer_id(r)} if r.random() < 0.15 else {}))})
+    add("type", 2, lambda: {"cmd": r.choice(["type.increaseSize", "type.decreaseSize", "type.increaseSizeMore", "type.decreaseSizeMore"]), "params": r.choice([{}, {"by": r.choice([1, -3, 1e30, "x"])}, {"range": [0, 2]}])})
+    add("type", 1, lambda: {"cmd": r.choice(["type.rasterize", "type.info", "layer.rasterize.type"]), "params": r.choice([{}, {"layer": layer_id(r)}])})
     if not pool:
         return {"cmd": "session.inspect"}
     tot = sum(w for w, _ in pool)
@@ -313,16 +333,44 @@ def smart_block(r):
         b.append({"cmd": "layer.smartObjects.saveContents"})
     return b
 
+def type_block(r):
+    """A type layer, then edits that mostly succeed."""
+    b = [{"cmd": "type.create", "params": dict({"text": r.choice(["Hello world", "AVATAR To", "Two\nlines here", "שלום abc", "x"]), "x": r.choice([3, 10.25]), "y": r.choice([20, 28])},
+                                                 **({"box": [2, 3, r.choice([30, 60]), 40]} if r.random() < 0.3 else {}), **({"size": r.choice([10, 18, 24])} if r.random() < 0.6 else {}),
+                                                 **({"font": r.choice(["Inter", "JetBrains Mono"])} if r.random() < 0.4 else {}))}]
+    for _ in range(r.randint(1, 6)):
+        b.append(r.choice([
+            {"cmd": "type.edit", "params": {"replace": {"start": r.randint(0, 3), "end": r.randint(3, 6), "text": r.choice(["Q", "\nnew", "", "éé"])}}},
+            {"cmd": "type.edit", "params": {"runs": [{"start": r.randint(0, 2), "end": r.randint(2, 8), r.choice(["size", "tracking", "baselineShift"]): r.choice([6, 30, 100]), **({"color": "#00ff00"} if r.random() < 0.5 else {})}]}},
+            {"cmd": "type.edit", "params": {"kernPair": {"at": r.randint(1, 4), "by": r.choice([20, -60, 100])}}},
+            {"cmd": "type.edit", "params": {"kerning": r.choice([30, "optical", "metrics"]), "range": [r.randint(0, 2), r.randint(2, 6)]}},
+            {"cmd": "type.edit", "params": r.choice([{"box": [1, 2, 25, 30]}, {"point": [5, 22]}, {"move": [2, 3]}, {"transform": [1, 0.2, 0, 1, 4, 26]}, {"antialias": r.choice(["none", "sharp", "strong"])}, {"text": "Replaced text"}])},
+            {"cmd": "type.setStyle", "params": dict({r.choice(["size", "tracking", "leading", "horizontalScale", "fauxBold", "caps", "underline"]): r.choice([14, 40, True, "small"])}, **({"range": [0, r.randint(1, 5)]} if r.random() < 0.5 else {}))},
+            {"cmd": "type.setStyle", "params": {r.choice(["align", "firstLineIndent", "spaceBefore", "autoLeading", "direction"]): r.choice(["center", "right", 12, 150, "rtl"])}},
+            {"cmd": "type.setStyle", "params": {"metricsAsShown": True, "size": r.choice([20, 30])}},
+            {"cmd": r.choice(["type.increaseSize", "type.decreaseSize", "type.increaseSizeMore"]), "params": r.choice([{}, {"range": [0, 2]}])},
+            {"cmd": "type.info"},
+            {"cmd": "edit.undo"},
+            {"cmd": "layer.duplicate"},
+            {"cmd": "layer.smartObjects.convertToSmartObject"},
+            {"cmd": "edit.transform", "params": {"matrix": [1.5, 0, 0, 1.5, 2, 1]}},
+        ]))
+    if r.random() < 0.2:
+        b.append({"cmd": r.choice(["type.rasterize", "layer.rasterize.type"])})
+    return b
+
 def main():
     out, count = sys.argv[1], int(sys.argv[2])
     seed = int(sys.argv[3]) if len(sys.argv) > 3 else 1
-    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart"}
+    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart", "type"}
     os.makedirs(out, exist_ok=True)
     r = random.Random(seed)
     for i in range(count):
         steps = [new_doc(r) if r.random() < 0.3 else valid_doc(r)]
         if "smart" in areas and r.random() < 0.6:
             steps.extend(smart_block(r))
+        if "type" in areas and r.random() < 0.6:
+            steps.extend(type_block(r))
         for _ in range(r.randint(3, 25)):
             steps.append(new_doc(r) if r.random() < 0.03 else step(r, areas))
         # Inspect at the end so view state is compared too.
