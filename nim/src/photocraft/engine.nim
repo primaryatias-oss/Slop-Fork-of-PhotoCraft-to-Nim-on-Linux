@@ -11,12 +11,12 @@ import engine/[selection_cmds, eraser_cmds, retouch_cmds, redeye_cmds, perspecti
                layer_panel_cmds, trap_wia_cmds, magnetic_cmds, fill_layer_cmds,
                type_mask_cmds, profiles_migrate_cmds, key_cmds, notes_cmds, sampler_cmds, frame_pick_cmds,
                history_cmds, brush_preset_cmds, document_preset_cmds,
-               paint_cmds, path_edit_cmds]
+               paint_cmds, path_edit_cmds, select_extra_cmds]
 export core, selection_cmds, eraser_cmds, retouch_cmds, redeye_cmds, perspective_crop_cmds, layer_panel_cmds,
        trap_wia_cmds, magnetic_cmds, fill_layer_cmds, type_mask_cmds,
        profiles_migrate_cmds, key_cmds, notes_cmds, sampler_cmds, frame_pick_cmds,
        history_cmds, brush_preset_cmds, document_preset_cmds, paint_cmds,
-       path_edit_cmds
+       path_edit_cmds, select_extra_cmds
 
 proc build(): seq[CommandSpec] =
   ## `commands::build()`: the base table, then every module's `specs()` in Rust's order. Modules
@@ -50,7 +50,7 @@ proc build(): seq[CommandSpec] =
   result.add perspectiveCropSpecs()
   result.add selectionSpecs()
   result.add magneticSpecs()
-  # select_extra_cmds,
+  result.add selectExtraSpecs()
   result.add paintSpecs()
   result.add extraSpecs()
   result.add backgroundSpecs()
