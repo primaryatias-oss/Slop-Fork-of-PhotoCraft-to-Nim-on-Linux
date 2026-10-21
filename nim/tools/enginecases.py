@@ -332,6 +332,28 @@ def step(r, areas):
     add("presets", 1, lambda: {"cmd": r.choice(["shape.presets.new", "shape.presets.edit", "shape.presets.list", "shape.presets.reset"]), "params": r.choice([{}, {"name": "Mine", "path": r.choice(["M 0 0 L 10 0 L 10 10 Z", "O 5 5 5 ! O 5 5 2", "M 0 0 Q 5 9 10 0 Z", "M 0", "X 1", {"subpaths": [{"knots": [[0, 0], [9, 2], [4, 8]]}]}, "work", 5])}, gedit(r, ["Heart", "Star", "Sun"]), {"append": True}])})
     add("presets", 1, lambda: {"cmd": r.choice(["tool.presets.new", "tool.presets.select", "tool.presets.edit", "tool.presets.list", "tool.presets.reset"]), "params": r.choice([{}, {"tool": r.choice(["brush", "Eraser Tool", "crop", "gradient", ""]), **({"name": r.choice(["T", "", 5, None, "Soft Round 100 px"])} if r.random() < 0.6 else {}), **({"includeColor": True} if r.random() < 0.3 else {}), **({"options": r.choice([{"x": 1}, 3])} if r.random() < 0.2 else {})}, {"preset": r.choice(["Soft Round 100 px", "Hard Round 12 px", "Radial Gradient", "zz"])}, {"action": r.choice(["rename", "delete", "move"]), "preset": r.choice(["Soft Round 100 px", "zz"]), "name": r.choice(["N", "", "Hard Round 12 px"])}, {"tool": "brush"}])})
     add("presets", 2, lambda: {"cmd": r.choice(["cloneSource.set", "cloneSource.select", "cloneSource.resetTransform", "cloneSource.overlay", "cloneSource.list"]), "params": {k: r.choice(v) for k, v in [("index", [0, 3, 4, 5, "x"]), ("source", [[10, 12], [3.5, 2], "x"]), ("offset", [[5, -3], [1]]), ("width", [50, 150, 2000, -5]), ("height", [80, 0.5]), ("scale", [[120, 80], [5]]), ("linked", [True, False]), ("rotation", [30, -200, 720]), ("flipH", [True]), ("flipV", [True]), ("clear", [True]), ("select", [False]), ("show", [False]), ("opacity", [50, 200]), ("blend", ["darken", "zz", "difference"]), ("autoHide", [False])] if r.random() < 0.25}})
+    def rcommon(r):
+        d = {}
+        for k, vals in [("size", [3, 9, 20, 0.2, "x", 1e9]), ("hardness", [0, 50, 100, 300]), ("opacity", [30, 100, 0]), ("flow", [40]), ("spacing", [10, 0.5, 300]),
+                        ("sampleAllLayers", [True, "x"]), ("mode", ["multiply", "screen", "nope", 3, "saturate", "desaturate"])]:
+            if r.random() < 0.15: d[k] = r.choice(vals)
+        if r.random() < 0.1: d["target"] = r.choice(["mask", "pixels", "quickMask", {"channel": 0}, "zz"])
+        if r.random() < 0.1: d["layer"] = layer_id(r)
+        return d
+    def rpts(r):
+        v = pts(r)
+        return [q for q in v if isinstance(q, list)] if isinstance(v, list) and r.random() < 0.7 else v
+    rsrc = lambda r: r.choice([{"source": r.choice([[10, 8], [30.5, 20], [-5, 3], "x"])}, {"offset": r.choice([[12, -4], [0, 0], [2**31, 0], [1]])}, {}])
+    add("retouch", 4, lambda: {"cmd": r.choice(["paint.cloneStamp", "paint.healingBrush"]), "params": dict({"points": rpts(r)}, **rcommon(r), **rsrc(r), **{k: r.choice(v) for k, v in [("aligned", [False, True]), ("sampleLayer", ["current", "currentAndBelow", "all", "zz"])] if r.random() < 0.3})})
+    add("retouch", 2, lambda: {"cmd": "paint.historyBrush", "params": dict({"points": rpts(r)}, **rcommon(r), **({"state": r.choice([0, 1, 3, 99, "x"])} if r.random() < 0.4 else {}))})
+    add("retouch", 3, lambda: {"cmd": "paint.spotHealing", "params": dict({"points": rpts(r)}, **rcommon(r), **({"type": r.choice(["contentAware", "createTexture", "proximityMatch", "zz"])} if r.random() < 0.7 else {}))})
+    add("retouch", 5, lambda: {"cmd": r.choice(["paint.dodge", "paint.burn", "paint.sponge", "paint.blur", "paint.sharpen", "paint.smudge"]), "params": dict({"points": rpts(r)}, **rcommon(r), **{k: r.choice(v) for k, v in [("range", ["shadows", "midtones", "highlights", "zz"]), ("exposure", [10, 100, 0, "x"]), ("protectTones", [False]), ("vibrance", [False]), ("strength", [5, 100, 400]), ("protectDetail", [False]), ("fingerPainting", [True])] if r.random() < 0.25})})
+    add("retouch", 3, lambda: {"cmd": r.choice(["paint.patch", "paint.contentAwareMove"]), "params": dict({"offset": r.choice([[10, 5], [-8, 3], [0, 0], [500, 0], [1.6, -2.4], "x", [1e9, 0]])}, **{k: r.choice(v) for k, v in [("mode", ["source", "destination", "move", "extend", "zz"]), ("contentAware", [True]), ("structure", [1, 2, 4, 7, 9, "x"]), ("color", [0, 3, 10, 11]), ("sampleAllLayers", [True]), ("scaleX", [50, 120, -100, 0.5, "x"]), ("scaleY", [80, 100]), ("rotate", [15, -90, 1e6])] if r.random() < 0.25}, **({"target": r.choice(["mask", {"channel": 0}])} if r.random() < 0.05 else {}))})
+    add("retouch", 2, lambda: {"cmd": "paint.remove", "params": dict({"points": rpts(r)}, **rcommon(r), **({"closeLoops": False} if r.random() < 0.3 else {}))})
+    add("retouch", 2, lambda: {"cmd": "paint.patternStamp", "params": dict({"points": rpts(r)}, **rcommon(r), **{k: r.choice(v) for k, v in [("pattern", ["Dots", "Bricks", "nope"]), ("scale", [50, 200, 0, "x"]), ("angle", [30, "x"]), ("aligned", [False]), ("impressionist", [True]), ("phase", [[3, 4], [1], "x"]), ("seed", [5])] if r.random() < 0.3})})
+    add("retouch", 3, lambda: {"cmd": "paint.stroke", "params": {"points": [[r.uniform(0, 60), r.uniform(0, 40)] for _ in range(r.randint(1, 4))], "size": r.choice([6, 15]), "color": r.choice(["#ff0000", "#2050a0", "#ffffff", "#000000"])}})
+    add("retouch", 2, lambda: {"cmd": "select.rect", "params": rect(r)})
+    add("retouch", 1, lambda: {"cmd": r.choice(["select.deselect", "layer.new.layer", "edit.fill"]), "params": r.choice([{}, {"contents": "pattern", "pattern": "Bricks"}])})
     if not pool:
         return {"cmd": "session.inspect"}
     tot = sum(w for w, _ in pool)
@@ -414,10 +436,45 @@ def type_block(r):
         b.append({"cmd": r.choice(["type.rasterize", "layer.rasterize.type"])})
     return b
 
+def retouch_block(r):
+    """Valid retouching on painted content: a selection dragged by Patch / Content-Aware Move, and
+    strokes with sources inside the canvas."""
+    def vpts():
+        x, y = r.uniform(4, 36), r.uniform(4, 28)
+        out = []
+        for _ in range(r.randint(1, 4)):
+            out.append([round(x, 2), round(y, 2)] + ([round(r.uniform(0.2, 1), 3)] if r.random() < 0.3 else []))
+            x += r.uniform(-8, 8); y += r.uniform(-6, 6)
+        return out
+    def brush():
+        return {k: r.choice(v) for k, v in [("size", [4, 7, 12, 20]), ("hardness", [0, 60, 100]), ("opacity", [50, 100]), ("spacing", [10, 25, 60])] if r.random() < 0.4}
+    steps = []
+    for _ in range(r.randint(1, 3)):
+        steps.append({"cmd": "paint.stroke", "params": {"points": vpts(), "size": r.choice([5, 9, 14]), "color": r.choice(["#ff0000", "#2050a0", "#30c040", "#000000"])}})
+    if r.random() < 0.3:
+        steps.append({"cmd": "layer.new.layer", "params": {}})
+        steps.append({"cmd": "paint.stroke", "params": {"points": vpts(), "size": 8, "color": "#ffcc00"}})
+    for _ in range(r.randint(1, 4)):
+        k = r.random()
+        if k < 0.35:
+            steps.append({"cmd": "select.rect", "params": dict({"x": r.randint(2, 18), "y": r.randint(2, 14), "width": r.randint(4, 14), "height": r.randint(4, 12)}, **({"ellipse": True} if r.random() < 0.3 else {}), **({"feather": 1.5} if r.random() < 0.15 else {}))})
+            steps.append({"cmd": r.choice(["paint.patch", "paint.contentAwareMove"]), "params": dict({"offset": [r.randint(-10, 16), r.randint(-8, 12)]}, **{k: r.choice(v) for k, v in [("mode", ["source", "destination", "move", "extend"]), ("contentAware", [True]), ("structure", [1, 2, 4, 7]), ("color", [0, 3, 10]), ("sampleAllLayers", [True]), ("scaleX", [50, 120, -100]), ("scaleY", [80, 140]), ("rotate", [15, -90, 200])] if r.random() < 0.3})})
+            if r.random() < 0.5: steps.append({"cmd": "select.deselect"})
+        elif k < 0.55:
+            if r.random() < 0.5: steps.append({"cmd": "cloneSource.set", "params": dict({"source": [r.randint(2, 30), r.randint(2, 30)]}, **{k: r.choice(v) for k, v in [("width", [50, 150]), ("rotation", [30, -90]), ("flipH", [True])] if r.random() < 0.3})})
+            steps.append({"cmd": r.choice(["paint.cloneStamp", "paint.healingBrush"]), "params": dict({"points": vpts()}, **brush(), **r.choice([{"source": [r.randint(2, 30), r.randint(2, 30)]}, {"offset": [r.randint(-12, 12), r.randint(-12, 12)]}, {}]), **{k: r.choice(v) for k, v in [("aligned", [False]), ("sampleLayer", ["currentAndBelow", "all"]), ("mode", ["multiply", "screen"])] if r.random() < 0.3})})
+        elif k < 0.7:
+            steps.append({"cmd": r.choice(["paint.spotHealing", "paint.remove"]), "params": dict({"points": vpts()}, **brush(), **{k: r.choice(v) for k, v in [("type", ["contentAware", "createTexture", "proximityMatch"]), ("sampleAllLayers", [True]), ("closeLoops", [False])] if r.random() < 0.4})})
+        elif k < 0.85:
+            steps.append({"cmd": r.choice(["paint.dodge", "paint.burn", "paint.sponge", "paint.blur", "paint.sharpen", "paint.smudge", "paint.historyBrush"]), "params": dict({"points": vpts()}, **brush(), **{k: r.choice(v) for k, v in [("range", ["shadows", "highlights"]), ("exposure", [20, 100]), ("strength", [30, 100]), ("sampleAllLayers", [True]), ("fingerPainting", [True]), ("mode", ["saturate"]), ("state", [0, 1, 2])] if r.random() < 0.3})})
+        else:
+            steps.append({"cmd": "paint.patternStamp", "params": dict({"points": vpts()}, **brush(), **{k: r.choice(v) for k, v in [("pattern", ["Dots", "Bricks", "Weave"]), ("scale", [50, 200]), ("angle", [30]), ("aligned", [False]), ("impressionist", [True]), ("mode", ["multiply"])] if r.random() < 0.35})})
+    return steps
+
 def main():
     out, count = sys.argv[1], int(sys.argv[2])
     seed = int(sys.argv[3]) if len(sys.argv) > 3 else 1
-    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart", "type", "paint", "presets"}
+    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart", "type", "paint", "presets", "retouch"}
     os.makedirs(out, exist_ok=True)
     r = random.Random(seed)
     for i in range(count):
@@ -426,6 +483,8 @@ def main():
             steps.extend(smart_block(r))
         if "type" in areas and r.random() < 0.6:
             steps.extend(type_block(r))
+        if "retouch" in areas and r.random() < 0.7:
+            steps.extend(retouch_block(r))
         for _ in range(r.randint(3, 25)):
             steps.append(new_doc(r) if r.random() < 0.03 else step(r, areas))
         # Inspect at the end so view state is compared too.
