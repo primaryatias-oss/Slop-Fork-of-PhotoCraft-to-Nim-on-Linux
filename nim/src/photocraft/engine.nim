@@ -26,7 +26,8 @@ proc build(): seq[CommandSpec] =
   result.add transformSpecs()
   result.add floatSpecs()
   result.add vectorSpecs()
-  # path_edit_cmds, smartselect_cmds, cutout_cmds, symmetry_cmds
+  # path_edit_cmds, smartselect_cmds, cutout_cmds
+  result.add symmetrySpecs()
   result.add editSpecs()
   result.add colorSpecs()
   result.add brushSpecs()

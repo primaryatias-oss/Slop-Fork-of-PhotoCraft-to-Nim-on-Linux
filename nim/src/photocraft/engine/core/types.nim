@@ -207,9 +207,16 @@ type
     revision*: uint64
     parts*: ref CutParts
 
+  SymmetryAxis* = object
+    ## A symmetry path sampled into straight segments.
+    source*: string
+    segments*: seq[array[2, array[2, float64]]]
+  PaintingSymmetryKind* = enum psPath, psPreset
   PaintingSymmetry* = object
-    ## Painting symmetry preset or sampled path (`symmetry_cmds`; filled in when it lands).
-    discard
+    ## Per-document painting tool state, never stored in the document's paths or pixels.
+    case kind*: PaintingSymmetryKind
+    of psPath: axis*: SymmetryAxis
+    of psPreset: preset*: PresetSymmetry
 
   # ---------------------------------------------------------------- documents
 

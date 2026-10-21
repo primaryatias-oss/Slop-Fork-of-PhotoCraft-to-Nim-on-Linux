@@ -115,7 +115,6 @@ proc validateNewParams*(s: Session; p: JsonNode) =
 
 proc placeCopy*(doc: var Document; id: LayerId) = discard
 proc fitCanvas*(doc: var Document) = discard
-proc symmetryInspect*(p: PaintingSymmetry): JsonNode = newJNull()
 
 proc pointSizePerInch*(s: Session): float64 = 72.0
 proc ignoreExifProfileTag*(s: Session): bool = false
@@ -139,8 +138,3 @@ proc fileImport*(name: string; bytes: openArray[byte]): Document =
   if r.previewOnly:
     raise other(name & ": only this Affinity file's embedded preview could be read; open it with File › Open to see the warning, or export PSD or PNG from Affinity before using it here")
   r.document
-
-# ---------------------------------------------------------------- symmetry_cmds
-
-proc reflectedPasses*(s: PaintingSymmetry; pts: openArray[StrokePoint]): seq[seq[StrokePoint]] = @[]
-proc hasDistinctMirror*(pts, mirrored: openArray[StrokePoint]): bool = false
