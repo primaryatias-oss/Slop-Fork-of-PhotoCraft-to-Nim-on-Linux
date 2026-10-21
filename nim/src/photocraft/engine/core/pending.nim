@@ -7,7 +7,7 @@ proc notPorted(what: string): ref EngineError = other("`" & what & "` is not por
 # ---------------------------------------------------------------- dispatch hooks (jobs.rs)
 
 proc onCloseDocument(s: var Session; index: int) = discard
-proc beforeCommandHook(s: var Session; id: string): Option[JsonNode] = none(JsonNode)
+proc beforeCommandHook(s: var Session; id: string): Option[JsonNode] = floatBeforeCommand(s, id)
 proc editMenuAfterCommand*(s: var Session; id: string) = discard
 proc automateAfterCommand*(s: var Session; id: string) = discard
 

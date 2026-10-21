@@ -194,8 +194,11 @@ type
     layers*: LayerTarget
 
   CutParts* = object
-    ## The pieces a floating selection carries (`edit_cmds`; filled in when it lands).
-    discard
+    ## A layer split by its selection (`float_cmds`): the layer with the selected pixels cut out,
+    ## and the cut pixels (cropped to the selection).
+    layer*: LayerId
+    rest*, piece*: Surface
+    mask*: bool ## the pieces are the layer's mask (`"target":"mask"`), not its pixels
 
   Floating* = object
     ## A piece floating `offset` whole pixels from where it was cut, over document `revision`.

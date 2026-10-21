@@ -22,7 +22,7 @@ proc build(): seq[CommandSpec] =
   # gradient_fill_cmds,
   # solid_fill_cmds, pattern_fill_cmds, type_cmds, type_mask_cmds
   result.add transformSpecs()
-  # float_cmds
+  result.add floatSpecs()
   result.add vectorSpecs()
   # path_edit_cmds, smartselect_cmds, cutout_cmds, symmetry_cmds
   result.add editSpecs()

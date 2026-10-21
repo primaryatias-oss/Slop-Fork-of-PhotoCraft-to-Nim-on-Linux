@@ -64,3 +64,4 @@ proc symmetryInspect*(p: PaintingSymmetry): JsonNode
 proc loneTarget*(doc: Document; active: Option[LayerId]; p: JsonNode): Option[Surface]
 proc targetBounds*(doc: Document; surf: Surface): Rect
 proc transformBounds*(doc: Document; l: Layer): Rect
+proc floatBeforeCommand*(s: var Session; id: string): Option[JsonNode]
