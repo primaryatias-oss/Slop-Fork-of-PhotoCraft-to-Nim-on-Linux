@@ -7,8 +7,8 @@
 ## module builds the registry in the order of Rust's `commands::build()`.
 
 import engine/core
-import engine/selection_cmds
-export core, selection_cmds
+import engine/[selection_cmds, eraser_cmds]
+export core, selection_cmds, eraser_cmds
 
 proc build(): seq[CommandSpec] =
   ## `commands::build()`: the base table, then every module's `specs()` in Rust's order. Modules
@@ -31,7 +31,9 @@ proc build(): seq[CommandSpec] =
   result.add editSpecs()
   result.add colorSpecs()
   result.add brushSpecs()
-  # brush_preset_cmds, eraser_cmds, preset_import_cmds, swatch_cmds,
+  # brush_preset_cmds
+  result.add eraserSpecs()
+  # preset_import_cmds, swatch_cmds,
   # retouch_cmds, redeye_cmds
   result.add imageSpecs()
   # perspective_crop_cmds
