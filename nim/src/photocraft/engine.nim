@@ -58,7 +58,9 @@ proc build(): seq[CommandSpec] =
   result.add patternSpecs()
   result.add warpSpecs()
   # comps_cmds, artboard_cmds, distort_cmds, analysis_cmds, notes_cmds, history_cmds,
-  # proof_sim, presets, document_preset_cmds, render_cmds, slice_cmds, web_cmds, automate_cmds,
+  # proof_sim
+  result.add presetsSpecs()
+  # document_preset_cmds, render_cmds, slice_cmds, web_cmds, automate_cmds,
   # print_cmds, installed_profiles, pick_cmds, layer_nav_cmds, frame_cmds, migrate_cmds,
   # trap_cmds, timeline_cmds, video_cmds, jobs, wia_cmds, rasterize_style_cmds, variables_cmds,
   # plugin_cmds, group_view_cmds, fx_view_cmds, fx_visibility_cmds

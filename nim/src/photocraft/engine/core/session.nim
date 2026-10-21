@@ -311,10 +311,12 @@ proc targetMask*(t: var ToolState; mask: bool): bool =
 proc newPatternLibrary*(): PatternLibrary
 proc defaultColorSettings*(): ColorSettings
 
+proc defaultPresetState*(): PresetState
+
 proc newSession*(): Session =
   Session(tools: newToolState(), quickMaskOptions: QuickMaskOptions(color: AlphaDefaultColor, opacity: 0.5,
           indicates: ciMaskedAreas), patterns: newPatternLibrary(),
-          color: ColorState(settings: defaultColorSettings()))
+          color: ColorState(settings: defaultColorSettings()), presets: defaultPresetState())
 
 proc documents*(s: Session): lent seq[DocState] = s.docs
 proc activeIndex*(s: Session): Option[int] = s.activeIdx

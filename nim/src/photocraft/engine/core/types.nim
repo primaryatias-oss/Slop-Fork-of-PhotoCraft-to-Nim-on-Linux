@@ -172,11 +172,116 @@ type
     ## The app-level pattern library (Window › Patterns).
     items*: seq[DocPattern]
 
+  PresetGroup*[T] = object
+    ## A named folder of presets.
+    name*: string
+    items*: seq[T]
+
+  StopColorKind* = enum scForeground, scBackground, scRgb
+  StopColor* = object
+    ## A gradient stop colour: fixed, or the current foreground/background colour.
+    case kind*: StopColorKind
+    of scRgb: rgb*: array[3, float32]
+    else: discard
+  GradientPreset* = object
+    name*: string
+    stops*: seq[(float32, StopColor)] ## colour stops `(location 0..1, colour)`, sorted
+    opacity*: seq[(float32, float32)] ## transparency stops `(location, opacity 0..1)`; empty = opaque
+
+  StylePreset* = object
+    name*: string
+    effects*: seq[Effect]
+    blend*: Option[BlendMode]
+    fillOpacity*: Option[float32]
+
+  ShapePreset* = object
+    name*: string
+    path*: Path
+
+  ToolPreset* = object
+    name*: string
+    tool*: string    ## tool name as the shell spells it, case-insensitive
+    options*: JsonNode ## opaque options; the engine reads `brush` and `foreground`
+
+  CloneSource* = object
+    source*: Option[array[2, float64]] ## sample point (document px), set by ⌥-click
+    anchor*: Option[array[2, float64]] ## destination paired with `source`
+    layer*: Option[uint64]             ## layer the source was set on (informational)
+    scale*: array[2, float64]          ## W and H in percent
+    rotation*: float64                 ## degrees, counter-clockwise
+    flipH*, flipV*: bool
+    linked*: bool                      ## the W/H link (maintain aspect ratio)
+  CloneOverlay* = object
+    show*: bool
+    opacity*: float32 ## percent
+    clipped*: bool
+    autoHide*: bool
+    invert*: bool
+    blend*: string    ## normal | darken | lighten | difference
+  CloneSources* = object
+    slots*: array[5, CloneSource]
+    active*: int
+    overlay*: CloneOverlay
+  CloneMapping* = object
+    ## How a clone stroke samples: destination `d` reads the source at
+    ## `source + m · (d − anchor)` (`m` row-major 2 × 2).
+    source*, anchor*: (float64, float64)
+    m*: array[4, float64]
+
+  SwatchColorKind* = enum swRgb = "rgb", swHsb = "hsb", swCmyk = "cmyk", swLab = "lab", swGray = "gray", swBook = "book"
+  SwatchColor* = object
+    ## A swatch colour in its own model.
+    case kind*: SwatchColorKind
+    of swRgb, swHsb, swLab: v3*: array[3, float32]
+    of swCmyk: v4*: array[4, float32]
+    of swGray: gray*: float32
+    of swBook:
+      space*: uint16
+      values*: array[4, uint16]
+  SwatchKind* = enum skProcess = "process", skGlobal = "global", skSpot = "spot"
+  Swatch* = object
+    name*: string
+    color*: SwatchColor
+    kind*: SwatchKind
+
+  DocumentSettings* = object
+    ## File › New settings (`document_preset_cmds`).
+    width*, height*: uint32
+    resolution*: float32
+    mode*: string
+    depth*: uint8
+    background*: string
+    backgroundColor*: Option[array[3, float32]]
+    unit*: string
+    resolutionUnit*: string
+  DocumentPreset* = object
+    name*: string
+    settings*: DocumentSettings
+
+  CustomShape* = object
+    ## Edit › Define Custom Shape result.
+    name*: string
+    path*: Path
+  EditState* = object
+    ## Edit-menu state kept by the session (`edit_menu_cmds`).
+    customShapes*: seq[CustomShape]
+
   PresetState* = object
-    ## Window › Gradients, Patterns (groups), Styles, Shapes, Tool Presets and Clone Source
-    ## (`presets`; filled in when it lands).
+    ## Window › Gradients, Patterns (groups), Styles, Shapes, Tool Presets, Clone Source and
+    ## Swatches, plus the panel state the engine needs (`presets`).
+    gradients*: seq[PresetGroup[GradientPreset]]
+    gradient*: GradientPreset ## the Gradient tool's current gradient
+    styles*: seq[PresetGroup[StylePreset]]
+    shapes*: seq[PresetGroup[ShapePreset]]
+    patternGroups*: seq[PresetGroup[string]] ## pattern ids per folder
     pattern*: Option[string] ## the Patterns panel's selection (a library pattern id)
+    toolPresets*: seq[ToolPreset]
+    documents*: seq[DocumentPreset]
+    recentDocuments*: seq[DocumentSettings]
+    clone*: CloneSources
     layerDefaults*: Table[string, JsonNode] ## Layer Style › Make Default, per effect kind
+    swatches*: seq[PresetGroup[Swatch]]
+    rev*: uint64 ## bumped on every preset change
 
   # ---------------------------------------------------------------- per-document tool and view state
 
@@ -299,6 +404,7 @@ type
     colorRestrict: Option[int]
     authorize*: AuthorizeProc
     smartLinks*: seq[SmartLink]                  ## open Edit Contents documents
+    editState*: EditState
     typeDefaults*: Option[(CharStyle, ParagraphStyle)] ## Type › Save Default Type Styles
     linkStamps*: Table[(uint64, string), Stamp]  ## last seen stamps of linked files, per document
     linkScan*: Option[LinkScan]                  ## a finished look at the linked files

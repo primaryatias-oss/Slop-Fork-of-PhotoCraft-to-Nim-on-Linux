@@ -23,6 +23,7 @@ import ../paint/brush as paintbrush
 from ../algo/stack as astack import nil
 import ../io/[linked, smart_map]
 import ../blake3
+import ../algo/util as autil
 when not defined(js): import std/posix
 
 type
@@ -36,5 +37,7 @@ include core/[fsutil, pixels, canvas_geom, clip_group, commands, mask_view_cmds,
               new_layer, background_cmds, inspect, pattern_cmds, fill_cmds, prefs_units, color_cmds, channel_clip,
               layer_copy_cmds, edit_cmds, hidden_target, extra_cmds, layer_style, sample_cmds, adjust_params, adjust_cmds, filters, filters_ext,
               gallery_cmds, color_to_alpha_cmds, transform_cmds, mode_cmds, image_cmds, vector_cmds, float_cmds, warp_cmds,
-              type_cmds, brush_cmds, symmetry_cmds, smart_cmds]
+              type_cmds, brush_cmds, symmetry_cmds, smart_cmds,
+              presets_base, presets_gradients, presets_patterns, presets_styles, presets_shapes, presets_tools,
+              presets_clone, presets_swatches, presets_specs]
 include core/pending
