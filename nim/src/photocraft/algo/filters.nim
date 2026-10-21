@@ -119,7 +119,6 @@ proc haloFor*(p: FilterParams; bounds: Rect): Halo =
   if p.kind == fltRelight and p.intensity != 0 and halos[fltRelight] != nil: halos[fltRelight](p, bounds)
   else: p.halo
 
-proc makesTransparency*(p: FilterParams): bool = p.kind == fltColorToAlpha
 proc isGlobal*(p: FilterParams): bool = p.halo == BoundsHalo
 proc isAvailable*(k: FilterKind): bool = kernels[k] != nil
 

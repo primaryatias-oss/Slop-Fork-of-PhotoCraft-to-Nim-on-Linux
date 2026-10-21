@@ -8,14 +8,17 @@ proc notPorted(what: string): ref EngineError = other("`" & what & "` is not por
 
 proc onCloseDocument(s: var Session; index: int) = discard
 proc beforeCommandHook(s: var Session; id: string): Option[JsonNode] = none(JsonNode)
-proc filtersValidateParams*(id: string; params: JsonNode) = discard
 proc editMenuAfterCommand*(s: var Session; id: string) = discard
 proc automateAfterCommand*(s: var Session; id: string) = discard
 
 proc validateCommandParams(s: var Session; id: string; params: JsonNode) =
   if id == "file.new": validateNewParams(s, params)
   filtersValidateParams(id, params)
-proc redirectCommand(s: var Session; id: string): Option[(string, JsonNode)] = none((string, JsonNode))
+proc redirectCommand(s: var Session; id: string): Option[(string, JsonNode)] =
+  # Last Filter runs as the filter it repeats (journaled, recorded, faded like that filter).
+  if id == "filter.lastFilter":
+    let lf = lastFilter(s)
+    if lf.isSome and lf.get[0] != id: return lf
 proc afterCommandHooks(s: var Session; id: string) =
   # A layer-mask view ends when another layer becomes active.
   let st = s.active
@@ -123,7 +126,6 @@ proc refreshSmartLayer*(doc: Document; l: var Layer) = raise notPorted("smart_cm
 proc placeCopy*(doc: var Document; id: LayerId) = discard
 proc fitCanvas*(doc: var Document) = discard
 proc paintStroke*(s: var Session; p: JsonNode): JsonNode = raise notPorted("brush_cmds::paint_stroke")
-proc filterParamsFor*(id: string; p: JsonNode): Option[FilterParams] = none(FilterParams)
 proc symmetryInspect*(p: PaintingSymmetry): JsonNode = newJNull()
 
 proc pointSizePerInch*(s: Session): float64 = 72.0
@@ -135,3 +137,20 @@ proc loneTarget*(doc: Document; active: Option[LayerId]; p: JsonNode): Option[Su
 proc targetBounds*(doc: Document; surf: Surface): Rect = raise notPorted("transform_cmds::target_bounds")
 proc presetsChanged*(s: var Session) = discard
 proc addSmartFilter*(doc: var Document; id: LayerId; sf: SmartFilter; sel: Option[Surface]) = raise notPorted("smart_cmds::add_smart_filter")
+proc distortApplyToSurface*(id: string; params: JsonNode; surf: Surface; canvas: Rect): Option[Surface] = none(Surface)
+proc lensApplyToSurface*(id: string; params: JsonNode; surf: Surface; canvas: Rect): Option[Surface] = none(Surface)
+proc pluginApplyToSurface*(id: string; params: JsonNode; surf: Surface; selection: Option[Surface]; canvas: Rect): Option[Surface] = none(Surface)
+
+# ---------------------------------------------------------------- file_cmds (part)
+
+proc fileImport*(name: string; bytes: openArray[byte]): Document =
+  ## `file_cmds::import`: a document from a file's bytes (any supported format).
+  allocCheckpoint("importing document")
+  var r: ImportResult
+  try: r = importDoc(name, bytes)
+  except EngineError: raise
+  except CatchableError as e: raise other(name & ": " & e.msg)
+  # Auxiliary imports return only a document and cannot surface the preview's fidelity warning.
+  if r.previewOnly:
+    raise other(name & ": only this Affinity file's embedded preview could be read; open it with File › Open to see the warning, or export PSD or PNG from Affinity before using it here")
+  r.document

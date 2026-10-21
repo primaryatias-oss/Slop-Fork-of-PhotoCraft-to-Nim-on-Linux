@@ -14,7 +14,11 @@ proc build(): seq[CommandSpec] =
   ## not ported yet are listed as comments in their place.
   result = baseSpecs()
   result.add layerStyleSpecs()
-  # filters, filters_ext, color_to_alpha_cmds, gallery_cmds, gradient_fill_cmds,
+  result.add filterSpecs()
+  result.add filtersExtSpecs()
+  result.add colorToAlphaSpecs()
+  result.add gallerySpecs()
+  # gradient_fill_cmds,
   # solid_fill_cmds, pattern_fill_cmds, type_cmds, type_mask_cmds, transform_cmds, float_cmds,
   # vector_cmds, path_edit_cmds, smartselect_cmds, cutout_cmds, symmetry_cmds
   result.add editSpecs()

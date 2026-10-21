@@ -97,3 +97,20 @@ proc debugMat3*(m: array[3, array[3, float64]]): string =
       result.add debugF64(m[i][j])
     result.add "]"
   result.add "]"
+
+proc debugStr*(s: string): string =
+  ## Rust `{:?}` of a `str`: double-quoted, with `\0 \t \r \n \\ \"` and other ASCII control
+  ## characters (`\u{7f}`) escaped. Non-ASCII characters are kept (Rust also escapes the few
+  ## non-printable and grapheme-extending code points, which this does not model).
+  result = "\""
+  for ch in s:
+    case ch
+    of '\0': result.add "\\0"
+    of '\t': result.add "\\t"
+    of '\r': result.add "\\r"
+    of '\n': result.add "\\n"
+    of '\\': result.add "\\\\"
+    of '"': result.add "\\\""
+    of '\x01'..'\x08', '\x0b', '\x0c', '\x0e'..'\x1f', '\x7f': result.add "\\u{" & toHex(ord(ch), 2).toLowerAscii.strip(trailing = false, chars = {'0'}) & "}"
+    else: result.add ch
+  result.add '"'

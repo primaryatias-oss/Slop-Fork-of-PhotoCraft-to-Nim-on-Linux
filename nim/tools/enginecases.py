@@ -150,6 +150,56 @@ def step(r, areas):
                               "params": r.choice([{}, {"shadowAmount": 60, "highlightAmount": 20, "color": 50}, {"color": "#ff0000", "fuzziness": 80, "hue": 30}, {"source": r.choice([0, 1, 5]), "fade": 20, "neutralize": True},
                                                   {"radius": 5, "strength": 1, "curve": [[0, 0], [128, 150], [255, 255]]}, {"useSelectionInTarget": True, "luminance": 150}])})
     add("adjust", 1, lambda: {"cmd": r.choice(["image.adjustments.colorLookup.list", "document.sampleColor"]), "params": {"x": r.choice([0, 3.5, 20, -1, 1e9, "x"]), "y": r.choice([0, 7, 39.9]), **({"size": r.choice([1, 3, 5, 11, "point", 2, 101])} if r.random() < 0.6 else {}), **({"sampleLayer": r.choice(["current", "currentAndBelow", "all", "allNoAdjustments", "currentAndBelowNoAdjustments", "zz", 3])} if r.random() < 0.5 else {})}})
+    fids = {
+        "filter.blur.gaussianBlur": [("radius", [0.5, 2, 5, 0, 2000, "x"])], "filter.blur.blur": [], "filter.blur.blurMore": [],
+        "filter.sharpen.sharpen": [], "filter.sharpen.sharpenMore": [], "filter.sharpen.sharpenEdges": [], "filter.noise.despeckle": [],
+        "filter.blur.boxBlur": [("radius", [1, 3, 0.5])], "filter.blur.motionBlur": [("angle", [0, 30, 400]), ("distance", [3, 12])],
+        "filter.blur.radialBlur": [("amount", [5, 30]), ("method", ["spin", "zoom", "q"]), ("quality", ["draft", "good", "best"]), ("centerX", [0.3])],
+        "filter.blur.surfaceBlur": [("radius", [2, 5]), ("threshold", [10, 300])],
+        "filter.sharpen.unsharpMask": [("amount", [80, 600]), ("radius", [1.5]), ("threshold", [3])],
+        "filter.sharpen.smartSharpen": [("amount", [150]), ("radius", [2]), ("reduceNoise", [20])],
+        "filter.noise.addNoise": [("amount", [10, 50]), ("distribution", ["uniform", "gaussian", 3]), ("monochromatic", [True, 1]), ("seed", [0, 7, 4294967295, -1, 2**33])],
+        "filter.noise.median": [("radius", [1, 3])], "filter.noise.dustAndScratches": [("radius", [2]), ("threshold", [10])],
+        "filter.pixelate.mosaic": [("cellSize", [4, 300])], "filter.stylize.emboss": [("angle", [45]), ("height", [2]), ("amount", [150])],
+        "filter.stylize.findEdges": [], "filter.stylize.solarize": [], "filter.distort.twirl": [("angle", [90, -400])], "filter.distort.pinch": [("amount", [50, -50])],
+        "filter.distort.spherize": [("amount", [60]), ("mode", ["normal", "horizontalOnly", "zz"])],
+        "filter.distort.wave": [("generators", [2, 5]), ("wavelengthMin", [5]), ("wavelengthMax", [40]), ("type", ["sine", "square", "triangle"]), ("undefinedAreas", ["wrap", "repeat", "transparent"]), ("seed", [3])],
+        "filter.distort.ripple": [("amount", [100, -300]), ("size", ["small", "large"])], "filter.distort.polarCoordinates": [("mode", ["rectangularToPolar", "polarToRectangular"])],
+        "filter.other.highPass": [("radius", [3])], "filter.other.minimum": [("radius", [1, 3]), ("preserve", ["squareness", "roundness"])], "filter.other.maximum": [("radius", [2])],
+        "filter.other.offset": [("horizontal", [5, -7, 3e9, 2.5]), ("vertical", [3]), ("undefinedAreas", ["wrap", "repeat", "transparent"])],
+        "filter.pixelate.colorHalftone": [("maxRadius", [5])], "filter.pixelate.crystallize": [("cellSize", [6]), ("seed", [2, -3])], "filter.pixelate.facet": [], "filter.pixelate.fragment": [],
+        "filter.pixelate.mezzotint": [("type", ["fineDots", "longStrokes", "zz"]), ("seed", [1])], "filter.pixelate.pointillize": [("cellSize", [4]), ("background", ["#ff0000", [0, 1, 0]])],
+        "filter.stylize.diffuse": [("mode", ["normal", "darkenOnly", "anisotropic"]), ("seed", [5])],
+        "filter.stylize.extrude": [("type", ["blocks", "pyramids"]), ("size", [8]), ("depth", [10]), ("depthMode", ["random", "levelBased"]), ("solidFrontFaces", [True])],
+        "filter.stylize.oilPaint": [("stylization", [2]), ("lighting", [False])], "filter.stylize.tiles": [("count", [4]), ("fill", ["background", "inverse", "foreground"]), ("seed", [9])],
+        "filter.stylize.traceContour": [("level", [100]), ("edge", ["upper", "lower"])], "filter.stylize.wind": [("method", ["wind", "blast", "stagger"]), ("direction", ["fromLeft"])],
+        "filter.distort.displace": [("mapDocument", [0, 1, "Untitled-1", 9]), ("horizontal", [5]), ("fit", ["tile", "stretch"])],
+        "filter.distort.shear": [("amount", [30]), ("points", [[[0, 0], [0.5, 0.2], [1, 0]], [[1, 2, 3]]])], "filter.distort.zigZag": [("amount", [20]), ("style", ["aroundCenter", "outFromCenter"])],
+        "filter.render.fibers": [("variance", [8]), ("seed", [4])], "filter.render.lensFlare": [("brightness", [120]), ("lens", ["prime35", "moviePrime"])],
+        "filter.render.lightingEffects": [("lightType", ["spot", "point", "infinite"]), ("texture", ["none", "luminance"]), ("lights", [[{"kind": "point", "x": 0.3, "y": 0.4}], [5]])],
+        "filter.render.relight": [("angle", [30, 400, "x"]), ("warmth", [20])], "filter.noise.reduceNoise": [("strength", [5])],
+        "filter.blur.smartBlur": [("radius", [3]), ("quality", ["low", "high"]), ("mode", ["edgeOnly", "normal"])],
+        "filter.blur.lensBlur": [("radius", [4]), ("shape", ["triangle", "octagon"]), ("depthMap", ["none", "transparency", "layerMask"])], "filter.blur.shapeBlur": [("radius", [6]), ("shape", ["star", "ring"])],
+        "filter.blurGallery.tiltShift": [("blur", [5])], "filter.blurGallery.irisBlur": [("blur", [5]), ("pins", [[{"x": 0.4, "y": 0.5, "blur": 4}]])],
+        "filter.blurGallery.fieldBlur": [("blur", [3])], "filter.blurGallery.spinBlur": [("blurAngle", [20]), ("pins", [[{"x": 0.5, "angle": 500}]])],
+        "filter.blurGallery.pathBlur": [("speed", [30]), ("paths", [[{"points": [[0.1, 0.1], [0.9, 0.9]], "speed": 900}]])],
+        "filter.other.custom": [("kernel", [[0] * 12 + [2] + [0] * 12, [1, 2, 3]]), ("scale", [2]), ("offset", [10])], "filter.other.hsbHsl": [("inputMode", ["rgb", "hsl"]), ("rowOrder", ["hsb", "rgb"])],
+        "filter.video.deInterlace": [("eliminate", ["evenFields"]), ("createBy", ["duplication"])], "filter.video.ntscColors": [],
+        "filter.other.colorToAlpha": [("color", ["#ffffff", "#000000", [1, 0, 0], "#zz", [2, 0, 0]]), ("transparencyThreshold", [0, 0.3, 2]), ("opacityThreshold", [1, 0.8])],
+        "filter.gallery.cutout": [("levels", [4]), ("edgeSimplicity", [3])], "filter.gallery.glowingEdges": [("edgeWidth", [2])], "filter.gallery.texturizer": [("texture", ["brick", "Canvas", "nope"])],
+        "filter.filterGallery": [("effects", [[{"filter": "cutout", "params": {"levels": 4}}, {"filter": "grain", "grainType": "speckle"}], [{"filter": "zz"}], [{"filter": "charcoal", "visible": False}]]), ("list", [True, False])],
+    }
+    def filt():
+        fid = r.choice(list(fids))
+        q = {}
+        for k, vals in fids[fid]:
+            if r.random() < 0.5: q[k] = r.choice(vals)
+        if r.random() < 0.05: q["bogus"] = 1
+        if r.random() < 0.05: q["layer"] = layer_id(r)
+        if r.random() < 0.1: q["target"] = r.choice(["mask", "quickMask", {"channel": 0}, "pixels"])
+        return {"cmd": fid, "params": q}
+    add("filter", 6, filt)
+    add("filter", 1, lambda: {"cmd": "filter.lastFilter"})
     if not pool:
         return {"cmd": "session.inspect"}
     tot = sum(w for w, _ in pool)
@@ -163,7 +213,7 @@ def step(r, areas):
 def main():
     out, count = sys.argv[1], int(sys.argv[2])
     seed = int(sys.argv[3]) if len(sys.argv) > 3 else 1
-    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust"}
+    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter"}
     os.makedirs(out, exist_ok=True)
     r = random.Random(seed)
     for i in range(count):
