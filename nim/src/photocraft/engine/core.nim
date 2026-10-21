@@ -15,6 +15,8 @@ import ../algo/[selection, selection_marquee, resample, params, tone, quantize]
 import ../algo/content_aware as caware
 import ../algo/transform as atransform
 import ../text/psd_text
+import ../vector/[core as vcore, shapes, trace]
+import ../geom/warp
 import ../format, ../cms, ../io, ../io/pattern_map, ../codecs/meta, ../psd/swatches, ../rfmt
 import ../doc/types as doctypes
 import ../paint/brush as paintbrush
@@ -30,5 +32,5 @@ include core/[types, session, decls]
 include core/[fsutil, pixels, canvas_geom, clip_group, commands, mask_view_cmds, channel_cmds, layer_multi_cmds,
               new_layer, background_cmds, inspect, pattern_cmds, fill_cmds, prefs_units, color_cmds, channel_clip,
               layer_copy_cmds, edit_cmds, hidden_target, extra_cmds, layer_style, sample_cmds, adjust_params, adjust_cmds, filters, filters_ext,
-              gallery_cmds, color_to_alpha_cmds, transform_cmds, mode_cmds, image_cmds]
+              gallery_cmds, color_to_alpha_cmds, transform_cmds, mode_cmds, image_cmds, vector_cmds]
 include core/pending

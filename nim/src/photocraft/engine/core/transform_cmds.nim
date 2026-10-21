@@ -1,8 +1,8 @@
 ## Edit › Free Transform / Transform: projective transforms of layers (and the selection) (port of
 ## `transform_cmds.rs`). Part of the `engine/core` unit: included, not imported.
 
-proc mapShape*(sh: var ShapeLayer; h: Option[Homography]; warp: Option[JsonNode])
-proc mapPath*(path: Path; h: Option[Homography]; warp: Option[JsonNode]): Path
+proc mapShape*(sh: var ShapeLayer; h: Option[Homography]; warp: Option[Warp])
+proc mapPath*(path: Path; h: Option[Homography]; warp: Option[Warp]): Path
 proc smartPlacement*(sm: SmartObject): Homography
 proc setPlacement*(sm: var SmartObject; h: Homography)
 
@@ -256,7 +256,7 @@ proc transformLayer*(docSel: Option[Surface]; group: Locks; l: var Layer; h: Hom
     l.content.text.transform = affine.get.mul(l.content.text.transform)
   of lkShape:
     if affine.isSome: transformShape(l.content.shape, affine.get)
-    else: mapShape(l.content.shape, some(h), none(JsonNode))
+    else: mapShape(l.content.shape, some(h), none(Warp))
   of lkSmart:
     # Smart objects keep the transform and re-render from their source afterwards.
     if affine.isSome: transformPlacement(l.content.smart, affine.get)
@@ -285,7 +285,7 @@ proc transformLayer*(docSel: Option[Surface]; group: Locks; l: var Layer; h: Hom
   if l.vectorMask.isSome and l.vectorMask.get.linked:
     l.vectorMask.get.path =
       if affine.isSome: l.vectorMask.get.path.transform(affine.get)
-      else: mapPath(l.vectorMask.get.path, some(h), none(JsonNode))
+      else: mapPath(l.vectorMask.get.path, some(h), none(Warp))
 
 proc refreshRendered*(doc: Document; l: var Layer) =
   ## `transform_cmds::refresh_text`: type, shapes and smart objects re-render from their geometry.

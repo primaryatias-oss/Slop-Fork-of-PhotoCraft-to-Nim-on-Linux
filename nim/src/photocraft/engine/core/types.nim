@@ -273,6 +273,8 @@ type
     color*: ColorState
     clipboard*: Option[Clip]
     styleClipboard*: Option[(Effects, BlendMode, float32, AdvancedBlending)]
+    pathFillClipboard*: Option[Fill]          ## Copy Fill (Paths panel / shape layers)
+    pathStrokeClipboard*: Option[ShapeStroke] ## Copy Complete Stroke
     colorRestrict: Option[int]
     authorize*: AuthorizeProc
     jobs: Jobs

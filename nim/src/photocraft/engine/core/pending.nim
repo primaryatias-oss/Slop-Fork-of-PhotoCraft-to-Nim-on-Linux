@@ -114,11 +114,6 @@ proc validateNewParams*(s: Session; p: JsonNode) =
 
 # ---------------------------------------------------------------- not ported yet
 
-proc isWork*(name: Option[string]): bool = raise notPorted("vector_cmds::is_work")
-proc parsePath*(v: JsonNode): Path = raise notPorted("vector_cmds::parse_path")
-proc translateVectors*(doc: Document; l: var Layer; dx, dy: float64) = discard
-proc transformShape*(sh: var ShapeLayer; a: Affine) = raise notPorted("vector_cmds::transform_shape")
-proc refreshShape*(doc: Document; sh: var ShapeLayer) = raise notPorted("vector_cmds::refresh_shape")
 proc refreshText*(doc: Document; t: var TextLayer) = raise notPorted("type_cmds::refresh")
 proc shiftSmart*(sm: var SmartObject; dx, dy: int) = raise notPorted("smart_cmds::shift_smart")
 proc transformPlacement*(sm: var SmartObject; a: Affine) = raise notPorted("smart_cmds::transform_placement")
@@ -151,7 +146,27 @@ proc fileImport*(name: string; bytes: openArray[byte]): Document =
   if r.previewOnly:
     raise other(name & ": only this Affinity file's embedded preview could be read; open it with File › Open to see the warning, or export PSD or PNG from Affinity before using it here")
   r.document
-proc mapShape*(sh: var ShapeLayer; h: Option[Homography]; warp: Option[JsonNode]) = raise notPorted("vector_cmds::map_shape")
-proc mapPath*(path: Path; h: Option[Homography]; warp: Option[JsonNode]): Path = raise notPorted("vector_cmds::map_path")
 proc smartPlacement*(sm: SmartObject): Homography = raise notPorted("smart_cmds::placement")
 proc setPlacement*(sm: var SmartObject; h: Homography) = raise notPorted("smart_cmds::set_placement")
+proc warpFromParams*(cmdId: string; p: JsonNode; frame: array[4, float64]): Warp = raise notPorted("warp_cmds::warp_from_params")
+
+# ---------------------------------------------------------------- brush_cmds (part)
+
+proc validateBrush*(brush: BrushSettings; cmdId: string) =
+  ## Refuses brush sizes and scatter amounts the rasterizer can't take (`brush_cmds::validate_brush`).
+  let mx = MaxBrushSize
+  if brush.size != brush.size or abs(brush.size) == Inf or brush.size > mx:
+    raise bad(cmdId, "brush size must be finite and at most " & displayFloat(mx) & " px")
+  if brush.dualBrush.enabled and (brush.dualBrush.size != brush.dualBrush.size or abs(brush.dualBrush.size) == Inf or
+                                   brush.dualBrush.size > mx):
+    raise bad(cmdId, "dual brush size must be finite and at most " & displayFloat(mx) & " px")
+  # Scatter may exceed 1 (100 %) but not the 1000 % maximum.
+  proc inRange(v: float32): bool = v >= 0 and v <= MaxScatter
+  let sc = brush.scattering.scatter.jitter
+  if brush.scattering.enabled and not inRange(sc):
+    raise bad(cmdId, "scatter amount " & debugFloat(sc) & " is out of range: it must be between 0 and " &
+      displayFloat(MaxScatter) & " (1000 %)")
+  let ds = brush.dualBrush.scatter
+  if brush.dualBrush.enabled and not inRange(ds):
+    raise bad(cmdId, "dual brush scatter amount " & debugFloat(ds) & " is out of range: it must be between 0 and " &
+      displayFloat(MaxScatter) & " (1000 %)")

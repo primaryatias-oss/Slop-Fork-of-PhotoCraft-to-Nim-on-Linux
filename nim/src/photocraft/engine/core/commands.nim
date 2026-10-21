@@ -43,14 +43,9 @@ proc layerOrRaise*(d: var Document; id: LayerId): ptr Layer =
   if result.isNil: raise noLayer(id)
 
 proc surfaceMut*(l: var Layer): ptr Surface =
-  ## `Layer::surface_mut`: the pixels of a pixel layer or the rendered cache of a type, shape or
-  ## smart object layer; nil when it has none.
-  case l.content.kind
-  of lkRaster: addr l.content.raster
-  of lkText: (if l.content.text.cache.isSome: addr l.content.text.cache.get else: nil)
-  of lkShape: (if l.content.shape.cache.isSome: addr l.content.shape.cache.get else: nil)
-  of lkSmart: (if l.content.smart.cache.isSome: addr l.content.smart.cache.get else: nil)
-  else: nil
+  ## `Layer::surface_mut`: the pixels of a pixel layer; nil for every other kind (type, shape and
+  ## smart object caches are re-rendered, never edited in place).
+  if l.content.kind == lkRaster: addr l.content.raster else: nil
 
 proc surfaceOf*(l: Layer): Option[Surface] =
   ## `Layer::surface`: the layer's pixels, when it has any.

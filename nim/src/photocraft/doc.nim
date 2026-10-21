@@ -614,7 +614,7 @@ proc toJ*(s: LiveShape): JsonNode =
     result["rect"] = toJ(s.rect); result["radii"] = toJ(s.radii)
   of lsEllipse: result["rect"] = toJ(s.rect)
   of lsPolygon:
-    result["rect"] = toJ(s.rect); result["sides"] = toJ(s.sides); result["starRatio"] = toJ(s.starRatio)
+    result["rect"] = toJ(s.rect); result["sides"] = toJ(s.sides); result["star_ratio"] = toJ(s.starRatio)
   of lsLine:
     result["from"] = toJ(s.`from`); result["to"] = toJ(s.to); result["weight"] = toJ(s.weight)
 
@@ -624,7 +624,7 @@ proc fromJ*(n: JsonNode; s: var LiveShape) =
   fromJ(n["kind"], s.kind)
   template f(key: string; dst: untyped) =
     if n.hasKey(key): fromJ(n[key], dst)
-  f("rect", s.rect); f("radii", s.radii); f("sides", s.sides); f("starRatio", s.starRatio)
+  f("rect", s.rect); f("radii", s.radii); f("sides", s.sides); f("star_ratio", s.starRatio)
   f("from", s.`from`); f("to", s.to); f("weight", s.weight)
 
 # ---------------------------------------------------------------- fills

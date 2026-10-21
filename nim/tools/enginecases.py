@@ -215,6 +215,27 @@ def step(r, areas):
     add("select", 2, lambda: {"cmd": "select.modify." + r.choice(["border", "smooth", "expand", "contract", "feather"]), "params": {"radius": r.choice([1, 2.5, 5, 0, -3, 1000, 0.1]), **({"applyAtCanvasBounds": True} if r.random() < 0.4 else {})}})
     add("select", 1, lambda: {"cmd": r.choice(["select.grow", "select.similar"]), "params": r.choice([{}, {"tolerance": r.choice([0, 64])}, {"sampleAllLayers": True}])})
     add("select", 1, lambda: {"cmd": "select.lasso", "params": {"points": r.choice([[[1, 1], [30, 2], [20, 25]], [[0, 0], [10, 0]], [[5.5, 5.5], [40, 10], [35, 30], [2, 28]], "x"]), **({"feather": r.choice([0, 2, 2000])} if r.random() < 0.4 else {}), **({"mode": r.choice(["add", "subtract"])} if r.random() < 0.3 else {}), **({"antiAlias": False} if r.random() < 0.3 else {})}})
+    def vpath(r):
+        return r.choice([
+            {"subpaths": [{"closed": True, "knots": [[2, 2], [30, 4], [25, 28], [3, 20]]}]},
+            {"subpaths": [{"closed": r.choice([True, False]), "op": r.choice(["combine", "subtract", "intersect", "exclude", "xor", "zz"]), "knots": [{"anchor": [10, 10], "in": [5, 12], "out": [15, 8], "smooth": True}, [30, 15], {"anchor": [20, 30]}]}], "fillRule": r.choice(["evenodd", "nonzero"]), "inverted": r.choice([False, True])},
+            {"subpaths": [{"knots": [[1, 1], [8, 1], [8, 8]]}, {"op": "subtract", "knots": [[3, 3], [6, 3], [6, 6]]}]},
+            {"subpaths": [{"knots": [["x", 1]]}]}, {"nope": 1}, 5])
+    def vfill(r):
+        return r.choice(["#ff0000", "#00ff0080", [0.1, 0.2, 0.3, 0.5], None, {"gradient": {"stops": [[0, "#000000"], [1, "#ffffff"]], "angle": 45, "scale": 80, "style": r.choice(["linear", "radial", "diamond", "q"]), "reverse": True}}, {"gradient": {}}, {"pattern": "Bricks", "scale": 50}, "#zz", 7])
+    def vstroke(r):
+        return r.choice([None, False, {"width": r.choice([1, 3, 2000000, -1]), "color": r.choice(["#0000ff", None]), "opacity": r.choice([50, 150]), "align": r.choice(["inside", "center", "outside", "q", 3]), "cap": r.choice(["butt", "round", "square"]), "join": r.choice(["miter", "round", "bevel"]), "dashes": r.choice([[2, 1], [], None, [20000], "x"])}, {"width": 2}, 5])
+    def vrect(r):
+        return [r.randint(-5, 20), r.randint(-5, 20), r.randint(0, 30), r.randint(0, 25)]
+    add("vector", 4, lambda: {"cmd": "shape.create", "params": dict({"kind": r.choice(["rect", "roundedRect", "ellipse", "polygon", "star", "line", "path", "blob"]), "rect": vrect(r), "from": [2, 3], "to": [30, r.randint(0, 30)]}, **({"path": vpath(r)} if r.random() < 0.4 else {}), **({"fill": vfill(r)} if r.random() < 0.5 else {}), **({"stroke": vstroke(r)} if r.random() < 0.4 else {}), **({"radii": r.choice([3, [1, 2, 3, 4], "x"])} if r.random() < 0.3 else {}), **({"sides": r.choice([3, 7, 1000])} if r.random() < 0.3 else {}), **({"starRatio": r.choice([0.3, 2])} if r.random() < 0.3 else {}), **({"weight": r.choice([1, 4, -2])} if r.random() < 0.3 else {}), **({"addTo": layer_id(r), "op": r.choice(["subtract", "intersect", 3, "zz"])} if r.random() < 0.15 else {}))})
+    add("vector", 3, lambda: {"cmd": "shape.edit", "params": r.choice([{"rect": vrect(r)}, {"kind": r.choice(["ellipse", "star", "rect", "line"]), "rect": vrect(r), "from": [0, 0], "to": [10, 10]}, {"move": [r.randint(-5, 5), 3]}, {"transform": r.choice([[2, 0, 0, 1, 0, 0], [0, 1, -1, 0, 30, 0], [1, 0.5, 0, 1, 0, 0], [-1, 0, 0, 1, 40, 0]])}, {"fill": vfill(r)}, {"stroke": vstroke(r)}, {"op": r.choice(["subtract", "exclude"]), **({"subpath": r.choice([0, 1, 9])} if r.random() < 0.5 else {})}, {"fillRule": "evenodd"}, {"path": vpath(r)}, {"name": "S"}, {"radii": 5}, {"sides": 6, "starRatio": 0.4}])})
+    add("vector", 1, lambda: {"cmd": r.choice(["shape.info", "shape.rasterize", "layer.rasterize.shape", "path.list", "path.info", "select.toWorkPath", "select.convertToShape", "path.style.copyFill", "path.style.copyStroke", "path.style.pasteFill", "path.style.pasteStroke", "layer.vectorMask.info", "layer.rasterize.vectorMask", "layer.vectorMask.delete"]), "params": r.choice([{}, {"layer": layer_id(r)}, {"name": r.choice(["work", "layer", "P1", "zz"])}, {"tolerance": r.choice([1, 5])}])})
+    add("vector", 2, lambda: {"cmd": "path.set", "params": {"path": vpath(r), **({"name": r.choice(["work", "P1", "P2", ""])} if r.random() < 0.6 else {}), **({"op": r.choice(["combine", "subtract", "zz"])} if r.random() < 0.3 else {})}})
+    add("vector", 2, lambda: {"cmd": r.choice(["path.delete", "path.rename", "path.clippingPath.set", "path.clippingPath.clear"]), "params": {"name": r.choice(["work", "P1", "P2", None, ""]), "to": r.choice(["P2", "P3", "work", ""]), **({"flatness": r.choice([2, 200])} if r.random() < 0.3 else {})}})
+    add("vector", 2, lambda: {"cmd": "path.transform", "params": dict({"name": r.choice(["work", "P1", "layer"])}, **r.choice([{"matrix": [1, 0, 0, 1, 5, 3]}, {"matrix": [1, 2]}, {"quad": [[0, 0], [30, 2], [28, 25], [1, 20]]}, {"quad": [[0, 0], [20, 0], [20, 10], [0, 10]], "rect": [0, 0, 20, 10]}, {"translateX": 4, "scaleY": 2, "angle": 30}, {}, {"angle": 1e9}]))})
+    add("vector", 2, lambda: {"cmd": r.choice(["path.toSelection", "path.fill", "path.stroke"]), "params": {"name": r.choice(["work", "P1", "layer"]), **({"feather": r.choice([0, 2])} if r.random() < 0.3 else {}), **({"antiAlias": False} if r.random() < 0.3 else {}), **({"mode": r.choice(["add", "multiply", "screen"])} if r.random() < 0.3 else {}), **({"color": "#ff8800"} if r.random() < 0.3 else {}), **({"opacity": r.choice([50, 200])} if r.random() < 0.3 else {}), **({"tool": r.choice(["brush", "pencil", "eraser", "zz"])} if r.random() < 0.5 else {}), **({"simulatePressure": r.choice([True, "x"])} if r.random() < 0.3 else {}), **({"size": r.choice([3, 9000])} if r.random() < 0.3 else {})}})
+    add("vector", 2, lambda: {"cmd": r.choice(["layer.vectorMask.add", "layer.vectorMask.fromPath", "layer.vectorMask.revealAll", "layer.vectorMask.hideAll", "layer.vectorMask.currentPath", "layer.vectorMask.edit", "layer.vectorMask.enabled", "layer.vectorMask.linked"]), "params": r.choice([{}, {"path": vpath(r)}, {"name": r.choice(["work", "P1"])}, {"hide": True}, {"density": 50, "feather": 3, "invert": True}, {"enabled": False}, {"linked": False}])})
+    add("vector", 2, lambda: {"cmd": "layer.combineShapes." + r.choice(["unite", "subtractFrontShape", "intersectShapeAreas", "excludeOverlappingShapes", "mergeShapeComponents"]), "params": r.choice([{}, {"layer": layer_id(r)}, {"subpath": 0}])})
     if not pool:
         return {"cmd": "session.inspect"}
     tot = sum(w for w, _ in pool)
@@ -228,7 +249,7 @@ def step(r, areas):
 def main():
     out, count = sys.argv[1], int(sys.argv[2])
     seed = int(sys.argv[3]) if len(sys.argv) > 3 else 1
-    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter"}
+    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector"}
     os.makedirs(out, exist_ok=True)
     r = random.Random(seed)
     for i in range(count):
