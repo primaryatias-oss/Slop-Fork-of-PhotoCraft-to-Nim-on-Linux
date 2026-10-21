@@ -20,6 +20,7 @@ photocraft-paint = { path = "../../../crates/paint" }
 photocraft-raw = { path = "../../../crates/raw", features = ["testgen"] }
 photocraft-affinity = { path = "../../../crates/affinity" }
 ruzstd = "0.9"
+photocraft-engine = { path = "../../../crates/engine" }
 serde_json = "1"
 skrifa = "0.44"
 harfrust = "0.12"

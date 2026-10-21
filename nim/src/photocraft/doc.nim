@@ -27,6 +27,10 @@ proc freshLayerId*(): LayerId = LayerId(nextId())
 proc freshContentsId*(): SmartContentsId = SmartContentsId(nextId())
 proc freshDocId*(): DocId = DocId(nextId())
 
+proc resetIdsForTesting*() =
+  ## Restarts the id counter at 1, as in a fresh process (cross-checks against the Rust build).
+  nextIdCounter = 1
+
 proc ensureIdsAbove*(maxId: uint64) =
   ## Advances the id counter past `maxId` so ids loaded from a file never collide with new ones.
   if maxId < high(uint64) and nextIdCounter <= maxId: nextIdCounter = maxId + 1

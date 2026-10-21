@@ -1,0 +1,38 @@
+## PhotoCraft's engine (port of `crates/engine`): the `Session` with its open documents and
+## history, and the command registry every UI, script and agent drives it through. Commands are
+## dispatched by id with JSON params (`Session.execute`).
+##
+## The modules that call into each other live in `engine/core` (one Nim module assembled from
+## `engine/core/*.nim`); `engine/*.nim` holds the command modules nothing else calls. This
+## module builds the registry in the order of Rust's `commands::build()`.
+
+import engine/core
+export core
+
+proc build(): seq[CommandSpec] =
+  ## `commands::build()`: the base table, then every module's `specs()` in Rust's order. Modules
+  ## not ported yet are listed as comments in their place.
+  result = baseSpecs()
+  # layer_style, filters, filters_ext, color_to_alpha_cmds, gallery_cmds, gradient_fill_cmds,
+  # solid_fill_cmds, pattern_fill_cmds, type_cmds, type_mask_cmds, transform_cmds, float_cmds,
+  # vector_cmds, path_edit_cmds, smartselect_cmds, cutout_cmds, symmetry_cmds, edit_cmds,
+  # color_cmds, brush_cmds, brush_preset_cmds, eraser_cmds, preset_import_cmds, swatch_cmds,
+  # retouch_cmds, redeye_cmds, image_cmds, perspective_crop_cmds, selection_cmds, magnetic_cmds,
+  # select_extra_cmds, paint_cmds, extra_cmds
+  result.add backgroundSpecs()
+  # file_cmds, exr_cmds, type_extra_cmds, type_styles_cmds, type_spell_cmds, type_caret_cmds,
+  # smart_cmds
+  result.add layerMultiSpecs()
+  # layer_copy_cmds, prefs, edit_menu_cmds, fill_key_cmds, sample_cmds, sampler_cmds,
+  # brush_key_cmds, stamp_cmds, align_cmds, photo_cmds, lens_cmds, vp_cmds
+  result.add channelSpecs()
+  # adjust_cmds, layer_menu_cmds, layer_label_cmds, mode_cmds, multichannel_cmds, pattern_cmds,
+  # warp_cmds, comps_cmds, artboard_cmds, distort_cmds, analysis_cmds, notes_cmds, history_cmds,
+  # proof_sim, presets, document_preset_cmds, render_cmds, slice_cmds, web_cmds, automate_cmds,
+  # print_cmds, installed_profiles, pick_cmds, layer_nav_cmds, frame_cmds, migrate_cmds,
+  # trap_cmds, timeline_cmds, video_cmds, jobs, wia_cmds, rasterize_style_cmds, variables_cmds,
+  # plugin_cmds, group_view_cmds, fx_view_cmds, fx_visibility_cmds
+  result.add maskViewSpecs()
+  # layer_mask_props_cmds, actions_cmds
+
+installRegistry(build())
