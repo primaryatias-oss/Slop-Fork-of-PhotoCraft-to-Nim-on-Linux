@@ -28,6 +28,13 @@ def new_doc(r):
     if r.random() < 0.1: p["bogus"] = 1
     return {"cmd": "file.new", "params": p}
 
+def valid_doc(r):
+    p = {"width": r.choice([16, 40, 64, 97]), "height": r.choice([16, 33, 48])}
+    if r.random() < 0.5: p["mode"] = r.choice(["rgb", "rgb", "gray", "cmyk", "lab"])
+    if r.random() < 0.5: p["depth"] = r.choice([8, 16, 32])
+    if r.random() < 0.5: p["background"] = r.choice(["white", "black", "transparent", "#336699"])
+    return {"cmd": "file.new", "params": p}
+
 def step(r, areas):
     pool = []
     def add(area, w, f):
@@ -102,6 +109,47 @@ def step(r, areas):
     add("style", 1, lambda: {"cmd": "layer.layerStyle.defaultFor", "params": {"kind": r.choice(kinds + ["zz", 3])}})
     add("style", 1, lambda: {"cmd": "layer.layerStyle.clear", "params": r.choice([{}, {"effect": r.choice([0, 1, 5, "x"])}, {"layer": layer_id(r)}])})
     add("style", 1, lambda: {"cmd": r.choice(["layer.layerStyle.copyLayerStyle", "layer.layerStyle.pasteLayerStyle", "layer.layerStyle.hideAllEffects", "layer.layerStyle.showAllEffects", "layer.new.layer", "edit.fill"])})
+    def adj_params(kind):
+        q = {}
+        common = {
+            "brightnessContrast": [("brightness", [-200, -50, 0, 30, 150, "x"]), ("contrast", [-80, 0, 50, 120]), ("legacy", [True, False, 1])],
+            "levels": [("inBlack", [0, 20, 254, -5]), ("inWhite", [255, 200, 1, 21]), ("gamma", [0.5, 1, 3, 20, "g"]), ("outBlack", [0, 30]), ("outWhite", [255, 220]),
+                       ("red", [{"inBlack": 10}, {"gamma": 2}, 5]), ("gray", [{"outWhite": 200}]), ("cyan", [{"inBlack": 3}]), ("lightness", [{"gamma": 1.5}]), ("a", [{}])],
+            "curves": [("points", [[[0, 0], [128, 160], [255, 255]], [[0, 10], [255, 240]], [[1, 1]], [[0, 0], [0.2, 5], [255, 255]], "x", [i * 1.0 for i in range(256)]]),
+                       ("red", [[[0, 0], [64, 90], [255, 255]]]), ("pencil", [True, False]), ("smooth", [1, 3, 20]), ("black", [[[0, 0], [255, 200]]]), ("b", [[[0, 0], [255, 250]]])],
+            "exposure": [("exposure", [-30, 0, 1.5]), ("offset", [-1, 0.1]), ("gamma", [0, 1, 2])],
+            "vibrance": [("vibrance", [-150, 30]), ("saturation", [50, -20])],
+            "hueSaturation": [("hue", [-200, 40, 300]), ("saturation", [-100, 30, 200]), ("lightness", [-20, 10]), ("colorize", [True, False]),
+                              ("reds", [{"hue": 20, "range": [300, 340, 20, 50]}, {"saturation": -30}, 4]), ("greens", [{"range": [100, 90, 200, 150]}])],
+            "colorBalance": [("shadows", [[10, -20, 30], [1, 2]]), ("midtones", [[200, 0, -200]]), ("highlights", [[0, 0, 5]]), ("preserveLuminosity", [True, False])],
+            "blackWhite": [("reds", [10, 400, -300]), ("blues", [50]), ("tint", [True, False]), ("tintColor", ["#ff8800", [0.2, 0.3, 0.4], "zz", "##aabbcc", "#+f+f+f"])],
+            "photoFilter": [("filter", ["warming85", "sepia", "underwater", "nope", 3]), ("color", ["#00ff00", [1, 0, 0]]), ("density", [0, 50, 150]), ("preserveLuminosity", [False])],
+            "channelMixer": [("monochrome", [True, False]), ("red", [[100, 0, 0, 0], [50, 50, 0, 10]]), ("gray", [[40, 40, 20, 0], [300, 0, 0, 0]]), ("blue", [[1, 2, 3]])],
+            "gradientMap": [("stops", [[[0, "#000000"], [1, "#ff0000"]], [{"location": 0.5, "color": [0, 1, 0]}, [0, "#fff"]], [[0.3, "#123456"]], "x"]), ("reverse", [True]), ("dither", [True])],
+            "selectiveColor": [("method", ["relative", "absolute", "q"]), ("reds", [[10, 20, -30, 5], [1, 2]]), ("colors", ["blues", "neutrals", "zz"]), ("cyan", [40]), ("black", [-120])],
+            "colorLookup": [("lut", ["warm", "cool", "none", "tealOrange", "zz"]), ("interpolation", ["trilinear", "tetrahedral", "x"]), ("dither", [True]),
+                            ("data", ["LUT_3D_SIZE 2\n0 0 0\n1 0 0\n0 1 0\n1 1 0\n0 0 1\n1 0 1\n0 1 1\n1 1 1\n", "garbage"])],
+            "threshold": [("level", [0, 128, 300])], "posterize": [("levels", [1, 4, 300])], "invert": [],
+        }.get(kind, [])
+        for k, vals in common:
+            if r.random() < 0.35: q[k] = r.choice(vals)
+        if kind in ("levels", "curves") and r.random() < 0.25:
+            q["eyedropper"] = r.choice([{"point": r.choice(["black", "gray", "white", "zz"]), "color": [r.random(), r.random(), r.random()]},
+                                        {"point": r.choice(["black", "gray", "white"]), "at": [r.randint(-2, 50), r.randint(0, 40)], **({"size": r.choice([1, 3, 5, 7])} if r.random() < 0.5 else {})},
+                                        {"point": "white"}])
+        return q
+    akinds = ["brightnessContrast", "levels", "curves", "exposure", "vibrance", "hueSaturation", "colorBalance", "blackWhite", "photoFilter", "channelMixer",
+              "gradientMap", "selectiveColor", "colorLookup", "threshold", "posterize", "invert"]
+    def adj_step(prefix):
+        k = r.choice(akinds)
+        return {"cmd": prefix + k, "params": adj_params(k)}
+    add("adjust", 4, lambda: adj_step("layer.newAdjustmentLayer."))
+    add("adjust", 4, lambda: adj_step("image.adjustments."))
+    add("adjust", 3, lambda: {"cmd": "layer.setAdjustment", "params": dict(adj_params(r.choice(akinds)), **({"layer": layer_id(r)} if r.random() < 0.3 else {}))})
+    add("adjust", 2, lambda: {"cmd": r.choice(["image.adjustments.shadowsHighlights", "image.adjustments.replaceColor", "image.adjustments.matchColor", "image.adjustments.hdrToning"]),
+                              "params": r.choice([{}, {"shadowAmount": 60, "highlightAmount": 20, "color": 50}, {"color": "#ff0000", "fuzziness": 80, "hue": 30}, {"source": r.choice([0, 1, 5]), "fade": 20, "neutralize": True},
+                                                  {"radius": 5, "strength": 1, "curve": [[0, 0], [128, 150], [255, 255]]}, {"useSelectionInTarget": True, "luminance": 150}])})
+    add("adjust", 1, lambda: {"cmd": r.choice(["image.adjustments.colorLookup.list", "document.sampleColor"]), "params": {"x": r.choice([0, 3.5, 20, -1, 1e9, "x"]), "y": r.choice([0, 7, 39.9]), **({"size": r.choice([1, 3, 5, 11, "point", 2, 101])} if r.random() < 0.6 else {}), **({"sampleLayer": r.choice(["current", "currentAndBelow", "all", "allNoAdjustments", "currentAndBelowNoAdjustments", "zz", 3])} if r.random() < 0.5 else {})}})
     if not pool:
         return {"cmd": "session.inspect"}
     tot = sum(w for w, _ in pool)
@@ -115,11 +163,11 @@ def step(r, areas):
 def main():
     out, count = sys.argv[1], int(sys.argv[2])
     seed = int(sys.argv[3]) if len(sys.argv) > 3 else 1
-    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style"}
+    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust"}
     os.makedirs(out, exist_ok=True)
     r = random.Random(seed)
     for i in range(count):
-        steps = [new_doc(r) if r.random() < 0.9 else {"cmd": "file.new", "params": {"width": 50, "height": 40}}]
+        steps = [new_doc(r) if r.random() < 0.3 else valid_doc(r)]
         for _ in range(r.randint(3, 25)):
             steps.append(new_doc(r) if r.random() < 0.03 else step(r, areas))
         # Inspect at the end so view state is compared too.

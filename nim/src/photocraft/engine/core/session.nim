@@ -58,6 +58,10 @@ proc asBool*(n: JsonNode): Option[bool] =
 proc asStr*(n: JsonNode): Option[string] =
   if not n.isNil and n.kind == JString: some(n.str) else: none(string)
 
+proc dropKey*(n: JsonNode; key: string) =
+  ## Removes `key` from object `n` when present (`Map::remove`).
+  if not n.isNil and n.kind == JObject and n.fields.hasKey(key): n.fields.del(key)
+
 proc isObject*(n: JsonNode): bool {.inline.} = not n.isNil and n.kind == JObject
 proc isArray*(n: JsonNode): bool {.inline.} = not n.isNil and n.kind == JArray
 

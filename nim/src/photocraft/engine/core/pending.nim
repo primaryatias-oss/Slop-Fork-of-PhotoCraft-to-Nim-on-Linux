@@ -116,13 +116,6 @@ proc parsePath*(v: JsonNode): Path = raise notPorted("vector_cmds::parse_path")
 proc translateVectors*(doc: Document; l: var Layer; dx, dy: float64) = discard
 proc transformShape*(sh: var ShapeLayer; a: Affine) = raise notPorted("vector_cmds::transform_shape")
 proc refreshShape*(doc: Document; sh: var ShapeLayer) = raise notPorted("vector_cmds::refresh_shape")
-proc adjFromParams*(kind: string; p: JsonNode; current: Option[Adjustment]; mode: ColorMode): Adjustment =
-  raise notPorted("adjust_params::from_params")
-proc adjDefaultFor*(kind: string; mode: ColorMode): Adjustment = raise notPorted("adjust_params::default_for")
-proc layerEyedropper*(s: Session; id: LayerId; p: JsonNode): Option[Adjustment] = none(Adjustment)
-proc adjUserKeys*(p: JsonNode): seq[string] = raise notPorted("adjust_params::user_keys")
-proc eyedropperFromParams*(s: Session; kind: string; p: JsonNode): Option[Adjustment] = none(Adjustment)
-proc adjToParams*(a: Adjustment): JsonNode = raise notPorted("adjust_params::to_params")
 proc refreshText*(doc: Document; t: var TextLayer) = raise notPorted("type_cmds::refresh")
 proc shiftSmart*(sm: var SmartObject; dx, dy: int) = raise notPorted("smart_cmds::shift_smart")
 proc transformPlacement*(sm: var SmartObject; a: Affine) = raise notPorted("smart_cmds::transform_placement")
@@ -130,8 +123,6 @@ proc refreshSmartLayer*(doc: Document; l: var Layer) = raise notPorted("smart_cm
 proc placeCopy*(doc: var Document; id: LayerId) = discard
 proc fitCanvas*(doc: var Document) = discard
 proc paintStroke*(s: var Session; p: JsonNode): JsonNode = raise notPorted("brush_cmds::paint_stroke")
-proc hasAdjustableE*(s: Session): string = hasPixelOrChannelE(s)
-proc adjustAsSmartFilter*(s: var Session; kind, label: string; p: JsonNode): bool = false
 proc filterParamsFor*(id: string; p: JsonNode): Option[FilterParams] = none(FilterParams)
 proc symmetryInspect*(p: PaintingSymmetry): JsonNode = newJNull()
 
@@ -143,3 +134,4 @@ proc transformBounds*(doc: Document; l: Layer): Rect = raise notPorted("transfor
 proc loneTarget*(doc: Document; active: Option[LayerId]; p: JsonNode): Option[Surface] = none(Surface)
 proc targetBounds*(doc: Document; surf: Surface): Rect = raise notPorted("transform_cmds::target_bounds")
 proc presetsChanged*(s: var Session) = discard
+proc addSmartFilter*(doc: var Document; id: LayerId; sf: SmartFilter; sel: Option[Surface]) = raise notPorted("smart_cmds::add_smart_filter")

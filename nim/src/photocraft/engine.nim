@@ -28,10 +28,13 @@ proc build(): seq[CommandSpec] =
   # smart_cmds
   result.add layerMultiSpecs()
   result.add layerCopySpecs()
-  # prefs, edit_menu_cmds, fill_key_cmds, sample_cmds, sampler_cmds,
+  # prefs, edit_menu_cmds, fill_key_cmds
+  result.add sampleSpecs()
+  # sampler_cmds,
   # brush_key_cmds, stamp_cmds, align_cmds, photo_cmds, lens_cmds, vp_cmds
   result.add channelSpecs()
-  # adjust_cmds, layer_menu_cmds, layer_label_cmds, mode_cmds, multichannel_cmds
+  result.add adjustSpecs()
+  # layer_menu_cmds, layer_label_cmds, mode_cmds, multichannel_cmds
   result.add patternSpecs()
   # warp_cmds, comps_cmds, artboard_cmds, distort_cmds, analysis_cmds, notes_cmds, history_cmds,
   # proof_sim, presets, document_preset_cmds, render_cmds, slice_cmds, web_cmds, automate_cmds,
