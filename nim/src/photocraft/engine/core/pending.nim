@@ -148,7 +148,7 @@ proc fileImport*(name: string; bytes: openArray[byte]): Document =
   r.document
 proc smartPlacement*(sm: SmartObject): Homography = raise notPorted("smart_cmds::placement")
 proc setPlacement*(sm: var SmartObject; h: Homography) = raise notPorted("smart_cmds::set_placement")
-proc warpFromParams*(cmdId: string; p: JsonNode; frame: array[4, float64]): Warp = raise notPorted("warp_cmds::warp_from_params")
+proc smartRefresh*(doc: var Document; id: LayerId): bool = raise notPorted("smart_cmds::refresh")
 
 # ---------------------------------------------------------------- brush_cmds (part)
 
