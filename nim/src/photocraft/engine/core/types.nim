@@ -346,7 +346,7 @@ type
     symmetry*: Option[PaintingSymmetry]
     floating*: Option[Floating]
     snapshots*: seq[Snapshot]
-    nextSnapshot: uint64
+    nextSnapshot*: uint64
 
   ToolState* = object
     ## App-wide tool state commands read (colours, brush…).

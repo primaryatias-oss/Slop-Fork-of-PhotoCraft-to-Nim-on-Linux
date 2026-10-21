@@ -61,6 +61,9 @@ def step(r, areas):
     add("fill", 1, lambda: {"cmd": "tools.setColors", "params": {"foreground": color(r), "background": color(r)}})
     add("fill", 1, lambda: {"cmd": r.choice(["tools.swapColors", "tools.defaultColors"])})
     add("history", 3, lambda: {"cmd": r.choice(["edit.undo", "edit.undo", "edit.redo"])})
+    add("history", 2, lambda: {"cmd": r.choice(["history.deleteState", "history.newDocument"]), "params": {k: r.choice(v) for k, v in [("state", [0, 1, 2, 5, 99, -1, 1.6, "x", None]), ("name", ["Copy", "  ", 3])] if r.random() < 0.6}})
+    add("history", 2, lambda: {"cmd": "history.newSnapshot", "params": {k: r.choice(v) for k, v in [("name", ["Snap", "", "  x ", 5]), ("from", ["fullDocument", "mergedLayers", "currentLayer", "zz"])] if r.random() < 0.5}})
+    add("history", 2, lambda: {"cmd": r.choice(["history.selectSnapshot", "history.renameSnapshot", "history.deleteSnapshot"]), "params": {k: r.choice(v) for k, v in [("snapshot", [1, 2, 3, 0, "x"]), ("name", ["Renamed", "", 3])] if r.random() < 0.8}})
     add("image", 1, lambda: {"cmd": "image.imageRotation." + r.choice(["flipCanvasHorizontal", "flipCanvasVertical", "180", "90cw", "90ccw"])})
     add("channel", 2, lambda: {"cmd": "channel.new", "params": r.choice([{}, {"fill": r.choice(["white", "selection", "black"])}, {"name": "A", "color": "#00ff00", "opacity": 70, "indicates": "selected"}])})
     add("channel", 1, lambda: {"cmd": "channel.newSpot", "params": r.choice([{}, {"color": "#ff00ff", "solidity": 40}])})
@@ -562,6 +565,16 @@ def small_block(r):
         steps.append({"cmd": "type.createSelection", "params": {"layer": r.choice([3, 4, 5, 6]), "removeLayer": r.choice([True, False]), **({"operation": r.choice(["add", "intersect"])} if r.random() < 0.3 else {})}})
     return steps
 
+def history_block(r):
+    """Snapshots and History panel actions over a few painted states."""
+    steps = []
+    for k in range(r.randint(2, 4)):
+        steps.append({"cmd": "paint.stroke", "params": {"points": [[r.uniform(0, 30), r.uniform(0, 30)], [r.uniform(0, 30), r.uniform(0, 30)]], "size": 6, "color": r.choice(["#ff0000", "#0000ff", "#00aa00"])}})
+        if r.random() < 0.5: steps.append({"cmd": "history.newSnapshot", "params": {k: r.choice(v) for k, v in [("name", ["S", "Mine"]), ("from", ["mergedLayers", "currentLayer", "fullDocument"])] if r.random() < 0.4}})
+    for _ in range(r.randint(1, 3)):
+        steps.append({"cmd": r.choice(["history.selectSnapshot", "history.renameSnapshot", "history.deleteSnapshot", "history.deleteState", "history.newDocument", "edit.undo"]), "params": {"snapshot": r.choice([1, 2]), "name": r.choice(["R", "Snap"]), **({"state": r.choice([1, 2, 3])} if r.random() < 0.5 else {})}})
+    return steps
+
 def main():
     out, count = sys.argv[1], int(sys.argv[2])
     seed = int(sys.argv[3]) if len(sys.argv) > 3 else 1
@@ -578,6 +591,8 @@ def main():
             steps.extend(retouch_block(r))
         if "small" in areas and r.random() < 0.7:
             steps.extend(small_block(r))
+        if "history" in areas and r.random() < 0.5:
+            steps.extend(history_block(r))
         for _ in range(r.randint(3, 25)):
             steps.append(new_doc(r) if r.random() < 0.03 else step(r, areas))
         # Inspect at the end so view state is compared too.

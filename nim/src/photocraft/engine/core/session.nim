@@ -309,7 +309,7 @@ proc isLayerSelected*(st: DocState; id: LayerId): bool =
 
 proc isDirty*(st: DocState): bool = st.revision != st.savedRevision
 
-proc layerTarget(st: DocState): LayerTarget = LayerTarget(active: st.activeLayer, selected: st.selectedLayers)
+proc layerTarget*(st: DocState): LayerTarget = LayerTarget(active: st.activeLayer, selected: st.selectedLayers)
 
 const MaskColors* = [[1'f32, 1, 1, 1], [0'f32, 0, 0, 1]]
   ## Photoshop's colour pair for a layer mask that has none yet: white on black.
