@@ -368,6 +368,16 @@ def step(r, areas):
     add("small", 1, lambda: {"cmd": r.choice(["layer.new.group", "layer.groupLayers", "layer.new.layer"]), "params": {}})
     add("small", 2, lambda: {"cmd": "layer.rasterize.layerStyle", "params": r.choice([{}, {"layer": layer_id(r)}])})
     add("small", 1, lambda: {"cmd": "file.import.wiaSupport", "params": {}})
+    add("small", 1, lambda: {"cmd": "image.mode.multichannel", "params": {}})
+    add("small", 1, lambda: {"cmd": "image.mode." + r.choice(["rgb", "cmyk", "lab", "grayscale"]), "params": {}})
+    add("small", 2, lambda: {"cmd": "select.magneticLasso", "params": dict({"points": r.choice([[[5, 5], [30, 6], [28, 25], [6, 22]], [[2, 2], [40, 3], [20, 30]], [[1, 1], [2, 2]], [[0, 0], ["a", 1], [3, 3]], "x", [[3, 3], [1e9, 1], [5, 9]]])}, **{k: r.choice(v) for k, v in [("width", [1, 10, 256, 0, 300, "x"]), ("contrast", [1, 50, 100, 0]), ("close", ["magnetic", "straight", "zz", None]), ("trace", [False, True, "x"]), ("mode", ["add", "subtract"]), ("feather", [2])] if r.random() < 0.3})})
+    add("small", 1, lambda: {"cmd": r.choice(["layer.newFillLayer.solidColor", "layer.newFillLayer.pattern"]), "params": r.choice([{}, {"color": "#336699"}, {"pattern": "Bricks"}])})
+    add("small", 2, lambda: {"cmd": "layer.fill.solidColor.set", "params": r.choice([{"color": r.choice(["#ff8800", "#ff880080", "+f+f+f", "#12345", "#zzzzzz", [0.2, 0.4, 0.6], [0.1, 0.2, 0.3, 0.5], [1, 2, 3], [0.1, 0.2], {"mode": "Rgb", "c": [0.1, 0.2, 0.3, 0], "alpha": 0.5}, {"mode": "Cmyk", "c": [0.1, 0.2, 0.3, 0.4], "alpha": 1}, {"x": 1}, 7])}, {"color": "#00ff00", "layer": layer_id(r)}, {"color": "#000000", "document": r.choice([0, 1, "x"])}, {}, {"layer": "x", "color": "#ffffff"}])})
+    add("small", 2, lambda: {"cmd": "layer.fill.pattern.set", "params": {k: r.choice(v) for k, v in [("pattern", ["Dots", "Bricks", "", 3, "nope", None]), ("scale", [50, 1, 1000, 0, 2000, "x"]), ("angle", [30, -180, 181, None]), ("link", [True, False, "x"]), ("phase", [[3, 4], [0, 0], [1], [1e8, 0], "x"]), ("layer", [1, 2, 3, "x"]), ("document", [0, 5])] if r.random() < 0.35}})
+    add("small", 2, lambda: {"cmd": "type.createSelection", "params": r.choice([{"text": r.choice(["Hi", "AB\nC", ""]), "x": r.choice([2, 10]), "y": r.choice([20, 30]), "size": r.choice([12, 20])}, {"layer": layer_id(r), "removeLayer": r.choice([True, False, "x"])}, {"removeLayer": True}, {"text": "W", "x": 3, "y": 25, "size": 24, "operation": r.choice(["add", "subtract", "intersect", "new", "zz"]), "antialias": r.choice(["none", "sharp", "smooth", "x"])}])})
+    add("small", 1, lambda: {"cmd": "type.create", "params": {"text": "Mask", "x": 4, "y": 24, "size": 18}})
+    add("small", 1, lambda: {"cmd": "edit.installedProfiles", "params": r.choice([{}, {"class": r.choice(["display", "output", "zz", 3])}, {"colorSpace": r.choice(["rgb", "cmyk", "x"])}])})
+    add("small", 1, lambda: {"cmd": "edit.presets.migratePresets", "params": r.choice([{}, {"path": "/nonexistent/presets.json"}, {"path": "/tmp"}, {"path": 3}])})
     if not pool:
         return {"cmd": "session.inspect"}
     tot = sum(w for w, _ in pool)
@@ -509,9 +519,22 @@ def small_block(r):
             steps.append({"cmd": "layer.setLabelColor", "params": {"color": r.choice(["red", "orange", "violet", "gray", "none"])}})
         elif k < 0.9:
             steps.append({"cmd": "image.perspectiveCrop", "params": dict({"corners": [[r.randint(0, 6), r.randint(0, 5)], [r.randint(25, 40), r.randint(0, 6)], [r.randint(24, 40), r.randint(20, 33)], [r.randint(0, 5), r.randint(18, 33)]]}, **{k: r.choice(v) for k, v in [("width", [20, 30]), ("height", [15, 25]), ("interpolation", ["nearest", "bilinear"])] if r.random() < 0.3})})
-        else:
+        elif k < 0.95:
             steps.append({"cmd": "image.mode.cmyk", "params": {}})
             steps.append({"cmd": "image.trap", "params": {"width": r.choice([1, 2])}})
+        else:
+            steps.append({"cmd": r.choice(["image.mode.multichannel", "select.magneticLasso"]), "params": {"points": [[3, 3], [30, 4], [26, 28], [5, 24]], **({"trace": False} if r.random() < 0.3 else {})}})
+    if r.random() < 0.5:
+        steps.append({"cmd": "layer.newFillLayer.solidColor", "params": {"color": "#336699"}})
+        for _ in range(r.randint(1, 3)):
+            steps.append({"cmd": "layer.fill.solidColor.set", "params": {"color": r.choice(["#ff8800", "#ff880080", "#+f+f+f", [0.2, 0.4, 0.6], [0.1, 0.2, 0.3, 0.5], {"mode": "Rgb", "c": [0.1, 0.2, 0.3, 0], "alpha": 0.5}, {"mode": "Lab", "c": [50, 10, -20, 0], "alpha": 1}])}})
+    if r.random() < 0.5:
+        steps.append({"cmd": "layer.newFillLayer.pattern", "params": {"pattern": r.choice(["Bricks", "Dots"])}})
+        for _ in range(r.randint(1, 3)):
+            steps.append({"cmd": "layer.fill.pattern.set", "params": {k: r.choice(v) for k, v in [("pattern", ["Dots", "Weave", "Grid"]), ("scale", [50, 150]), ("angle", [30, -90]), ("link", [True, False]), ("phase", [[3, 4], [0, 0]])] if r.random() < 0.5}})
+    if r.random() < 0.4:
+        steps.append({"cmd": "type.create", "params": {"text": r.choice(["Mask", "Ab"]), "x": 4, "y": 24, "size": 18}})
+        steps.append({"cmd": "type.createSelection", "params": {"layer": r.choice([3, 4, 5, 6]), "removeLayer": r.choice([True, False]), **({"operation": r.choice(["add", "intersect"])} if r.random() < 0.3 else {})}})
     return steps
 
 def main():

@@ -39,5 +39,5 @@ include core/[fsutil, pixels, canvas_geom, clip_group, commands, mask_view_cmds,
               gallery_cmds, color_to_alpha_cmds, transform_cmds, mode_cmds, image_cmds, vector_cmds, float_cmds, warp_cmds,
               type_cmds, brush_cmds, symmetry_cmds, smart_cmds,
               presets_base, presets_gradients, presets_patterns, presets_styles, presets_shapes, presets_tools,
-              presets_clone, presets_swatches, presets_specs]
+              presets_clone, presets_swatches, presets_specs, multichannel_cmds]
 include core/pending

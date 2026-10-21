@@ -8,9 +8,11 @@
 
 import engine/core
 import engine/[selection_cmds, eraser_cmds, retouch_cmds, redeye_cmds, perspective_crop_cmds,
-               layer_panel_cmds, trap_wia_cmds]
+               layer_panel_cmds, trap_wia_cmds, magnetic_cmds, fill_layer_cmds,
+               type_mask_cmds, profiles_migrate_cmds]
 export core, selection_cmds, eraser_cmds, retouch_cmds, redeye_cmds, perspective_crop_cmds, layer_panel_cmds,
-       trap_wia_cmds
+       trap_wia_cmds, magnetic_cmds, fill_layer_cmds, type_mask_cmds,
+       profiles_migrate_cmds
 
 proc build(): seq[CommandSpec] =
   ## `commands::build()`: the base table, then every module's `specs()` in Rust's order. Modules
@@ -22,9 +24,10 @@ proc build(): seq[CommandSpec] =
   result.add colorToAlphaSpecs()
   result.add gallerySpecs()
   # gradient_fill_cmds,
-  # solid_fill_cmds, pattern_fill_cmds
+  result.add solidFillSpecs()
+  result.add patternFillSpecs()
   result.add typeSpecs()
-  # type_mask_cmds
+  result.add typeMaskSpecs()
   result.add transformSpecs()
   result.add floatSpecs()
   result.add vectorSpecs()
@@ -41,7 +44,7 @@ proc build(): seq[CommandSpec] =
   result.add imageSpecs()
   result.add perspectiveCropSpecs()
   result.add selectionSpecs()
-  # magnetic_cmds,
+  result.add magneticSpecs()
   # select_extra_cmds, paint_cmds
   result.add extraSpecs()
   result.add backgroundSpecs()
@@ -58,14 +61,17 @@ proc build(): seq[CommandSpec] =
   # layer_menu_cmds
   result.add layerLabelSpecs()
   result.add modeSpecs()
-  # multichannel_cmds
+  result.add multichannelSpecs()
   result.add patternSpecs()
   result.add warpSpecs()
   # comps_cmds, artboard_cmds, distort_cmds, analysis_cmds, notes_cmds, history_cmds,
   # proof_sim
   result.add presetsSpecs()
   # document_preset_cmds, render_cmds, slice_cmds, web_cmds, automate_cmds,
-  # print_cmds, installed_profiles, pick_cmds, layer_nav_cmds, frame_cmds, migrate_cmds,
+  # print_cmds,
+  result.add installedProfilesSpecs()
+  # pick_cmds, layer_nav_cmds, frame_cmds,
+  result.add migrateSpecs()
   result.add trapSpecs()
   # timeline_cmds, video_cmds, jobs,
   result.add wiaSpecs()

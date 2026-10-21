@@ -119,7 +119,6 @@ proc fitCanvas*(doc: var Document) = discard
 proc pointSizePerInch*(s: Session): float64 = 72.0
 proc ignoreExifProfileTag*(s: Session): bool = false
 proc prefsTouch*(s: var Session) = discard
-proc convertFromMultichannel*(s: var Session; mode: ColorMode; p: JsonNode): JsonNode = raise notPorted("multichannel_cmds::convert_from")
 proc distortApplyToSurface*(id: string; params: JsonNode; surf: Surface; canvas: Rect): Option[Surface] = none(Surface)
 proc lensApplyToSurface*(id: string; params: JsonNode; surf: Surface; canvas: Rect): Option[Surface] = none(Surface)
 proc pluginApplyToSurface*(id: string; params: JsonNode; surf: Surface; selection: Option[Surface]; canvas: Rect): Option[Surface] = none(Surface)

@@ -7,6 +7,22 @@ type
   GradientStops* = seq[(float32, array[4, float32])] ## RGBA stops `(location, colour)` to paint
   GradientFillStops* = (seq[(float32, Color)], seq[(float32, float32)])
 
+proc toJ*(c: StopColor): JsonNode =
+  ## serde's externally tagged, camelCase `StopColor`: `"foreground"`, `"background"`, `{"rgb":[…]}`.
+  case c.kind
+  of scForeground: newJString("foreground")
+  of scBackground: newJString("background")
+  of scRgb: %*{"rgb": toJ(c.rgb)}
+
+proc fromJ*(n: JsonNode; c: var StopColor) =
+  if n.kind == JString and n.str == "foreground": c = StopColor(kind: scForeground)
+  elif n.kind == JString and n.str == "background": c = StopColor(kind: scBackground)
+  elif n.kind == JObject and n.len == 1 and n.hasKey("rgb"):
+    var a: array[3, float32]
+    fromJ(n["rgb"], a)
+    c = StopColor(kind: scRgb, rgb: a)
+  else: raise serdeError("unknown variant, expected one of `foreground`, `background`, `rgb`")
+
 const
   GradientSelectCmd = "gradient.presets.select"
   GradientStopCmd* = "gradient.presets.stop"
