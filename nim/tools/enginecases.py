@@ -316,6 +316,11 @@ def step(r, areas):
     add("paint", 2, lambda: {"cmd": "paint.setSymmetry", "params": dict({"mode": r.choice(["vertical", "horizontal", "dual", "diagonal", "zz", 3])}, **({"center": r.choice([[20, 15], [0.5, 30.25], [1e7, 0], "x", [1]])} if r.random() < 0.5 else {}), **({"rotation": r.choice([0, 30, -45, 400, "x"])} if r.random() < 0.4 else {}))})
     add("paint", 1, lambda: {"cmd": "path.set", "params": {"path": r.choice([{"subpaths": [{"closed": False, "knots": [[20, 0], [22, 40]]}]}, {"subpaths": [{"closed": False, "knots": [{"anchor": [5, 5], "out": [30, 0]}, {"anchor": [40, 30], "in": [10, 40]}]}]}, {"subpaths": [{"knots": [[3, 3], [3, 3]]}]}])}})
     add("paint", 1, lambda: {"cmd": r.choice(["paint.symmetryFromPath", "paint.symmetryDisable"]), "params": r.choice([{}, {"name": r.choice(["work", "layer", "P1", 4])}])})
+    bnames = ["Hard Round", "Soft Round", "Airbrush Soft", "Calligraphy Flat", "Mine", "hard round", "nope", "", 3]
+    bgroups = ["General", "Dry Media", "Wet Media", "Special Effects", "", "New", "zz", 3]
+    bfolders = [[], ["A"], ["A", "B"], [""], "x", [3]]
+    add("paint", 2, lambda: {"cmd": r.choice(["brush.presets.rename", "brush.presets.move"]), "params": {k: r.choice(v) for k, v in [("name", bnames), ("newName", ["Renamed", "Soft Round", "", "x" * 300]), ("group", bgroups), ("folder", bfolders), ("before", bnames), ("index", [0, 1, 5, 99, -1])] if r.random() < 0.6}})
+    add("paint", 2, lambda: {"cmd": r.choice(["brush.presets.moveGroup", "brush.presets.renameGroup", "brush.presets.deleteGroup"]), "params": {k: r.choice(v) for k, v in [("group", bgroups), ("folder", bfolders), ("before", bgroups + ["A", "B"]), ("index", [0, 1, 3, 99]), ("newName", ["G2", "General", "A", ""])] if r.random() < 0.6}})
     add("paint", 1, lambda: {"cmd": r.choice(["brush.presets.list", "brush.get", "brush.presets.save", "brush.presets.update", "brush.presets.delete", "brush.presets.setCurrent", "brush.defineFromSelection"]), "params": r.choice([{}, {"name": r.choice(["Mine", "Hard Round", "  ", 5])}, {"name": "Mine", "brush": bpatch(r)}, {"full": True}])})
     gstops = lambda r: r.choice([[[0, "#ff0000"], [1, "foreground"]], [[0.2, "#00ff00"], [0.8, "background"], [0.5, "#123456"]], ["#ff0000", "#0000ff", "#00ff00"], [[0, "zz"]], [[0, "#fff"]], "x", [[0.5, "#abcdef"]]])
     def gedit(r, names):
@@ -575,6 +580,19 @@ def history_block(r):
         steps.append({"cmd": r.choice(["history.selectSnapshot", "history.renameSnapshot", "history.deleteSnapshot", "history.deleteState", "history.newDocument", "edit.undo"]), "params": {"snapshot": r.choice([1, 2]), "name": r.choice(["R", "Snap"]), **({"state": r.choice([1, 2, 3])} if r.random() < 0.5 else {})}})
     return steps
 
+def brush_block(r):
+    """Brush preset organisation over saved presets moved into groups and nested folders."""
+    steps = []
+    names = ["P1", "P2", "P3", "P4"]
+    for n in names[:r.randint(2, 4)]:
+        steps.append({"cmd": "brush.presets.save", "params": {"name": n}})
+        steps.append({"cmd": "brush.presets.move", "params": dict({"name": n}, **{k: r.choice(v) for k, v in [("group", ["Mine", "General", "Other"]), ("folder", [[], ["A"], ["A", "B"], ["C"]]), ("index", [0, 1, 3])] if r.random() < 0.7})})
+    for _ in range(r.randint(2, 5)):
+        c = r.choice(["brush.presets.move", "brush.presets.moveGroup", "brush.presets.renameGroup", "brush.presets.deleteGroup", "brush.presets.rename"])
+        steps.append({"cmd": c, "params": {k: r.choice(v) for k, v in [("name", names + ["Hard Round", "Soft Round"]), ("group", ["Mine", "General", "Other", "Dry Media"]), ("folder", [[], ["A"], ["A", "B"], ["C"]]), ("before", r.choice([names, ["General", "Mine", "Dry Media", "A", "B", "C"]])), ("index", [0, 1, 2, 9]), ("newName", ["Z", "A", "General", "Q"])] if r.random() < 0.6}})
+    steps.append({"cmd": "brush.presets.list", "params": {}})
+    return steps
+
 def main():
     out, count = sys.argv[1], int(sys.argv[2])
     seed = int(sys.argv[3]) if len(sys.argv) > 3 else 1
@@ -593,6 +611,8 @@ def main():
             steps.extend(small_block(r))
         if "history" in areas and r.random() < 0.5:
             steps.extend(history_block(r))
+        if "paint" in areas and r.random() < 0.3:
+            steps.extend(brush_block(r))
         for _ in range(r.randint(3, 25)):
             steps.append(new_doc(r) if r.random() < 0.03 else step(r, areas))
         # Inspect at the end so view state is compared too.
