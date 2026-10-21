@@ -343,15 +343,15 @@ proc fromJ*(n: JsonNode; t: var TipShape) =
   let (tag, payload) = untag(n)
   case tag
   of "round":
-    if not payload.isNil and payload.kind != JNull: raise serdeError("invalid type: expected unit variant round")
+    unitPayload(payload)
     t = TipShape(kind: tkRound)
   of "sampled":
-    if payload.isNil: raise serdeError("invalid type: unit variant, expected newtype variant")
+    newtypePayload(payload)
     var g: GrayTile
     fromJ(payload, g)
     t = TipShape(kind: tkSampled, sampled: g)
   of "stored":
-    if payload.isNil: raise serdeError("invalid type: unit variant, expected newtype variant")
+    newtypePayload(payload)
     var s: StoredTile
     fromJ(payload, s)
     t = TipShape(kind: tkStored, stored: s)
@@ -366,22 +366,28 @@ proc toJ*(p: Pattern): JsonNode =
 
 proc fromJ*(n: JsonNode; p: var Pattern) =
   let (tag, payload) = untag(n)
-  if payload.isNil: raise serdeError("invalid type: unit variant, expected struct or newtype variant")
   case tag
   of "procedural":
-    if payload.kind != JObject: raise serdeError("expected struct variant Pattern::Procedural")
+    structPayload(payload)
     var r = Pattern(kind: pkProcedural)
+    # serde visits the map's keys in sorted order, then reports the first missing field.
+    for key in ["seed", "size", "style"]:
+      let v = payload.getOrDefault(key)
+      if v.isNil: continue
+      case key
+      of "seed": fromJ(v, r.seed)
+      of "size": fromJ(v, r.size)
+      else: fromJ(v, r.style)
     for key in ["style", "size", "seed"]:
       if payload.getOrDefault(key).isNil: raise serdeError("missing field `" & key & "`")
-    fromJ(payload["style"], r.style)
-    fromJ(payload["size"], r.size)
-    fromJ(payload["seed"], r.seed)
     p = r
   of "tile":
+    newtypePayload(payload)
     var g: GrayTile
     fromJ(payload, g)
     p = Pattern(kind: pkTile, tile: g)
   of "stored":
+    newtypePayload(payload)
     var s: StoredTile
     fromJ(payload, s)
     p = Pattern(kind: pkStored, stored: s)

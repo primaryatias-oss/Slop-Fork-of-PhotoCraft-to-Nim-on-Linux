@@ -277,6 +277,38 @@ def step(r, areas):
     add("type", 3, lambda: {"cmd": "type.setStyle", "params": dict(tstyle(r), **tpara(r), **({"range": r.choice([[0, 3], [2, 1], [5, 50]])} if r.random() < 0.4 else {}), **({"metricsAsShown": True} if r.random() < 0.2 else {}), **({"layers": r.choice([[layer_id(r)], "x", [1.5]])} if r.random() < 0.15 else {}), **({"layer": layer_id(r)} if r.random() < 0.15 else {}))})
     add("type", 2, lambda: {"cmd": r.choice(["type.increaseSize", "type.decreaseSize", "type.increaseSizeMore", "type.decreaseSizeMore"]), "params": r.choice([{}, {"by": r.choice([1, -3, 1e30, "x"])}, {"range": [0, 2]}])})
     add("type", 1, lambda: {"cmd": r.choice(["type.rasterize", "type.info", "layer.rasterize.type"]), "params": r.choice([{}, {"layer": layer_id(r)}])})
+    def pts(r):
+        k = r.randint(1, 6)
+        out = []
+        x, y = r.uniform(-5, 50), r.uniform(-5, 40)
+        for _ in range(k):
+            x += r.uniform(-12, 12); y += r.uniform(-10, 10)
+            form = r.random()
+            if form < 0.6: out.append([round(x, 2), round(y, 2)] + ([round(r.uniform(0, 1), 3)] if r.random() < 0.5 else []))
+            elif form < 0.8: out.append({"x": round(x, 2), "y": round(y, 2), **({"pressure": 0.5} if r.random() < 0.5 else {}), **({"tiltX": 20} if r.random() < 0.3 else {})})
+            elif form < 0.9: out.append(r.choice([[1], "x", {"x": "a"}, {"y": None}, [2e7, 3]]))
+            else: out.append([x, y, 1, 10, -5, 30, 15.0 * len(out), 0.5])
+        return r.choice([out, out, out, [], "x", None, [[float("nan") if False else 1e30, 2]]])
+    def bpatch(r):
+        return r.choice([{}, {"size": r.choice([5, 30, 0, 1e9, "x"])}, {"hardness": 0.3, "spacing": 0.5}, {"shapeDynamics": {"sizeJitter": {"jitter": 0.4}}}, {"scattering": {"enabled": True, "scatter": {"jitter": r.choice([0.5, 2, 50, -1])}, "count": 2}},
+                         {"tip": r.choice(["round", {"sampled": {"width": 2, "height": 2, "data": "x"}}, 5, {"zz": 1}])}, {"texture": {"enabled": True, "pattern": {"procedural": {"style": r.choice(["paper", "noise", "zz"]), "size": 32, "seed": 2}}}},
+                         {"dualBrush": {"enabled": True, "size": r.choice([10, 1e9]), "scatter": r.choice([0.2, 20])}}, {"colorDynamics": {"enabled": True, "hueJitter": 0.3}}, {"transfer": {"enabled": True}}, {"wetEdges": True, "noise": True},
+                         {"mode": r.choice(["Multiply", "Screen", "nope", 3])}, {"angle": "x"}, {"opacity": None}, {"color": [1, 0]}, {"seed": -1}, {"smoothing": {"amount": 0.5}}, {"buildUp": True, "buildUpRate": 10}, {"roundness": 0.5, "angle": 30, "flipX": True}, {"mixer": {"wet": 0.8}}, {"pressureSize": True}, {"shapeDynamics": 3}, {"spacingEnabled": "no"}])
+    def common(r):
+        d = {}
+        for k, vals in [("size", [3, 12, 40, 0.1, "x", 1e9]), ("opacity", [0.5, 2, -1]), ("flow", [0.3]), ("hardness", [0, 1]), ("spacing", [0.1, 0.001, 20]), ("color", ["#ff0000", "#00ff0080", [0, 0, 1], "zz", 3]), ("seed", [1, 7, -3, "s"]),
+                        ("erase", [True]), ("mode", ["multiply", "screen", "clear", "Clear", "nope"]), ("zoom", [0.5, 2, 0, -1, "x"]), ("preset", ["Hard Round", "Soft Round", "nope", 5]), ("smoothing", [0.5])]:
+            if r.random() < 0.15: d[k] = r.choice(vals)
+        if r.random() < 0.25: d["brush"] = bpatch(r)
+        if r.random() < 0.1: d["target"] = r.choice(["mask", "pixels", "quickMask", {"channel": 0}, "zz"])
+        if r.random() < 0.1: d["layer"] = layer_id(r)
+        return d
+    add("paint", 6, lambda: {"cmd": "paint.stroke", "params": dict({"points": pts(r)}, **common(r))})
+    add("paint", 3, lambda: {"cmd": "paint.pencil", "params": dict({"points": pts(r)}, **common(r), **({"autoErase": True} if r.random() < 0.3 else {}), **({"block": True} if r.random() < 0.2 else {}))})
+    add("paint", 2, lambda: {"cmd": "paint.mixerBrush", "params": dict({"points": pts(r)}, **{k: v for k, v in common(r).items() if k != "flow"}, **{k: r.choice([0, 50, 100, 150]) for k in ["wet", "load", "mix", "flow"] if r.random() < 0.3}, **({"sampleAllLayers": True} if r.random() < 0.3 else {}), **({"cleanAfterStroke": False} if r.random() < 0.3 else {}), **({"loadAfterStroke": False} if r.random() < 0.3 else {}))})
+    add("paint", 2, lambda: {"cmd": "paint.colorReplacement", "params": dict({"points": pts(r)}, **{k: v for k, v in common(r).items() if k != "mode"}, **({"mode": r.choice(["hue", "saturation", "color", "luminosity", "zz", 3])} if r.random() < 0.4 else {}), **({"sampling": r.choice(["continuous", "once", "backgroundSwatch", "x"])} if r.random() < 0.3 else {}), **({"limits": r.choice(["contiguous", "discontiguous", "findEdges"])} if r.random() < 0.3 else {}), **({"tolerance": r.choice([0, 50, 100])} if r.random() < 0.3 else {}))})
+    add("paint", 3, lambda: {"cmd": "tools.setBrush", "params": dict(r.choice([bpatch(r), {"brush": bpatch(r)}, {"preset": r.choice(["Hard Round", "Soft Round", "Chalk", "zz"])}, {"reset": True}, {"size": 25, "coalesce": "drag"}]))})
+    add("paint", 1, lambda: {"cmd": r.choice(["brush.presets.list", "brush.get", "brush.presets.save", "brush.presets.update", "brush.presets.delete", "brush.presets.setCurrent", "brush.defineFromSelection"]), "params": r.choice([{}, {"name": r.choice(["Mine", "Hard Round", "  ", 5])}, {"name": "Mine", "brush": bpatch(r)}, {"full": True}])})
     if not pool:
         return {"cmd": "session.inspect"}
     tot = sum(w for w, _ in pool)
@@ -362,7 +394,7 @@ def type_block(r):
 def main():
     out, count = sys.argv[1], int(sys.argv[2])
     seed = int(sys.argv[3]) if len(sys.argv) > 3 else 1
-    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart", "type"}
+    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart", "type", "paint"}
     os.makedirs(out, exist_ok=True)
     r = random.Random(seed)
     for i in range(count):

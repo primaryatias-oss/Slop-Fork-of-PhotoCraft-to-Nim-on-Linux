@@ -10,7 +10,8 @@
 ## * Rust enums with data are flat Nim objects with a `kind` field; their modules write
 ##   `toJ`/`fromJ` overloads using the helpers at the end (`tagged`, `untag`).
 
-import std/[json, options, strutils, macros, tables, math]
+import std/[json, options, strutils, macros, tables, math, algorithm]
+import rfmt
 export json, options
 
 template skipJson*() {.pragma.}
@@ -19,6 +20,60 @@ template jsonName*(name: string) {.pragma.}
 type SerdeError* = object of ValueError
 
 proc serdeError*(msg: string): ref SerdeError = newException(SerdeError, msg)
+
+var serdeStrict* {.threadvar.}: bool
+  ## While set, `fromJ` behaves like serde_json's `from_value`: errors carry serde's own text
+  ## (`invalid type: string "x", expected f32`) with no key path, object keys are read in sorted
+  ## order (serde_json maps are `BTreeMap`s, so the first bad key reported is the first in that
+  ## order), and `null` is no float. Used where Rust reports serde's message (`withSerdeStrict`).
+
+template withSerdeStrict*(body: untyped): untyped =
+  let savedStrict = serdeStrict
+  serdeStrict = true
+  try: body
+  finally: serdeStrict = savedStrict
+
+proc serdeUnexpected*(v: JsonNode): string =
+  ## serde's `Unexpected` text for a JSON value (`invalid type: <this>, expected …`).
+  if v.isNil: return "null"
+  case v.kind
+  of JNull: "null"
+  of JBool: "boolean `" & $v.bval & "`"
+  of JInt: "integer `" & $v.num & "`"
+  of JFloat:
+    var t = displayFloat(v.fnum)
+    if v.fnum == v.fnum and abs(v.fnum) != Inf and '.' notin t: t.add ".0"
+    "floating point `" & t & "`"
+  of JString: "string " & debugStr(v.str)
+  of JArray: "sequence"
+  of JObject: "map"
+
+proc invalidType(v: JsonNode; expected: string): ref SerdeError =
+  serdeError("invalid type: " & serdeUnexpected(v) & ", expected " & expected)
+
+proc rustName(T: typedesc): string =
+  ## The Rust primitive a Nim number type stands for, as serde names it in errors.
+  when T is float32: "f32"
+  elif T is float64: "f64"
+  elif T is uint8: "u8"
+  elif T is uint16: "u16"
+  elif T is uint32: "u32"
+  elif T is uint64 or T is uint: "u64"
+  elif T is int8: "i8"
+  elif T is int16: "i16"
+  elif T is int32: "i32"
+  else: "i64"
+
+proc oneOf*(names: openArray[string]): string =
+  ## serde's `OneOf` list of expected variants.
+  case names.len
+  of 0: "there are no variants"
+  of 1: "expected `" & names[0] & "`"
+  of 2: "expected `" & names[0] & "` or `" & names[1] & "`"
+  else:
+    var parts: seq[string]
+    for n in names: parts.add "`" & n & "`"
+    "expected one of " & parts.join(", ")
 
 proc snakeCase*(s: string): string =
   for i, c in s:
@@ -101,9 +156,22 @@ proc toJ*[T: ref object](x: T): JsonNode =
 
 proc fromJ*(n: JsonNode; x: var bool) =
   if n.kind == JBool: x = n.getBool
+  elif serdeStrict: raise invalidType(n, "a boolean")
   else: raise serdeError("expected a boolean")
 
 proc fromJ*[T: SomeInteger](n: JsonNode; x: var T) =
+  if serdeStrict:
+    case n.kind
+    of JInt:
+      let v = n.getBiggestInt
+      when T is SomeUnsignedInt:
+        if v < 0 or uint64(v) > uint64(high(T)): raise serdeError("invalid value: integer `" & $v & "`, expected " & rustName(T))
+      else:
+        if v < BiggestInt(low(T)) or v > BiggestInt(high(T)):
+          raise serdeError("invalid value: integer `" & $v & "`, expected " & rustName(T))
+      x = T(v)
+    else: raise invalidType(n, rustName(T))
+    return
   case n.kind
   of JInt:
     let v = n.getBiggestInt
@@ -124,16 +192,41 @@ proc fromJ*[T: SomeFloat](n: JsonNode; x: var T) =
   case n.kind
   of JInt: x = T(n.getBiggestInt)
   of JFloat: x = T(n.getFloat)
-  of JNull: x = T(NaN)
-  else: raise serdeError("expected a number")
+  of JNull:
+    if serdeStrict: raise invalidType(n, rustName(T))
+    x = T(NaN)
+  else:
+    if serdeStrict: raise invalidType(n, rustName(T))
+    raise serdeError("expected a number")
 
 proc fromJ*(n: JsonNode; x: var string) =
   if n.kind == JString: x = n.getStr
+  elif serdeStrict: raise invalidType(n, "a string")
   else: raise serdeError("expected a string")
 
 proc fromJ*(n: JsonNode; x: var JsonNode) = x = n
 
 proc fromJ*[T: enum](n: JsonNode; x: var T) =
+  if serdeStrict:
+    # serde_json's `deserialize_enum` on a `Value`: a string, or a map with a single key.
+    var name: string
+    var payload: JsonNode
+    case n.kind
+    of JString: name = n.getStr
+    of JObject:
+      if n.len != 1: raise serdeError("invalid value: map, expected map with a single key")
+      for key, val in pairs(n.fields):
+        name = key
+        payload = val
+    else: raise invalidType(n, "string or map")
+    var names: seq[string]
+    for v in T: names.add $v
+    for v in T:
+      if $v == name:
+        if not payload.isNil and payload.kind != JNull: raise invalidType(payload, "unit")
+        x = v
+        return
+    raise serdeError("unknown variant `" & name & "`, " & oneOf(names))
   if n.kind != JString: raise serdeError("expected a string for " & $T)
   let s = n.getStr
   for v in T:
@@ -153,7 +246,9 @@ proc fromJ*[T](n: JsonNode; x: var Option[T]) =
 
 proc fromJ*[T](n: JsonNode; x: var seq[T]) =
   mixin fromJ
-  if n.kind != JArray: raise serdeError("expected an array")
+  if n.kind != JArray:
+    if serdeStrict: raise invalidType(n, "a sequence")
+    raise serdeError("expected an array")
   x.setLen(0)
   for e in n.elems:
     var v: T
@@ -163,6 +258,16 @@ proc fromJ*[T](n: JsonNode; x: var seq[T]) =
 
 proc fromJ*[I, T](n: JsonNode; x: var array[I, T]) =
   mixin fromJ
+  if serdeStrict:
+    # serde's `[T; N]` visitor reads element by element, then serde_json refuses extra elements.
+    if n.kind != JArray: raise invalidType(n, "an array of length " & $x.len)
+    var i = 0
+    for k in low(x) .. high(x):
+      if i >= n.len: raise serdeError("invalid length " & $n.len & ", expected an array of length " & $x.len)
+      fromJ(n.elems[i], x[k])
+      inc i
+    if n.len > x.len: raise serdeError("invalid length " & $n.len & ", expected fewer elements in array")
+    return
   if n.kind != JArray or n.len != x.len: raise serdeError("expected an array of " & $x.len)
   var i = 0
   for k in low(x) .. high(x):
@@ -192,7 +297,24 @@ proc objectFromJ*[T: object](n: JsonNode; x: var T) =
   ## Like serde's derived `Deserialize`, a JSON array fills the fields in declaration order
   ## (missing trailing fields keep their defaults).
   mixin fromJ, defaultOf
-  if n.kind notin {JObject, JArray}: raise serdeError("expected an object for " & $T)
+  if serdeStrict and n.kind == JObject:
+    # serde_json visits a map's keys in sorted order; errors carry no key path.
+    var keys: seq[string]
+    for k in n.fields.keys: keys.add k
+    keys.sort(cmp[string])
+    for k in keys:
+      let e = n.fields[k]
+      for name, v in x.fieldPairs:
+        when not v.hasCustomPragma(skipJson):
+          let key = when v.hasCustomPragma(jsonName): v.getCustomPragmaVal(jsonName) else: fieldKey(T, name)
+          if key == k:
+            when v is object and compiles(defaultOf(typeof(v))):
+              if e.kind in {JObject, JArray}: v = defaultOf(typeof(v))
+            fromJ(e, v)
+    return
+  if n.kind notin {JObject, JArray}:
+    if serdeStrict: raise invalidType(n, "struct " & $T)
+    raise serdeError("expected an object for " & $T)
   var idx = 0
   for name, v in x.fieldPairs:
     when v.hasCustomPragma(skipJson): discard
@@ -205,9 +327,12 @@ proc objectFromJ*[T: object](n: JsonNode; x: var T) =
         # not from a zeroed value.
         when v is object and compiles(defaultOf(typeof(v))):
           if e.kind in {JObject, JArray}: v = defaultOf(typeof(v))
-        try: fromJ(e, v)
-        except SerdeError as err: raise serdeError(key & ": " & err.msg)
-  if n.kind == JArray and n.len > idx: raise serdeError("invalid length " & $n.len & ", expected fewer elements")
+        if serdeStrict: fromJ(e, v)
+        else:
+          try: fromJ(e, v)
+          except SerdeError as err: raise serdeError(key & ": " & err.msg)
+  if n.kind == JArray and n.len > idx:
+    raise serdeError("invalid length " & $n.len & ", expected fewer elements" & (if serdeStrict: " in array" else: ""))
 
 proc fromJ*[T: object](n: JsonNode; x: var T) = objectFromJ(n, x)
 
@@ -235,10 +360,27 @@ proc untag*(n: JsonNode): (string, JsonNode) =
   case n.kind
   of JString: (n.getStr, nil)
   of JObject:
-    if n.len != 1: raise serdeError("expected a single-key enum object")
+    if n.len != 1:
+      if serdeStrict: raise serdeError("invalid value: map, expected map with a single key")
+      raise serdeError("expected a single-key enum object")
     for k, v in n.fields: return (k, v)
     raise serdeError("empty enum object")
-  else: raise serdeError("expected an enum")
+  else:
+    if serdeStrict: raise invalidType(n, "string or map")
+    raise serdeError("expected an enum")
+
+proc unitPayload*(payload: JsonNode) =
+  ## serde_json's `unit_variant`: a unit variant written as a map takes only `null`.
+  if not payload.isNil and payload.kind != JNull: raise invalidType(payload, "unit")
+
+proc newtypePayload*(payload: JsonNode) =
+  ## serde_json's `newtype_variant`: the variant needs its value.
+  if payload.isNil: raise serdeError("invalid type: unit variant, expected newtype variant")
+
+proc structPayload*(payload: JsonNode) =
+  ## serde_json's `struct_variant`: the variant needs a map.
+  if payload.isNil: raise serdeError("invalid type: unit variant, expected struct variant")
+  if payload.kind != JObject: raise invalidType(payload, "struct variant")
 
 proc enumFromStr*[T: enum](s: string; _: typedesc[T]): Option[T] =
   for v in T:

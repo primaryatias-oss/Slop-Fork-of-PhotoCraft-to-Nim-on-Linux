@@ -25,7 +25,7 @@ proc afterCommandHooks(s: var Session; id: string) =
   editMenuAfterCommand(s, id)
   automateAfterCommand(s, id)
 proc replayable(id: string): bool = false
-proc coalesceJournal(s: var Session; id: string; params: JsonNode): bool = false
+proc coalesceJournal(s: var Session; id: string; params: JsonNode): bool = brushCoalesceJournal(s, id, params)
 
 # ---------------------------------------------------------------- document_preset_cmds
 
@@ -115,7 +115,6 @@ proc validateNewParams*(s: Session; p: JsonNode) =
 
 proc placeCopy*(doc: var Document; id: LayerId) = discard
 proc fitCanvas*(doc: var Document) = discard
-proc paintStroke*(s: var Session; p: JsonNode): JsonNode = raise notPorted("brush_cmds::paint_stroke")
 proc symmetryInspect*(p: PaintingSymmetry): JsonNode = newJNull()
 
 proc pointSizePerInch*(s: Session): float64 = 72.0
@@ -141,23 +140,7 @@ proc fileImport*(name: string; bytes: openArray[byte]): Document =
     raise other(name & ": only this Affinity file's embedded preview could be read; open it with File › Open to see the warning, or export PSD or PNG from Affinity before using it here")
   r.document
 
-# ---------------------------------------------------------------- brush_cmds (part)
+# ---------------------------------------------------------------- symmetry_cmds
 
-proc validateBrush*(brush: BrushSettings; cmdId: string) =
-  ## Refuses brush sizes and scatter amounts the rasterizer can't take (`brush_cmds::validate_brush`).
-  let mx = MaxBrushSize
-  if brush.size != brush.size or abs(brush.size) == Inf or brush.size > mx:
-    raise bad(cmdId, "brush size must be finite and at most " & displayFloat(mx) & " px")
-  if brush.dualBrush.enabled and (brush.dualBrush.size != brush.dualBrush.size or abs(brush.dualBrush.size) == Inf or
-                                   brush.dualBrush.size > mx):
-    raise bad(cmdId, "dual brush size must be finite and at most " & displayFloat(mx) & " px")
-  # Scatter may exceed 1 (100 %) but not the 1000 % maximum.
-  proc inRange(v: float32): bool = v >= 0 and v <= MaxScatter
-  let sc = brush.scattering.scatter.jitter
-  if brush.scattering.enabled and not inRange(sc):
-    raise bad(cmdId, "scatter amount " & debugFloat(sc) & " is out of range: it must be between 0 and " &
-      displayFloat(MaxScatter) & " (1000 %)")
-  let ds = brush.dualBrush.scatter
-  if brush.dualBrush.enabled and not inRange(ds):
-    raise bad(cmdId, "dual brush scatter amount " & debugFloat(ds) & " is out of range: it must be between 0 and " &
-      displayFloat(MaxScatter) & " (1000 %)")
+proc reflectedPasses*(s: PaintingSymmetry; pts: openArray[StrokePoint]): seq[seq[StrokePoint]] = @[]
+proc hasDistinctMirror*(pts, mirrored: openArray[StrokePoint]): bool = false

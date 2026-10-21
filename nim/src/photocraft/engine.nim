@@ -29,7 +29,8 @@ proc build(): seq[CommandSpec] =
   # path_edit_cmds, smartselect_cmds, cutout_cmds, symmetry_cmds
   result.add editSpecs()
   result.add colorSpecs()
-  # brush_cmds, brush_preset_cmds, eraser_cmds, preset_import_cmds, swatch_cmds,
+  result.add brushSpecs()
+  # brush_preset_cmds, eraser_cmds, preset_import_cmds, swatch_cmds,
   # retouch_cmds, redeye_cmds
   result.add imageSpecs()
   # perspective_crop_cmds

@@ -5,7 +5,7 @@
 ## `enginecheck --specs ORACLE` compares the registry (ids, labels, menus, shortcuts, params).
 
 import std/[os, osproc, strutils, json, tables, math]
-import photocraft/[engine, format, zstd]
+import photocraft/[engine, format, zstd, sjson]
 import photocraft/compose/psblend
 
 const Volatile = ["generator"]
@@ -145,7 +145,8 @@ when isMainModule:
       echo "SKIP ", path, " (the oracle failed)"
       continue
     let rustLog = parseFile(tmp / "log.json")
-    let steps = parseFile(path)
+    # Read as the oracle reads it (serde_json's float parsing), so both sides get the same values.
+    let steps = parseSerdeJson(readFile(path))
     let (nimLog, docs) = runNim(steps)
     var problem = ""
     for i in 0 ..< max(rustLog.len, nimLog.len):

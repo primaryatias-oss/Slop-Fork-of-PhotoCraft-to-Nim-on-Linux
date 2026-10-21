@@ -58,21 +58,6 @@ proc asBool*(n: JsonNode): Option[bool] =
 proc asStr*(n: JsonNode): Option[string] =
   if not n.isNil and n.kind == JString: some(n.str) else: none(string)
 
-proc serdeUnexpected*(v: JsonNode): string =
-  ## serde's `Unexpected` text for a JSON value (`invalid type: <this>, expected …`).
-  if v.isNil: return "null"
-  case v.kind
-  of JNull: "null"
-  of JBool: "boolean `" & $v.bval & "`"
-  of JInt: "integer `" & $v.num & "`"
-  of JFloat:
-    var t = displayFloat(v.fnum)
-    if v.fnum == v.fnum and abs(v.fnum) != Inf and '.' notin t: t.add ".0"
-    "floating point `" & t & "`"
-  of JString: "string " & debugStr(v.str)
-  of JArray: "sequence"
-  of JObject: "map"
-
 proc serdeInvalidType*(v: JsonNode; expected: string): ref ValueError =
   newException(ValueError, "invalid type: " & serdeUnexpected(v) & ", expected " & expected)
 

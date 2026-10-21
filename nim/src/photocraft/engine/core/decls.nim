@@ -65,3 +65,5 @@ proc loneTarget*(doc: Document; active: Option[LayerId]; p: JsonNode): Option[Su
 proc targetBounds*(doc: Document; surf: Surface): Rect
 proc transformBounds*(doc: Document; l: Layer): Rect
 proc floatBeforeCommand*(s: var Session; id: string): Option[JsonNode]
+proc reflectedPasses*(s: PaintingSymmetry; pts: openArray[StrokePoint]): seq[seq[StrokePoint]]
+proc hasDistinctMirror*(pts, mirrored: openArray[StrokePoint]): bool

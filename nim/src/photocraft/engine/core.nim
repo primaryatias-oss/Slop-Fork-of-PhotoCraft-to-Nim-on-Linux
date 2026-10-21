@@ -36,5 +36,5 @@ include core/[fsutil, pixels, canvas_geom, clip_group, commands, mask_view_cmds,
               new_layer, background_cmds, inspect, pattern_cmds, fill_cmds, prefs_units, color_cmds, channel_clip,
               layer_copy_cmds, edit_cmds, hidden_target, extra_cmds, layer_style, sample_cmds, adjust_params, adjust_cmds, filters, filters_ext,
               gallery_cmds, color_to_alpha_cmds, transform_cmds, mode_cmds, image_cmds, vector_cmds, float_cmds, warp_cmds,
-              type_cmds, smart_cmds]
+              type_cmds, brush_cmds, smart_cmds]
 include core/pending
