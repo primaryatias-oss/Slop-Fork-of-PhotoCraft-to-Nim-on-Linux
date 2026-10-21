@@ -61,3 +61,6 @@ proc refreshShape*(doc: Document; sh: var ShapeLayer)
 proc transformPlacement*(sm: var SmartObject; a: Affine)
 proc refreshSmartLayer*(doc: Document; l: var Layer)
 proc symmetryInspect*(p: PaintingSymmetry): JsonNode
+proc loneTarget*(doc: Document; active: Option[LayerId]; p: JsonNode): Option[Surface]
+proc targetBounds*(doc: Document; surf: Surface): Rect
+proc transformBounds*(doc: Document; l: Layer): Rect

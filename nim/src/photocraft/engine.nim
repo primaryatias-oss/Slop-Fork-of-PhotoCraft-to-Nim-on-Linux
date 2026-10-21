@@ -19,12 +19,15 @@ proc build(): seq[CommandSpec] =
   result.add colorToAlphaSpecs()
   result.add gallerySpecs()
   # gradient_fill_cmds,
-  # solid_fill_cmds, pattern_fill_cmds, type_cmds, type_mask_cmds, transform_cmds, float_cmds,
-  # vector_cmds, path_edit_cmds, smartselect_cmds, cutout_cmds, symmetry_cmds
+  # solid_fill_cmds, pattern_fill_cmds, type_cmds, type_mask_cmds
+  result.add transformSpecs()
+  # float_cmds, vector_cmds, path_edit_cmds, smartselect_cmds, cutout_cmds, symmetry_cmds
   result.add editSpecs()
   result.add colorSpecs()
   # brush_cmds, brush_preset_cmds, eraser_cmds, preset_import_cmds, swatch_cmds,
-  # retouch_cmds, redeye_cmds, image_cmds, perspective_crop_cmds, selection_cmds, magnetic_cmds,
+  # retouch_cmds, redeye_cmds
+  result.add imageSpecs()
+  # perspective_crop_cmds, selection_cmds, magnetic_cmds,
   # select_extra_cmds, paint_cmds
   result.add extraSpecs()
   result.add backgroundSpecs()
@@ -38,7 +41,9 @@ proc build(): seq[CommandSpec] =
   # brush_key_cmds, stamp_cmds, align_cmds, photo_cmds, lens_cmds, vp_cmds
   result.add channelSpecs()
   result.add adjustSpecs()
-  # layer_menu_cmds, layer_label_cmds, mode_cmds, multichannel_cmds
+  # layer_menu_cmds, layer_label_cmds
+  result.add modeSpecs()
+  # multichannel_cmds
   result.add patternSpecs()
   # warp_cmds, comps_cmds, artboard_cmds, distort_cmds, analysis_cmds, notes_cmds, history_cmds,
   # proof_sim, presets, document_preset_cmds, render_cmds, slice_cmds, web_cmds, automate_cmds,

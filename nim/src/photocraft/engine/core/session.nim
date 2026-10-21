@@ -707,6 +707,8 @@ proc dispatch(s: var Session; id: string; params: JsonNode; background: bool): S
     r = spec.run(s, runParams)
   except EngineError:
     raise
+  except AllocationError as e:
+    raise other("not enough memory for this operation (" & e.msg & "); the document was not changed")
   except CatchableError as e:
     # An error another layer raised that the command did not convert (Rust converts each one
     # at its call site, mostly as `Other(e.to_string())`).

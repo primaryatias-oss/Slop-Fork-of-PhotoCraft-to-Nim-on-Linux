@@ -465,7 +465,6 @@ proc toggleLastState(s: var Session): JsonNode =
   let redo = st.history.canRedo
   %(if redo: s.redo() else: s.undo())
 
-proc transformBounds*(doc: Document; l: Layer): Rect
 
 proc transformAgainParams(s: Session): JsonNode =
   ## The `edit.transform` params that repeat the last transform on the active layer.

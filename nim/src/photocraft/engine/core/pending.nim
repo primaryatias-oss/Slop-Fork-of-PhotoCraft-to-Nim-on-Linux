@@ -132,9 +132,6 @@ proc pointSizePerInch*(s: Session): float64 = 72.0
 proc ignoreExifProfileTag*(s: Session): bool = false
 proc prefsTouch*(s: var Session) = discard
 proc convertFromMultichannel*(s: var Session; mode: ColorMode; p: JsonNode): JsonNode = raise notPorted("multichannel_cmds::convert_from")
-proc transformBounds*(doc: Document; l: Layer): Rect = raise notPorted("transform_cmds::transform_bounds")
-proc loneTarget*(doc: Document; active: Option[LayerId]; p: JsonNode): Option[Surface] = none(Surface)
-proc targetBounds*(doc: Document; surf: Surface): Rect = raise notPorted("transform_cmds::target_bounds")
 proc presetsChanged*(s: var Session) = discard
 proc addSmartFilter*(doc: var Document; id: LayerId; sf: SmartFilter; sel: Option[Surface]) = raise notPorted("smart_cmds::add_smart_filter")
 proc distortApplyToSurface*(id: string; params: JsonNode; surf: Surface; canvas: Rect): Option[Surface] = none(Surface)
@@ -154,3 +151,7 @@ proc fileImport*(name: string; bytes: openArray[byte]): Document =
   if r.previewOnly:
     raise other(name & ": only this Affinity file's embedded preview could be read; open it with File › Open to see the warning, or export PSD or PNG from Affinity before using it here")
   r.document
+proc mapShape*(sh: var ShapeLayer; h: Option[Homography]; warp: Option[JsonNode]) = raise notPorted("vector_cmds::map_shape")
+proc mapPath*(path: Path; h: Option[Homography]; warp: Option[JsonNode]): Path = raise notPorted("vector_cmds::map_path")
+proc smartPlacement*(sm: SmartObject): Homography = raise notPorted("smart_cmds::placement")
+proc setPlacement*(sm: var SmartObject; h: Homography) = raise notPorted("smart_cmds::set_placement")

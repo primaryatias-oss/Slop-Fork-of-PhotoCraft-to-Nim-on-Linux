@@ -270,8 +270,6 @@ proc cloudsCmd(s: var Session; p: JsonNode; difference: bool): JsonNode =
 
 const TransformTarget = """{"target":"pixels"|"mask"|"quickMask"|{"channel":i}=Channels panel target (an unlinked mask, an alpha channel or the Quick Mask turns alone)}"""
 
-proc loneTarget*(doc: Document; active: Option[LayerId]; p: JsonNode): Option[Surface]
-proc targetBounds*(doc: Document; surf: Surface): Rect
 
 proc transformPreset(s: var Session; p: JsonNode; kind: string): JsonNode =
   let d = s.activeOrRaise()
