@@ -9,10 +9,10 @@
 import engine/core
 import engine/[selection_cmds, eraser_cmds, retouch_cmds, redeye_cmds, perspective_crop_cmds,
                layer_panel_cmds, trap_wia_cmds, magnetic_cmds, fill_layer_cmds,
-               type_mask_cmds, profiles_migrate_cmds, key_cmds]
+               type_mask_cmds, profiles_migrate_cmds, key_cmds, notes_cmds, sampler_cmds]
 export core, selection_cmds, eraser_cmds, retouch_cmds, redeye_cmds, perspective_crop_cmds, layer_panel_cmds,
        trap_wia_cmds, magnetic_cmds, fill_layer_cmds, type_mask_cmds,
-       profiles_migrate_cmds, key_cmds
+       profiles_migrate_cmds, key_cmds, notes_cmds, sampler_cmds
 
 proc build(): seq[CommandSpec] =
   ## `commands::build()`: the base table, then every module's `specs()` in Rust's order. Modules
@@ -55,7 +55,7 @@ proc build(): seq[CommandSpec] =
   # prefs, edit_menu_cmds,
   result.add fillKeySpecs()
   result.add sampleSpecs()
-  # sampler_cmds,
+  result.add samplerSpecs()
   result.add brushKeySpecs()
   result.add stampSpecs()
   # align_cmds, photo_cmds, lens_cmds, vp_cmds
@@ -67,7 +67,9 @@ proc build(): seq[CommandSpec] =
   result.add multichannelSpecs()
   result.add patternSpecs()
   result.add warpSpecs()
-  # comps_cmds, artboard_cmds, distort_cmds, analysis_cmds, notes_cmds, history_cmds,
+  # comps_cmds, artboard_cmds, distort_cmds, analysis_cmds,
+  result.add notesSpecs()
+  # history_cmds,
   # proof_sim
   result.add presetsSpecs()
   # document_preset_cmds, render_cmds, slice_cmds, web_cmds, automate_cmds,

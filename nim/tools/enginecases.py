@@ -369,6 +369,11 @@ def step(r, areas):
     add("small", 2, lambda: {"cmd": "layer.rasterize.layerStyle", "params": r.choice([{}, {"layer": layer_id(r)}])})
     add("small", 1, lambda: {"cmd": "file.import.wiaSupport", "params": {}})
     add("small", 1, lambda: {"cmd": "image.mode.multichannel", "params": {}})
+    add("small", 2, lambda: {"cmd": r.choice(["notes.add", "notes.set"]), "params": {k: r.choice(v) for k, v in [("x", [5, 20.5, -3, 1e300, "x"]), ("y", [7, 30]), ("text", ["hello", "", 3]), ("author", ["me", None]), ("color", ["#ff0000", [0, 0.5, 1], "zz", 3]), ("open", [False, True, "x"]), ("index", [0, 1, 5, -1, "x"])] if r.random() < 0.5}})
+    add("small", 1, lambda: {"cmd": r.choice(["notes.delete", "notes.list"]), "params": r.choice([{}, {"index": r.choice([0, 1, 9])}, {"all": True}, {"all": "x"}])})
+    add("small", 1, lambda: {"cmd": "file.import.notes", "params": r.choice([{}, {"path": "/nonexistent/a.psd"}, {"path": "/tmp"}, {"path": 5}])})
+    add("small", 2, lambda: {"cmd": r.choice(["view.colorSamplers.add", "view.colorSamplers.move"]), "params": {k: r.choice(v) for k, v in [("x", [3, 10.7, -1, 500, 1e12, "x"]), ("y", [4, 20, 0]), ("index", [0, 1, 3, 11, "x"])] if r.random() < 0.7}})
+    add("small", 1, lambda: {"cmd": r.choice(["view.colorSamplers.delete", "view.colorSamplers.clear", "view.colorSamplers.list"]), "params": r.choice([{}, {"index": r.choice([0, 1, 4, "x"])}])})
     add("small", 3, lambda: {"cmd": r.choice(["layer.selectAbove", "layer.selectBelow", "layer.selectTop", "layer.selectBottom", "layer.addAboveToSelection", "layer.addBelowToSelection"]), "params": {}})
     add("small", 2, lambda: {"cmd": r.choice(["tools.decreaseBrushSize", "tools.increaseBrushSize", "tools.decreaseBrushHardness", "tools.increaseBrushHardness"]), "params": {}})
     add("small", 2, lambda: {"cmd": r.choice(["edit.fillForeground", "edit.fillBackground", "edit.fillForegroundPreserve", "edit.fillBackgroundPreserve"]), "params": r.choice([{}, {"color": "#ff0000", "opacity": 50}, {"layer": layer_id(r)}, {"target": r.choice(["mask", "quickMask", {"channel": 0}])}, 3])})
@@ -537,6 +542,14 @@ def small_block(r):
         steps.append({"cmd": "layer.newFillLayer.pattern", "params": {"pattern": r.choice(["Bricks", "Dots"])}})
         for _ in range(r.randint(1, 3)):
             steps.append({"cmd": "layer.fill.pattern.set", "params": {k: r.choice(v) for k, v in [("pattern", ["Dots", "Weave", "Grid"]), ("scale", [50, 150]), ("angle", [30, -90]), ("link", [True, False]), ("phase", [[3, 4], [0, 0]])] if r.random() < 0.5}})
+    if r.random() < 0.5:
+        for _ in range(r.randint(1, 3)):
+            steps.append({"cmd": "notes.add", "params": {"x": r.randint(0, 30), "y": r.randint(0, 30), "text": r.choice(["a", "note"]), **({"color": "#00ff00"} if r.random() < 0.3 else {}), **({"open": False} if r.random() < 0.3 else {})}})
+        steps.append({"cmd": r.choice(["notes.set", "notes.delete", "notes.list"]), "params": {"index": r.choice([0, 1]), **{k: r.choice(v) for k, v in [("text", ["edited"]), ("x", [12.5]), ("y", [3]), ("open", [True, False]), ("author", ["A"]), ("color", [[1, 0, 0]])] if r.random() < 0.4}}})
+    if r.random() < 0.5:
+        for _ in range(r.randint(1, 3)):
+            steps.append({"cmd": "view.colorSamplers.add", "params": {"x": r.uniform(0, 30), "y": r.uniform(0, 30)}})
+        steps.append({"cmd": r.choice(["view.colorSamplers.move", "view.colorSamplers.delete", "view.colorSamplers.list", "view.colorSamplers.clear"]), "params": {"index": r.choice([0, 1]), "x": r.uniform(0, 30), "y": r.uniform(0, 30)}})
     if r.random() < 0.4:
         steps.append({"cmd": "type.create", "params": {"text": r.choice(["Mask", "Ab"]), "x": 4, "y": 24, "size": 18}})
         steps.append({"cmd": "type.createSelection", "params": {"layer": r.choice([3, 4, 5, 6]), "removeLayer": r.choice([True, False]), **({"operation": r.choice(["add", "intersect"])} if r.random() < 0.3 else {})}})

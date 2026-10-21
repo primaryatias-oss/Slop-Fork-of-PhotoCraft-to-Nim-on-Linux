@@ -27,6 +27,17 @@ proc sameNumber(a, b: JsonNode): bool =
   let y = if b.kind == JInt: float64(b.num) else: b.fnum
   x == y or float32(x) == float32(y) or (x != x and y != y)
 
+proc isClockText(s: string): bool =
+  ## A timestamp taken from the clock (a note's `D:YYYYMMDDhhmmssZ`, an ISO 8601 UTC time): the
+  ## two builds run at different moments.
+  proc digits(t: string): bool =
+    for c in t:
+      if c notin {'0'..'9'}: return false
+    true
+  (s.len == 17 and s.startsWith("D:") and s.endsWith("Z") and digits(s[2 ..< 16])) or
+    (s.len == 20 and s[4] == '-' and s[7] == '-' and s[10] == 'T' and s[13] == ':' and s[16] == ':' and s[19] == 'Z' and
+     digits(s[0 ..< 4]) and digits(s[5 ..< 7]) and digits(s[11 ..< 13]))
+
 proc firstDiff(a, b: JsonNode; path: string): string =
   if a.kind in {JInt, JFloat} and b.kind in {JInt, JFloat}:
     return (if sameNumber(a, b): "" else: path & ": " & $a & " vs " & $b)
@@ -45,6 +56,7 @@ proc firstDiff(a, b: JsonNode; path: string): string =
       let d = firstDiff(a[i], b[i], path & "[" & $i & "]")
       if d.len > 0: return d
   else:
+    if a.kind == JString and isClockText(a.str) and isClockText(b.str): return ""
     if a != b: return path & ": " & ($a)[0 ..< min(($a).len, 300)] & " vs " & ($b)[0 ..< min(($b).len, 300)]
   ""
 

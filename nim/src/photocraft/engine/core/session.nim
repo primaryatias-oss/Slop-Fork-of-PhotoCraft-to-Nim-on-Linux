@@ -161,6 +161,28 @@ proc serdeString*(s: string): string =
     else: result.add c
   result.add '"'
 
+proc nowIso*(): string =
+  ## `analysis_cmds::now_iso`: the current time as ISO 8601 UTC (`2026-10-01T12:34:56Z`).
+  when defined(js) or defined(wasm32): ""
+  else:
+    let secs = int64(epochTime())
+    let (days, rem) = (floorDiv(secs, 86_400'i64), floorMod(secs, 86_400'i64))
+    # Civil date from days since 1970-01-01 (Howard Hinnant's algorithm).
+    let z = days + 719_468
+    let era = floorDiv(z, 146_097'i64)
+    let doe = z - era * 146_097
+    let yoe = (doe - doe div 1460 + doe div 36_524 - doe div 146_096) div 365
+    let doy = doe - (365 * yoe + yoe div 4 - yoe div 100)
+    let mp = (5 * doy + 2) div 153
+    let d = doy - (153 * mp + 2) div 5 + 1
+    let m = (if mp < 10: mp + 3 else: mp - 9)
+    let y = yoe + era * 400 + (if m <= 2: 1 else: 0)
+    proc p2(v: int64): string = (if v < 10: "0" & $v else: $v)
+    proc p4(v: int64): string =
+      result = $v
+      while result.len < 4: result = "0" & result
+    p4(y) & "-" & p2(m) & "-" & p2(d) & "T" & p2(rem div 3600) & ":" & p2(rem mod 3600 div 60) & ":" & p2(rem mod 60) & "Z"
+
 proc jsonText*(v: JsonNode): string =
   ## serde_json's compact form of a value (for messages): keys sorted, ryu floats.
   if v.isNil: return "null"

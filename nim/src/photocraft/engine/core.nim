@@ -8,7 +8,7 @@
 ## Rust `Result` errors are `EngineError` exceptions; `serde_json::Value` is `JsonNode`, read with
 ## the helpers in `core/session.nim` that mirror `as_u64`, `as_f64`, `as_str`, ….
 
-import std/[json, options, tables, sets, strutils, math, algorithm, sequtils, unicode, strformat, hashes, os]
+import std/[json, options, tables, sets, strutils, math, algorithm, sequtils, unicode, strformat, hashes, os, times]
 import ../geom, ../color, ../raster, ../doc, ../ops, ../compose, ../vector, ../paint, ../rmath, ../text
 import ../algo except Tile
 import ../algo/[selection, selection_marquee, resample, params, tone, quantize, warp]
