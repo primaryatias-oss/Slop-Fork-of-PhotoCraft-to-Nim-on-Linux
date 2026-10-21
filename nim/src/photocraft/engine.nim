@@ -13,20 +13,26 @@ proc build(): seq[CommandSpec] =
   ## `commands::build()`: the base table, then every module's `specs()` in Rust's order. Modules
   ## not ported yet are listed as comments in their place.
   result = baseSpecs()
-  # layer_style, filters, filters_ext, color_to_alpha_cmds, gallery_cmds, gradient_fill_cmds,
+  result.add layerStyleSpecs()
+  # filters, filters_ext, color_to_alpha_cmds, gallery_cmds, gradient_fill_cmds,
   # solid_fill_cmds, pattern_fill_cmds, type_cmds, type_mask_cmds, transform_cmds, float_cmds,
-  # vector_cmds, path_edit_cmds, smartselect_cmds, cutout_cmds, symmetry_cmds, edit_cmds,
-  # color_cmds, brush_cmds, brush_preset_cmds, eraser_cmds, preset_import_cmds, swatch_cmds,
+  # vector_cmds, path_edit_cmds, smartselect_cmds, cutout_cmds, symmetry_cmds
+  result.add editSpecs()
+  result.add colorSpecs()
+  # brush_cmds, brush_preset_cmds, eraser_cmds, preset_import_cmds, swatch_cmds,
   # retouch_cmds, redeye_cmds, image_cmds, perspective_crop_cmds, selection_cmds, magnetic_cmds,
-  # select_extra_cmds, paint_cmds, extra_cmds
+  # select_extra_cmds, paint_cmds
+  result.add extraSpecs()
   result.add backgroundSpecs()
   # file_cmds, exr_cmds, type_extra_cmds, type_styles_cmds, type_spell_cmds, type_caret_cmds,
   # smart_cmds
   result.add layerMultiSpecs()
-  # layer_copy_cmds, prefs, edit_menu_cmds, fill_key_cmds, sample_cmds, sampler_cmds,
+  result.add layerCopySpecs()
+  # prefs, edit_menu_cmds, fill_key_cmds, sample_cmds, sampler_cmds,
   # brush_key_cmds, stamp_cmds, align_cmds, photo_cmds, lens_cmds, vp_cmds
   result.add channelSpecs()
-  # adjust_cmds, layer_menu_cmds, layer_label_cmds, mode_cmds, multichannel_cmds, pattern_cmds,
+  # adjust_cmds, layer_menu_cmds, layer_label_cmds, mode_cmds, multichannel_cmds
+  result.add patternSpecs()
   # warp_cmds, comps_cmds, artboard_cmds, distort_cmds, analysis_cmds, notes_cmds, history_cmds,
   # proof_sim, presets, document_preset_cmds, render_cmds, slice_cmds, web_cmds, automate_cmds,
   # print_cmds, installed_profiles, pick_cmds, layer_nav_cmds, frame_cmds, migrate_cmds,

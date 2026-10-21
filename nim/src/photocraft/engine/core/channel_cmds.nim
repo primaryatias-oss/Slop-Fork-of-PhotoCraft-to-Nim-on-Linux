@@ -596,6 +596,10 @@ proc editsChannel*(s: Session): bool =
 
 # ---------------------------------------------------------------- enabled predicates
 
+proc chHasSelectionE(s: Session): string =
+  let d = s.active
+  if d.isNil: return "no document open"
+  if d.doc.selection.isSome: "" else: "no selection"
 proc hasChannelsE(s: Session): string =
   let d = s.active
   if d.isNil: return "no document open"
@@ -1389,7 +1393,7 @@ proc channelSpecs*(): seq[CommandSpec] =
   result = @[
     cmd("select.saveSelection", "Save Selection…", ["Select"], "",
         """{"name":str?,"channel":"new"|index|name="new","document":index?,"operation":"new|replace|add|subtract|intersect"="new"}""",
-        hasSelectionE, saveSelection),
+        chHasSelectionE, saveSelection),
     cmd("select.loadSelection", "Load Selection…", ["Select"], "",
         """{"channel":index|name|"composite"|"red|green|blue|…"|"transparency"|"mask"|"vectorMask"|"quickMask"|"selection","layer":id?,"document":index?,"invert":bool=false,"operation":"new|add|subtract|intersect"="new"}""",
         hasDocE, loadSelection),

@@ -54,6 +54,7 @@ proc fillColor*(surf: var Surface; area: Rect; color: array[4, float32]; sel: Op
 proc mergeable(s: Session): seq[int]
 proc targetChannel(s: var Session; t: ChannelTarget)
 proc isBackground*(l: Layer): bool
+proc setVisibleSelected*(s: var Session; visible: bool): JsonNode
 proc fitCanvas*(doc: var Document)
 proc transformShape*(sh: var ShapeLayer; a: Affine)
 proc refreshShape*(doc: Document; sh: var ShapeLayer)

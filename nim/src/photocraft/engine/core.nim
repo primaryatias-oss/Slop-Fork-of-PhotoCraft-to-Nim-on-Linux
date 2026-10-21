@@ -8,14 +8,25 @@
 ## Rust `Result` errors are `EngineError` exceptions; `serde_json::Value` is `JsonNode`, read with
 ## the helpers in `core/session.nim` that mirror `as_u64`, `as_f64`, `as_str`, ….
 
-import std/[json, options, tables, sets, strutils, math, algorithm, sequtils, unicode, strformat, hashes]
+import std/[json, options, tables, sets, strutils, math, algorithm, sequtils, unicode, strformat, hashes, os]
 import ../geom, ../color, ../raster, ../doc, ../ops, ../compose, ../vector, ../paint, ../rmath, ../text
 import ../algo/[selection, selection_marquee, resample, params]
+import ../algo/content_aware as caware
+import ../algo/transform as atransform
 import ../text/psd_text
+import ../format, ../cms, ../io/pattern_map, ../codecs/meta, ../psd/swatches
+import ../doc/types as doctypes
+import ../paint/brush as paintbrush
+when not defined(js): import std/posix
+
+type
+  DocPattern* = doctypes.Pattern     ## a document / library pattern (`photocraft_doc::Pattern`)
+  BrushPattern* = paintbrush.Pattern ## a brush texture pattern (`photocraft_paint::Pattern`)
 
 export json, options, geom, color, raster, doc, ops
 
 include core/[types, session, decls]
-include core/[pixels, canvas_geom, clip_group, commands, mask_view_cmds, channel_cmds, layer_multi_cmds,
-              new_layer, background_cmds, inspect]
+include core/[fsutil, pixels, canvas_geom, clip_group, commands, mask_view_cmds, channel_cmds, layer_multi_cmds,
+              new_layer, background_cmds, inspect, pattern_cmds, fill_cmds, prefs_units, color_cmds, channel_clip,
+              layer_copy_cmds, edit_cmds, hidden_target, extra_cmds, layer_style]
 include core/pending

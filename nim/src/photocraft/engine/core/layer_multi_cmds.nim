@@ -32,7 +32,7 @@ proc startsWith(p, q: LayerPath): bool =
 proc selected*(s: Session): seq[LayerId] =
   ## Selected layers of the active document, bottom to top.
   let st = s.active
-  if st.isNil: @[] else: st[].selectedLayers
+  if st.isNil: @[] else: st[].selectedOrdered
 
 proc targets*(s: Session; p: JsonNode): seq[LayerId] =
   ## The layers a layer command acts on: `layer`, else every selected layer, else the active one.
@@ -107,7 +107,7 @@ proc selectLayerCmd*(s: var Session; p: JsonNode): JsonNode =
   let mode = p.getStrOr("mode", "replace")
   let st = s.activeOrRaise()
   if st.doc[].findLayer(id).isNil: raise noLayer(id)
-  var sel = st[].selectedLayers
+  var sel = st[].selectedOrdered
   case mode
   of "replace": s.selectLayer(id)
   of "add":
@@ -175,7 +175,7 @@ proc linkGroups(doc: Document; ids: openArray[LayerId]): seq[uint64] =
 
 proc selectLinked(s: var Session): JsonNode =
   let d = s.activeOrRaise()
-  let groups = linkGroups(d.doc[], d[].selectedLayers)
+  let groups = linkGroups(d.doc[], d[].selectedOrdered)
   var ids: seq[LayerId]
   for (_, l) in d.doc[].walkPtrs:
     if l.linkGroup.isSome and l.linkGroup.get in groups: ids.add l.id
@@ -192,13 +192,13 @@ proc twoPlusE(s: Session): string = (if selected(s).len >= 2: "" else: "select t
 proc canAlignE(s: Session): string =
   let d = s.active
   if d.isNil: return "no document open"
-  if d[].selectedLayers.len == 0: "no layer selected" else: ""
+  if d[].selectedOrdered.len == 0: "no layer selected" else: ""
 proc canDistributeE(s: Session): string =
   if selected(s).len >= 3: "" else: "select three or more layers to distribute"
 proc canLinkE(s: Session): string =
   let d = s.active
   if d.isNil: return "no document open"
-  let sel = d[].selectedLayers
+  let sel = d[].selectedOrdered
   if sel.len == 0: return "no layer selected"
   if sel.len == 1:
     let l = d.doc[].findLayer(sel[0])
@@ -207,7 +207,7 @@ proc canLinkE(s: Session): string =
 proc hasLinkedE(s: Session): string =
   let d = s.active
   if d.isNil: return "no document open"
-  if linkGroups(d.doc[], d[].selectedLayers).len == 0: "the selected layers are not linked" else: ""
+  if linkGroups(d.doc[], d[].selectedOrdered).len == 0: "the selected layers are not linked" else: ""
 
 # ---------------------------------------------------------------- moving layers
 

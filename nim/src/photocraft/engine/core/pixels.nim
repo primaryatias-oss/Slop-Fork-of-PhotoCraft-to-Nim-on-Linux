@@ -287,3 +287,21 @@ proc mergeDown*(docBounds: Rect; lower, upper: Layer; format: PixelFormat): Laye
   result.opacity = 1
   # Merge Down replaces the lower layer, so keep its editing restrictions.
   result.locks = lower.locks
+
+proc forEachSurface*(layers: var seq[Layer]; masks: bool; f: proc(surf: var Surface; isMask: bool)) =
+  ## Applies `f` to every pixel surface of a layer tree: content (raster or cached
+  ## text/shape/smart pixels), fill caches, and (if `masks`) masks (`image_cmds::for_each_surface`).
+  for l in layers.mitems:
+    if masks and l.mask.isSome: f(l.mask.get.surface, true)
+    if l.fillCache.isSome: f(l.fillCache.get.surface, false)
+    case l.content.kind
+    of lkRaster: f(l.content.raster, false)
+    of lkText:
+      if l.content.text.cache.isSome: f(l.content.text.cache.get, false)
+    of lkShape:
+      if l.content.shape.cache.isSome: f(l.content.shape.cache.get, false)
+    of lkSmart:
+      if l.content.smart.cache.isSome: f(l.content.smart.cache.get, false)
+      if masks and l.content.smart.filterMask.isSome: f(l.content.smart.filterMask.get.surface, true)
+    of lkGroup: forEachSurface(l.content.group.children, masks, f)
+    else: discard

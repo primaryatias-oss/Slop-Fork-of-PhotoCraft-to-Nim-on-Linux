@@ -87,9 +87,90 @@ proc intI32*(cmd: string; p: JsonNode; key: string): Option[int32] =
     raise bad(cmd, "`" & key & "` = " & $v.get & " is outside the 32-bit coordinate range")
   some(int32(v.get))
 
+iterator sortedPairs*(n: JsonNode): (string, JsonNode) =
+  ## An object's fields in serde_json's order (its `Map` is a `BTreeMap`: keys sorted bytewise).
+  if not n.isNil and n.kind == JObject:
+    var keys: seq[string]
+    for k in n.fields.keys: keys.add k
+    keys.sort(system.cmp[string])
+    for k in keys: yield (k, n.fields[k])
+
+proc serdeFloat*(x: float64): string =
+  ## serde_json's (ryu's) text for a finite f64: shortest digits, `1e20`, `1.5e-7`, `0.0001`.
+  if x != x or abs(x) == Inf: return "null"
+  let t = $x
+  var neg = false
+  var m = t
+  if m.startsWith("-"):
+    neg = true
+    m = m[1 .. ^1]
+  var exp = 0
+  let e = m.find('e')
+  if e >= 0:
+    exp = parseInt(m[e + 1 .. ^1].replace("+", ""))
+    m = m[0 ..< e]
+  let dot = m.find('.')
+  var digits = m
+  if dot >= 0:
+    digits = m[0 ..< dot] & m[dot + 1 .. ^1]
+    exp -= m.len - dot - 1
+  # Normalise: no leading zeros, no trailing zeros (moved into the exponent).
+  var lead = 0
+  while lead < digits.len - 1 and digits[lead] == '0': inc lead
+  digits = digits[lead .. ^1]
+  while digits.len > 1 and digits[^1] == '0':
+    digits.setLen(digits.len - 1)
+    inc exp
+  result = if neg: "-" else: ""
+  if digits == "0": return result & "0.0"
+  let length = digits.len
+  let k = exp
+  let kk = length + k
+  if k >= 0 and kk <= 16:
+    result.add digits & repeat('0', k) & ".0"
+  elif kk > 0 and kk <= 16:
+    result.add digits[0 ..< kk] & "." & digits[kk .. ^1]
+  elif kk > -5 and kk <= 0:
+    result.add "0." & repeat('0', -kk) & digits
+  elif length == 1:
+    result.add digits & "e" & $(kk - 1)
+  else:
+    result.add digits[0] & "." & digits[1 .. ^1] & "e" & $(kk - 1)
+
+proc serdeString*(s: string): string =
+  ## serde_json's quoted string.
+  result = "\""
+  for c in s:
+    case c
+    of '"': result.add "\\\""
+    of '\\': result.add "\\\\"
+    of '\n': result.add "\\n"
+    of '\r': result.add "\\r"
+    of '\t': result.add "\\t"
+    of '\b': result.add "\\b"
+    of '\f': result.add "\\f"
+    of '\0' .. '\x07', '\x0B', '\x0E' .. '\x1F':
+      result.add "\\u00" & toHex(ord(c), 2).toLowerAscii
+    else: result.add c
+  result.add '"'
+
 proc jsonText*(v: JsonNode): string =
-  ## serde_json's compact form of a value (for messages).
-  if v.isNil: "null" else: $v
+  ## serde_json's compact form of a value (for messages): keys sorted, ryu floats.
+  if v.isNil: return "null"
+  case v.kind
+  of JNull: "null"
+  of JBool: (if v.bval: "true" else: "false")
+  of JInt: $v.num
+  of JFloat: serdeFloat(v.fnum)
+  of JString: serdeString(v.str)
+  of JArray:
+    var parts: seq[string]
+    for x in v.elems: parts.add jsonText(x)
+    "[" & parts.join(",") & "]"
+  of JObject:
+    var parts: seq[string]
+    for k, x in v.sortedPairs: parts.add serdeString(k) & ":" & jsonText(x)
+    "{" & parts.join(",") & "}"
 
 proc u32Id*(cmd, key: string; v: JsonNode): uint32 =
   ## An id from a JSON value: a bad-params error unless a whole number in u32 range.
@@ -185,7 +266,7 @@ proc layerIds*(d: Document): seq[LayerId] =
   ## Every layer id, bottom to top in tree order (`walk` without the layers).
   for (_, _, l) in d.walk: result.add l.id
 
-proc selectedLayers*(st: DocState): seq[LayerId] =
+proc selectedOrdered*(st: DocState): seq[LayerId] =
   ## The selected layers in bottom-to-top document order, always including the active layer.
   if st.activeLayer.isNone: return
   let active = st.activeLayer.get
@@ -220,9 +301,13 @@ proc targetMask*(t: var ToolState; mask: bool): bool =
   t.background = other[1]
   true
 
+proc newPatternLibrary*(): PatternLibrary
+proc defaultColorSettings*(): ColorSettings
+
 proc newSession*(): Session =
   Session(tools: newToolState(), quickMaskOptions: QuickMaskOptions(color: AlphaDefaultColor, opacity: 0.5,
-          indicates: ciMaskedAreas))
+          indicates: ciMaskedAreas), patterns: newPatternLibrary(),
+          color: ColorState(settings: defaultColorSettings()))
 
 proc documents*(s: Session): lent seq[DocState] = s.docs
 proc activeIndex*(s: Session): Option[int] = s.activeIdx

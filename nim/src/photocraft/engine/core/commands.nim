@@ -352,7 +352,7 @@ proc setClipped(s: var Session; p: JsonNode; clip: bool): JsonNode =
     ids = @[layerParam(s, p)]
   else:
     let st = s.activeOrRaise()
-    let selected = st[].selectedLayers
+    let selected = st[].selectedOrdered
     if selected.len == 0: ids = @[layerParam(s, p)]
     elif selected.len == 1: ids = selected
     elif clip: ids = selected[1 .. ^1]
@@ -540,7 +540,7 @@ proc setProps(s: var Session; p: JsonNode): JsonNode =
       l.excludedChannels = m
     let locks = p.pget("locks")
     if locks.isObject:
-      for k, v in locks.fields:
+      for k, v in locks.sortedPairs:
         let b = v.asBool.get(false)
         case k
         of "transparency": l.locks.transparency = b

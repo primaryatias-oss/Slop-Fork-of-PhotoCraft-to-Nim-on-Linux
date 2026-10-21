@@ -1,6 +1,7 @@
 ## ICC v4.3 profile writer (ICC.1:2010), used for built-in and synthetic profiles, plus the
 ## byte-level identity helpers of `Profile` (bytes, content hash).
 
+import ../rusthash
 import std/[options, hashes, math]
 import ./curve, ./clut, ./math as cmath, ./pipeline, ./profile
 
@@ -278,5 +279,5 @@ proc withEncodedBytes*(p: Profile): Profile =
 proc contentHash*(p: Profile): uint64 =
   ## Hash of the profile's ICC bytes (stable within a process; used as a cache key).
   if p.hashCache.isNone:
-    p.hashCache = some(cast[uint64](hash(p.toBytes)))
+    p.hashCache = some(rustHashBytes(p.toBytes))
   p.hashCache.get

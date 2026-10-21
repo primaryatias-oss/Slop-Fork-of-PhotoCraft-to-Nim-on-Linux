@@ -1100,7 +1100,9 @@ proc newPattern*(name: string; surface: Surface; width, height: int): Pattern =
     let bits = cast[uint32](v)
     for i in 0..3: le4[i] = byte((bits shr (8 * i)) and 0xFF)
     h1 = fnv(h1, le4)
-  let fmt = $surface.format
+  # Rust's `{:?}` of the pixel format.
+  let f = surface.format
+  let fmt = "PixelFormat { mode: " & $f.mode & ", sample: " & $f.sample & ", alpha: " & $f.alpha & " }"
   let h2 = fnv(h1 xor 0x9e3779b97f4a7c15'u64, fmt.toOpenArrayByte(0, fmt.len - 1))
   let id = &"{uint32(h1 shr 32):08x}-{uint16((h1 shr 16) and 0xFFFF):04x}-{uint16(h1 and 0xFFFF):04x}-{uint16(h2 shr 48):04x}-{h2 and 0xffffffffffff'u64:012x}"
   Pattern(id: id, name: name, width: width, height: height, surface: surface)

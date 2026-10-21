@@ -8,27 +8,22 @@ proc notPorted(what: string): ref EngineError = other("`" & what & "` is not por
 
 proc onCloseDocument(s: var Session; index: int) = discard
 proc beforeCommandHook(s: var Session; id: string): Option[JsonNode] = none(JsonNode)
-proc validateCommandParams(s: var Session; id: string; params: JsonNode) = discard
+proc filtersValidateParams*(id: string; params: JsonNode) = discard
+proc editMenuAfterCommand*(s: var Session; id: string) = discard
+proc automateAfterCommand*(s: var Session; id: string) = discard
+
+proc validateCommandParams(s: var Session; id: string; params: JsonNode) =
+  if id == "file.new": validateNewParams(s, params)
+  filtersValidateParams(id, params)
 proc redirectCommand(s: var Session; id: string): Option[(string, JsonNode)] = none((string, JsonNode))
-proc hiddenTargetRefusal(s: Session; id: string; params: JsonNode): string = ""
-proc afterCommandHooks(s: var Session; id: string) = discard
+proc afterCommandHooks(s: var Session; id: string) =
+  # A layer-mask view ends when another layer becomes active.
+  let st = s.active
+  if not st.isNil: fixMaskView(st[])
+  editMenuAfterCommand(s, id)
+  automateAfterCommand(s, id)
 proc replayable(id: string): bool = false
 proc coalesceJournal(s: var Session; id: string; params: JsonNode): bool = false
-
-# ---------------------------------------------------------------- extra_cmds
-
-proc isBackground*(l: Layer): bool =
-  l.name == "Background" and l.locks.transparency and l.locks.position and l.content.kind == lkRaster
-
-proc unlockBackground*(l: var Layer) =
-  l.name = "Layer 0"
-  l.locks.transparency = false
-  l.locks.position = false
-
-proc backgroundToLayerForMask*(doc: var Document; id: LayerId) =
-  ## Before `id` gets a layer mask: the Background becomes a normal layer ("Layer 0") first.
-  if doc.layers.len > 0 and doc.layers[0].id == id and isBackground(doc.layers[0]):
-    unlockBackground(doc.layers[0])
 
 # ---------------------------------------------------------------- document_preset_cmds
 
@@ -79,7 +74,7 @@ proc validateNewParams*(s: Session; p: JsonNode) =
   const cmdId = "file.new"
   if p.isNull: return
   if not p.isObject: raise bad(cmdId, "params must be a JSON object")
-  for key, value in p.fields:
+  for key, value in p.sortedPairs:
     var valid = false
     var expected = ""
     case key
@@ -132,16 +127,19 @@ proc refreshText*(doc: Document; t: var TextLayer) = raise notPorted("type_cmds:
 proc shiftSmart*(sm: var SmartObject; dx, dy: int) = raise notPorted("smart_cmds::shift_smart")
 proc transformPlacement*(sm: var SmartObject; a: Affine) = raise notPorted("smart_cmds::transform_placement")
 proc refreshSmartLayer*(doc: Document; l: var Layer) = raise notPorted("smart_cmds::refresh_layer")
-proc fillCmd*(s: var Session; p: JsonNode): JsonNode = raise notPorted("fill_cmds::fill")
-proc fillColor*(surf: var Surface; area: Rect; color: array[4, float32]; sel: Option[Surface]) =
-  raise notPorted("fill_cmds::fill_color")
-proc clearArea*(doc: var Document; id: LayerId; area: Rect; sel: Option[Surface]; bg: array[4, float32]) =
-  raise notPorted("edit_cmds::clear_area")
 proc placeCopy*(doc: var Document; id: LayerId) = discard
 proc fitCanvas*(doc: var Document) = discard
-proc gradientStyle*(name: string): GradientStyle = raise notPorted("layer_style::gradient_style")
 proc paintStroke*(s: var Session; p: JsonNode): JsonNode = raise notPorted("brush_cmds::paint_stroke")
 proc hasAdjustableE*(s: Session): string = hasPixelOrChannelE(s)
 proc adjustAsSmartFilter*(s: var Session; kind, label: string; p: JsonNode): bool = false
 proc filterParamsFor*(id: string; p: JsonNode): Option[FilterParams] = none(FilterParams)
 proc symmetryInspect*(p: PaintingSymmetry): JsonNode = newJNull()
+
+proc pointSizePerInch*(s: Session): float64 = 72.0
+proc ignoreExifProfileTag*(s: Session): bool = false
+proc prefsTouch*(s: var Session) = discard
+proc convertFromMultichannel*(s: var Session; mode: ColorMode; p: JsonNode): JsonNode = raise notPorted("multichannel_cmds::convert_from")
+proc transformBounds*(doc: Document; l: Layer): Rect = raise notPorted("transform_cmds::transform_bounds")
+proc loneTarget*(doc: Document; active: Option[LayerId]; p: JsonNode): Option[Surface] = none(Surface)
+proc targetBounds*(doc: Document; surf: Surface): Rect = raise notPorted("transform_cmds::target_bounds")
+proc presetsChanged*(s: var Session) = discard

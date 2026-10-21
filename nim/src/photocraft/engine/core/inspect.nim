@@ -75,7 +75,7 @@ proc inspectLayer*(l: Layer): JsonNode = layerSel(l, [])
 
 proc inspectDocument*(d: DocState): JsonNode =
   let doc = d.doc
-  let selected = d.selectedLayers
+  let selected = d.selectedOrdered
   var layers = newJArray()
   for i in countdown(doc.layers.len - 1, 0): layers.add layerSel(doc.layers[i], selected)
   var history = newJArray()

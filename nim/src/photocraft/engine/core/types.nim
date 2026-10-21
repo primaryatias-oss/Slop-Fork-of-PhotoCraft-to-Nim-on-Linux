@@ -101,7 +101,90 @@ type
     opacity*: float32
     indicates*: ColorIndicates
 
+  # ---------------------------------------------------------------- colour management (color_cmds.rs)
+
+  Policy* = enum
+    ## Colour management policy for documents whose profile differs from the working space.
+    poPreserve = "preserve", poConvert = "convert", poOff = "off"
+
+  ColorSettings* = object
+    ## Edit › Color Settings.
+    workingRgb*, workingCmyk*, workingGray*: string
+    policyRgb*, policyCmyk*, policyGray*: Policy
+    askOnMismatch*, askOnPaste*, askOnMissing*: bool
+    intent*: string
+    bpc*, dither*: bool
+    blendTextGamma*: float32
+    monitorProfile*: string
+
+  ProofKindTag* = enum
+    pkProfile, pkPlate, pkCmyPlate, pkLegacyMacintoshRgb, pkProtanopia, pkDeuteranopia
+  ProofKind* = object
+    ## What a proof simulates (`proof_sim::ProofKind`).
+    kind*: ProofKindTag
+    plate*: uint8
+
+  ProofSetup* = object
+    ## View › Proof Setup settings.
+    name*: string
+    profile*: Profile
+    intent*: Intent
+    bpc*, simulatePaper*: bool
+    kind*: ProofKind
+
+  ProofView* = object
+    ## Per-document proofing state.
+    setup*: ProofSetup
+    enabled*, gamutWarning*: bool
+    gamutThreshold*: float32
+
+  HdrPreview* = object
+    ## View › 32-bit Preview Options.
+    highlightCompression*: bool
+    exposure*, gamma*: float32
+
+  MonitorDetectionKind* = enum mdUnsupported, mdPending, mdFailed, mdFound, mdRetained
+  MonitorDetection* = object
+    ## What the platform reported about the displays' profiles (Monitor Profile = `auto`).
+    kind*: MonitorDetectionKind
+    reason*: string ## mdFailed, mdRetained
+
+  Display* = object
+    ## A display as the platform reports it.
+    id*: uint32
+    name*: string
+    frame*: array[4, float64]
+    profileName*: Option[string]
+    icc*: SharedBytes
+
+  ColorState* = object
+    ## Session-wide colour settings and caches (`Session.color`).
+    settings*: ColorSettings
+    proofs*: Table[uint64, ProofView]
+    displays*: seq[Display]
+    monitorDetection*: MonitorDetection
+    mainDisplay*: Option[uint32]
+    hdr*: Table[uint64, HdrPreview]
+
+  # ---------------------------------------------------------------- session-wide state of the modules
+
+  PatternLibrary* = object
+    ## The app-level pattern library (Window › Patterns).
+    items*: seq[DocPattern]
+
+  PresetState* = object
+    ## Window › Gradients, Patterns (groups), Styles, Shapes, Tool Presets and Clone Source
+    ## (`presets`; filled in when it lands).
+    pattern*: Option[string] ## the Patterns panel's selection (a library pattern id)
+    layerDefaults*: Table[string, JsonNode] ## Layer Style › Make Default, per effect kind
+
   # ---------------------------------------------------------------- per-document tool and view state
+
+  Clip* = object
+    ## Pixels on the session clipboard, with where they came from (for Paste in Place).
+    surface*: Surface
+    bounds*: Rect
+    layers*: Option[DocRef] ## the copied layers themselves, when Copy took them whole
 
   Snapshot* = object
     ## A History panel snapshot: the document as it was when taken, and the layers it targeted.
@@ -185,6 +268,11 @@ type
     journal*: seq[(string, JsonNode)] ## executed commands (action recording, debugging)
     coalesceRequest: Option[string]
     quickMaskOptions*: QuickMaskOptions
+    patterns*: PatternLibrary
+    presets*: PresetState
+    color*: ColorState
+    clipboard*: Option[Clip]
+    styleClipboard*: Option[(Effects, BlendMode, float32, AdvancedBlending)]
     colorRestrict: Option[int]
     authorize*: AuthorizeProc
     jobs: Jobs
