@@ -354,6 +354,20 @@ def step(r, areas):
     add("retouch", 3, lambda: {"cmd": "paint.stroke", "params": {"points": [[r.uniform(0, 60), r.uniform(0, 40)] for _ in range(r.randint(1, 4))], "size": r.choice([6, 15]), "color": r.choice(["#ff0000", "#2050a0", "#ffffff", "#000000"])}})
     add("retouch", 2, lambda: {"cmd": "select.rect", "params": rect(r)})
     add("retouch", 1, lambda: {"cmd": r.choice(["select.deselect", "layer.new.layer", "edit.fill"]), "params": r.choice([{}, {"contents": "pattern", "pattern": "Bricks"}])})
+    add("small", 2, lambda: {"cmd": "paint.redEye", "params": r.choice([{"x": r.choice([10, 20.5, -3, 1e12, "x"]), "y": r.choice([12, 30])}, {"points": r.choice([[[10, 10], [20, 15]], [], [[1]], [[1, 2, 3]], "x", [[5, "a"]]])}, {"y": 3}, {}]) | {k: r.choice(v) for k, v in [("pupilSize", [1, 50, 100, 300, 1e9, "x"]), ("darken", [0, 80, -5]), ("layer", [1, 99]), ("target", ["mask", {"channel": 0}])] if r.random() < 0.3}})
+    add("small", 2, lambda: {"cmd": "paint.stroke", "params": {"points": [[r.uniform(0, 60), r.uniform(0, 40)] for _ in range(r.randint(1, 3))], "size": r.choice([6, 15]), "color": r.choice(["#e01010", "#f02020", "#ffffff", "#000000"])}})
+    add("small", 2, lambda: {"cmd": "image.perspectiveCrop", "params": dict({"corners": r.choice([[[2, 3], [30, 5], [28, 25], [4, 22]], [[0, 0], [40, 0], [40, 30], [0, 30]], [[5, 1], [60, 8], [50, 50], [-6, 40]], [[0, 0], [10, 0], [10, 10]], [[0, 0], [50, 50], [50, 0], [0, 50]], [[0, 0], [0.5, 0], [0.5, 0.5], [0, 0.5]], [[0, 0], [1e300, 0], [50, 50], [0, 50]], [[0, 0], ["a", 0], [50, 50], [0, 50]], "x"])}, **{k: r.choice(v) for k, v in [("width", [20, 33.6, 0, 1e9, None, "x"]), ("height", [12, 40]), ("resolution", [150, 0, 2e4, "x"]), ("interpolation", ["nearest", "bilinear", "bicubic", "nearestNeighbor", 3, "lanczos"])] if r.random() < 0.3})})
+    add("small", 1, lambda: {"cmd": "image.trap", "params": r.choice([{}, {"width": r.choice([1, 2, 0, 3.6, "x"])}])})
+    add("small", 1, lambda: {"cmd": "image.mode." + r.choice(["cmyk", "rgb"]), "params": {}})
+    add("small", 2, lambda: {"cmd": "layer.setLabelColor", "params": r.choice([{"color": r.choice(["red", "seafoam", "none", "Red", "x", 3])}, {"color": "blue", "layer": layer_id(r)}, {}, 5])})
+    add("small", 2, lambda: {"cmd": "layer.layerMask.edit", "params": r.choice([{"density": r.choice([0, 50, 33.3, 100, 101, "x"])}, {"feather": r.choice([0, 2.5, 1000, 1e4])}, {"density": 70, "feather": 3, "layer": layer_id(r)}, {"document": r.choice([0, 1, 7, "x"]), "density": 10}, {}, "x"])})
+    add("small", 1, lambda: {"cmd": "layer.layerMask.revealAll"})
+    add("small", 2, lambda: {"cmd": r.choice(["layer.setExpanded", "layer.setEffectsExpanded"]), "params": {k: r.choice(v) for k, v in [("layer", [1, 2, 3, 99, "x", None]), ("expanded", [True, False, "x", None]), ("all", [True, False, 3])] if r.random() < 0.4}})
+    add("small", 2, lambda: {"cmd": "layer.setEffectsVisible", "params": {k: r.choice(v) for k, v in [("layer", [1, 2, 3, 99, "x", None]), ("visible", [True, False, "x", None]), ("index", [0, 1, 5, -1, "x", None])] if r.random() < 0.4}})
+    add("small", 2, lambda: {"cmd": "layer.layerStyle." + r.choice(["dropShadow", "stroke", "outerGlow", "colorOverlay"]), "params": {}})
+    add("small", 1, lambda: {"cmd": r.choice(["layer.new.group", "layer.groupLayers", "layer.new.layer"]), "params": {}})
+    add("small", 2, lambda: {"cmd": "layer.rasterize.layerStyle", "params": r.choice([{}, {"layer": layer_id(r)}])})
+    add("small", 1, lambda: {"cmd": "file.import.wiaSupport", "params": {}})
     if not pool:
         return {"cmd": "session.inspect"}
     tot = sum(w for w, _ in pool)
@@ -471,10 +485,39 @@ def retouch_block(r):
             steps.append({"cmd": "paint.patternStamp", "params": dict({"points": vpts()}, **brush(), **{k: r.choice(v) for k, v in [("pattern", ["Dots", "Bricks", "Weave"]), ("scale", [50, 200]), ("angle", [30]), ("aligned", [False]), ("impressionist", [True]), ("mode", ["multiply"])] if r.random() < 0.35})})
     return steps
 
+def small_block(r):
+    """Valid setups for the small layer-panel and image commands (red pupils, effects, masks, groups)."""
+    steps = []
+    if r.random() < 0.5: steps.append({"cmd": "layer.new.layer", "params": {}})
+    for _ in range(r.randint(1, 3)):
+        x, y = r.uniform(8, 30), r.uniform(8, 25)
+        steps.append({"cmd": "paint.stroke", "params": {"points": [[x, y]], "size": r.choice([8, 12, 18]), "color": r.choice(["#e01010", "#d02818", "#c03020"])}})
+        if r.random() < 0.5: steps.append({"cmd": "paint.stroke", "params": {"points": [[x, y]], "size": 2, "color": "#ffffff"}})
+        if r.random() < 0.8: steps.append({"cmd": "paint.redEye", "params": dict(r.choice([{"x": round(x + r.uniform(-2, 2), 1), "y": round(y, 1)}, {"points": [[x, y], [x + 1, y - 1]]}]), **{k: r.choice(v) for k, v in [("pupilSize", [20, 50, 90]), ("darken", [0, 30, 100])] if r.random() < 0.4})})
+    for _ in range(r.randint(1, 4)):
+        k = r.random()
+        if k < 0.3:
+            steps.append({"cmd": "layer.layerStyle." + r.choice(["dropShadow", "stroke", "outerGlow", "innerShadow", "colorOverlay"]), "params": {}})
+            steps.append({"cmd": r.choice(["layer.setEffectsVisible", "layer.setEffectsExpanded", "layer.rasterize.layerStyle"]), "params": {k: r.choice(v) for k, v in [("index", [0, 1]), ("visible", [False, True]), ("expanded", [False]), ("all", [True])] if r.random() < 0.3}})
+        elif k < 0.5:
+            steps.append({"cmd": r.choice(["layer.layerMask.revealAll", "layer.layerMask.hideAll"])})
+            steps.append({"cmd": "layer.layerMask.edit", "params": {k: r.choice(v) for k, v in [("density", [0, 40, 100]), ("feather", [0, 3.5, 20])] if r.random() < 0.6} or {"density": 50}})
+        elif k < 0.65:
+            steps.append({"cmd": r.choice(["layer.groupLayers", "layer.new.group"])})
+            steps.append({"cmd": "layer.setExpanded", "params": {k: r.choice(v) for k, v in [("expanded", [False, True]), ("all", [True])] if r.random() < 0.4}})
+        elif k < 0.8:
+            steps.append({"cmd": "layer.setLabelColor", "params": {"color": r.choice(["red", "orange", "violet", "gray", "none"])}})
+        elif k < 0.9:
+            steps.append({"cmd": "image.perspectiveCrop", "params": dict({"corners": [[r.randint(0, 6), r.randint(0, 5)], [r.randint(25, 40), r.randint(0, 6)], [r.randint(24, 40), r.randint(20, 33)], [r.randint(0, 5), r.randint(18, 33)]]}, **{k: r.choice(v) for k, v in [("width", [20, 30]), ("height", [15, 25]), ("interpolation", ["nearest", "bilinear"])] if r.random() < 0.3})})
+        else:
+            steps.append({"cmd": "image.mode.cmyk", "params": {}})
+            steps.append({"cmd": "image.trap", "params": {"width": r.choice([1, 2])}})
+    return steps
+
 def main():
     out, count = sys.argv[1], int(sys.argv[2])
     seed = int(sys.argv[3]) if len(sys.argv) > 3 else 1
-    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart", "type", "paint", "presets", "retouch"}
+    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart", "type", "paint", "presets", "retouch", "small"}
     os.makedirs(out, exist_ok=True)
     r = random.Random(seed)
     for i in range(count):
@@ -485,6 +528,8 @@ def main():
             steps.extend(type_block(r))
         if "retouch" in areas and r.random() < 0.7:
             steps.extend(retouch_block(r))
+        if "small" in areas and r.random() < 0.7:
+            steps.extend(small_block(r))
         for _ in range(r.randint(3, 25)):
             steps.append(new_doc(r) if r.random() < 0.03 else step(r, areas))
         # Inspect at the end so view state is compared too.

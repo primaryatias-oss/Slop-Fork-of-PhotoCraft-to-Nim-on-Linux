@@ -392,7 +392,7 @@ type
     activeIdx: Option[int]
     tools*: ToolState
     journal*: seq[(string, JsonNode)] ## executed commands (action recording, debugging)
-    coalesceRequest: Option[string]
+    coalesceRequest*: Option[string]
     quickMaskOptions*: QuickMaskOptions
     patterns*: PatternLibrary
     presets*: PresetState

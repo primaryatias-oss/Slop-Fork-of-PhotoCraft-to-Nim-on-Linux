@@ -7,8 +7,10 @@
 ## module builds the registry in the order of Rust's `commands::build()`.
 
 import engine/core
-import engine/[selection_cmds, eraser_cmds, retouch_cmds]
-export core, selection_cmds, eraser_cmds, retouch_cmds
+import engine/[selection_cmds, eraser_cmds, retouch_cmds, redeye_cmds, perspective_crop_cmds,
+               layer_panel_cmds, trap_wia_cmds]
+export core, selection_cmds, eraser_cmds, retouch_cmds, redeye_cmds, perspective_crop_cmds, layer_panel_cmds,
+       trap_wia_cmds
 
 proc build(): seq[CommandSpec] =
   ## `commands::build()`: the base table, then every module's `specs()` in Rust's order. Modules
@@ -35,9 +37,9 @@ proc build(): seq[CommandSpec] =
   result.add eraserSpecs()
   # preset_import_cmds, swatch_cmds,
   result.add retouchSpecs()
-  # redeye_cmds
+  result.add redEyeSpecs()
   result.add imageSpecs()
-  # perspective_crop_cmds
+  result.add perspectiveCropSpecs()
   result.add selectionSpecs()
   # magnetic_cmds,
   # select_extra_cmds, paint_cmds
@@ -53,7 +55,8 @@ proc build(): seq[CommandSpec] =
   # brush_key_cmds, stamp_cmds, align_cmds, photo_cmds, lens_cmds, vp_cmds
   result.add channelSpecs()
   result.add adjustSpecs()
-  # layer_menu_cmds, layer_label_cmds
+  # layer_menu_cmds
+  result.add layerLabelSpecs()
   result.add modeSpecs()
   # multichannel_cmds
   result.add patternSpecs()
@@ -63,9 +66,16 @@ proc build(): seq[CommandSpec] =
   result.add presetsSpecs()
   # document_preset_cmds, render_cmds, slice_cmds, web_cmds, automate_cmds,
   # print_cmds, installed_profiles, pick_cmds, layer_nav_cmds, frame_cmds, migrate_cmds,
-  # trap_cmds, timeline_cmds, video_cmds, jobs, wia_cmds, rasterize_style_cmds, variables_cmds,
-  # plugin_cmds, group_view_cmds, fx_view_cmds, fx_visibility_cmds
+  result.add trapSpecs()
+  # timeline_cmds, video_cmds, jobs,
+  result.add wiaSpecs()
+  result.add rasterizeStyleSpecs()
+  # variables_cmds, plugin_cmds,
+  result.add groupViewSpecs()
+  result.add fxViewSpecs()
+  result.add fxVisibilitySpecs()
   result.add maskViewSpecs()
-  # layer_mask_props_cmds, actions_cmds
+  result.add layerMaskPropsSpecs()
+  # actions_cmds
 
 installRegistry(build())
