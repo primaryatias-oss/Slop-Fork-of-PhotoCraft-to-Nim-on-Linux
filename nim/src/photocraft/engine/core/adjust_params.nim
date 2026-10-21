@@ -113,7 +113,7 @@ proc numbers(r: AdjReader; key: string; n: int): Option[seq[float32]] =
   for x in v.elems: s.add numIn(r.cmd, key, x, -1e6, 1e6)
   some(s)
 
-proc hexByte(s: string): Option[uint8] =
+proc hexByte*(s: string): Option[uint8] =
   ## Rust `u8::from_str_radix(s, 16)` on a two-byte slice (a leading `+` is a sign).
   var t = s
   if t.len > 0 and t[0] == '+': t = t[1 .. ^1]
