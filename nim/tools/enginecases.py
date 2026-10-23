@@ -435,6 +435,12 @@ def step(r, areas):
     add("gfill", 3, lambda: {"cmd": "gradient.fill.set", "params": {k: r.choice(v) for k, v in [("layer", [2, 3, 4, 99]), ("from", [gpt()]), ("to", [gpt()]), ("style", ["linear", "radial", "angle", "reflected", "diamond", "zz", None]), ("angle", [0, 45, 270, -190, 721.5, "x"]), ("scale", [5, 50, 100, 200, 0, -3, "x"]), ("offset", [[10, -20], [0, 0], [1e6, 0], [1], "x"]), ("reverse", [True, False, 1]), ("dither", [True, "x"]), ("align", [True, False, None]), ("stops", [[[0, gcol()], [1, gcol()]], [[0.7, "#ff0000"], [0.2, "#00ff00"], [0.5, [0, 0, 1, 0.5]]], [[0, "#fff"]], [[0, "#ffffff"], ["a", "#000000"]], "x"]), ("transparency", [[[0, 100], [0.5, 30], [1, 80]], [], "x"]), ("midpoints", [[0.3], [0.01, 0.99], [0.5, 0.5, 0.5, 0.5], ["x"], 3])] if r.random() < 0.3}})
     add("gfill", 3, lambda: {"cmd": "gradient.fill.stop", "params": {k: r.choice(v) for k, v in [("layer", [2, 3, 99]), ("action", ["add", "move", "delete", "color", "opacity", "midpoint", "zz", 3]), ("kind", ["color", "opacity", "zz"]), ("index", [0, 1, 2, 5, -1, 1.5, 9223372036854775807]), ("location", [0, 0.25, 0.5, 1, 2, -1, "x"]), ("color", [gcol()]), ("opacity", [0, 50, 100, 300, "x"])] if r.random() < 0.6}})
     add("gfill", 1, lambda: {"cmd": "gradient.fill.get", "params": r.choice([{}, {"layer": r.choice([2, 3, 99, "x"])}])})
+    spts = lambda: r.choice([[[r.uniform(0, 60), r.uniform(0, 45)] for _ in range(r.randint(1, 4))], [], [[1]], "x", [[3, "a"], [5, 5, 9]], [{"x": 1}]])
+    add("smartsel", 2, lambda: {"cmd": "select.quick", "params": dict({"points": spts()}, **{k: r.choice(v) for k, v in [("size", [1, 8, 30, 0, 9000, "x"]), ("mode", ["add", "subtract", "replace", "new", "zz"]), ("sampleAllLayers", [True, 3]), ("enhanceEdge", [True])] if r.random() < 0.4})})
+    add("smartsel", 2, lambda: {"cmd": "select.object", "params": dict({"rect": r.choice([[r.randint(-5, 30), r.randint(-5, 30), r.randint(-30, 50), r.randint(-30, 40)], [1, 2, 3], [1, "x", 2, 3, 4], [0.5, 0.5, 20.2, 10.7], "x", [1e10, 0, 5, 5]])} if r.random() < 0.9 else {}, **{k: r.choice(v) for k, v in [("mode", ["add", "subtract", "intersect", "new", "zz"]), ("sampleAllLayers", [True])] if r.random() < 0.4})})
+    add("smartsel", 2, lambda: {"cmd": r.choice(["select.subject", "select.focusArea"]), "params": {k: r.choice(v) for k, v in [("sampleAllLayers", [False, True, "x"]), ("mode", ["replace", "add", "subtract", "intersect", "new", "zz"]), ("range", [0, 0.3, 1, 5, -1]), ("noise", [0, 0.5, 2])] if r.random() < 0.4}})
+    add("smartsel", 2, lambda: {"cmd": "select.refineEdge", "params": {k: r.choice(v) for k, v in [("radius", [0, 3, 10, 500, -2]), ("smartRadius", [True]), ("smooth", [0, 20, 200]), ("feather", [0, 1.5, 5000]), ("contrast", [0, 30]), ("shiftEdge", [-50, 40, 300]), ("decontaminate", [True, "x"]), ("amount", [50, 100, 300]), ("output", ["selection", "layerMask", "newLayer", "newLayerWithMask", "newDocument", "newDocumentWithMask", "zz", 3]), ("sampleAllLayers", [True]), ("refineStrokes", [[{"points": [[10, 10], [30, 20]], "size": 12}], [{"points": [[5, 5]], "size": 8, "mode": "subtract"}], [{"points": []}], [{"points": [[1, 2]], "size": 0}], [{"points": [[1, 2]], "mode": "zz"}], [{"points": [[1, "x"]]}], [3], "x", None, [{"points": [[1, 2]], "size": 5000}]])] if r.random() < 0.35}})
+    add("smartsel", 1, lambda: {"cmd": "layer.removeBackground", "params": {k: r.choice(v) for k, v in [("layer", [1, 2, 3, 99, "x"]), ("sampleAllLayers", [True, 3]), ("refine", [False, "no"])] if r.random() < 0.4}})
     if not pool:
         return {"cmd": "session.inspect"}
     tot = sum(w for w, _ in pool)
@@ -697,10 +703,36 @@ def gfill_block(r):
     steps.append({"cmd": "gradient.fill.get", "params": {}})
     return steps
 
+def smartsel_block(r):
+    """A subject on a contrasting background, then the smart selection tools on it."""
+    w, h = r.choice([(64, 48), (80, 60), (48, 48)])
+    p = {"width": w, "height": h, "background": r.choice(["white", "#336699", "black"])}
+    if r.random() < 0.3: p["depth"] = r.choice([16, 32])
+    if r.random() < 0.15: p["mode"] = r.choice(["gray", "cmyk", "lab"])
+    steps = [{"cmd": "file.new", "params": p}]
+    cx, cy = w / 2 + r.uniform(-6, 6), h / 2 + r.uniform(-5, 5)
+    if r.random() < 0.3: steps.append({"cmd": "layer.new.layer", "params": {}})
+    steps.append({"cmd": "paint.stroke", "params": {"points": [[cx, cy], [cx + r.uniform(-8, 8), cy + r.uniform(-6, 6)]], "size": r.choice([18, 24, 30]), "color": r.choice(["#e03020", "#20c040", "#f0f0f0"]), "hardness": r.choice([1, 0.5])}})
+    if r.random() < 0.5: steps.append({"cmd": "paint.stroke", "params": {"points": [[cx - 4, cy - 3]], "size": 6, "color": "#ffff00"}})
+    for _ in range(r.randint(1, 4)):
+        k = r.random()
+        if k < 0.25:
+            steps.append({"cmd": r.choice(["select.subject", "select.focusArea"]), "params": {k: r.choice(v) for k, v in [("sampleAllLayers", [False, True]), ("mode", ["add", "intersect"]), ("range", [0.2, 0.8]), ("noise", [0.3])] if r.random() < 0.3}})
+        elif k < 0.45:
+            steps.append({"cmd": "select.quick", "params": dict({"points": [[cx + r.uniform(-3, 3), cy + r.uniform(-3, 3)] for _ in range(r.randint(1, 3))]}, **{k: r.choice(v) for k, v in [("size", [6, 12]), ("mode", ["subtract", "replace"]), ("enhanceEdge", [True])] if r.random() < 0.4})})
+        elif k < 0.6:
+            steps.append({"cmd": "select.object", "params": {"rect": [cx - 20, cy - 16, 40, 32], **({"mode": "add"} if r.random() < 0.3 else {})}})
+        elif k < 0.85:
+            if r.random() < 0.4: steps.append({"cmd": "select.rect", "params": {"x": int(cx) - 12, "y": int(cy) - 10, "width": 24, "height": 20, "ellipse": True}})
+            steps.append({"cmd": "select.refineEdge", "params": {k: r.choice(v) for k, v in [("radius", [2, 6]), ("smartRadius", [True]), ("smooth", [10, 40]), ("feather", [1.5]), ("contrast", [30]), ("shiftEdge", [-30, 25]), ("decontaminate", [True]), ("output", ["selection", "layerMask", "newLayer", "newLayerWithMask", "newDocument", "newDocumentWithMask"]), ("refineStrokes", [[{"points": [[cx - 10, cy], [cx + 10, cy]], "size": 8}], [{"points": [[cx, cy - 8]], "size": 6, "mode": "subtract"}]])] if r.random() < 0.4}})
+        else:
+            steps.append({"cmd": "layer.removeBackground", "params": {k: r.choice(v) for k, v in [("sampleAllLayers", [True]), ("refine", [False])] if r.random() < 0.3}})
+    return steps
+
 def main():
     out, count = sys.argv[1], int(sys.argv[2])
     seed = int(sys.argv[3]) if len(sys.argv) > 3 else 1
-    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart", "type", "paint", "presets", "retouch", "small", "video", "gfill"}
+    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart", "type", "paint", "presets", "retouch", "small", "video", "gfill", "smartsel"}
     os.makedirs(out, exist_ok=True)
     r = random.Random(seed)
     for i in range(count):
@@ -723,6 +755,8 @@ def main():
             steps.extend(video_block(r))
         if "gfill" in areas and r.random() < 0.5:
             steps.extend(gfill_block(r))
+        if "smartsel" in areas and r.random() < 0.5:
+            steps.extend(smartsel_block(r))
         for _ in range(r.randint(3, 25)):
             steps.append(new_doc(r) if r.random() < 0.03 else step(r, areas))
         # Inspect at the end so view state is compared too.
