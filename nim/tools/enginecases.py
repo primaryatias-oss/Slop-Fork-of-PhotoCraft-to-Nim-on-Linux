@@ -419,6 +419,16 @@ def step(r, areas):
     add("small", 1, lambda: {"cmd": "type.create", "params": {"text": "Mask", "x": 4, "y": 24, "size": 18}})
     add("small", 1, lambda: {"cmd": "edit.installedProfiles", "params": r.choice([{}, {"class": r.choice(["display", "output", "zz", 3])}, {"colorSpace": r.choice(["rgb", "cmyk", "x"])}])})
     add("small", 1, lambda: {"cmd": "edit.presets.migratePresets", "params": r.choice([{}, {"path": "/nonexistent/presets.json"}, {"path": "/tmp"}, {"path": 3}])})
+    V = "/tmp/claude-0/scr/"
+    vpaths = [V + "vframes", V + "vframes/f1.png", V + "vframes2", V + "vframes2/a.png", V + "vframes2/b.png", V + "vframes2/bad.png", V + "vempty", "/nonexistent/clip.mp4", 5]
+    add("video", 2, lambda: {"cmd": r.choice(["timeline.create", "timeline.setProps"]), "params": {k: r.choice(v) for k, v in [("duration", [1, 5, 12, 0, -3, 2.5, "x", 100000]), ("fps", [24, 12.5, 0, -1, "x", 1000]), ("workStart", [0, 2, 99, -1]), ("workEnd", [3, 0, 99])] if r.random() < 0.5}})
+    add("video", 2, lambda: {"cmd": r.choice(["timeline.nextFrame", "timeline.previousFrame", "timeline.info", "timeline.delete"]), "params": {}})
+    add("video", 2, lambda: {"cmd": "timeline.setFrame", "params": r.choice([{}, {"frame": r.choice([0, 1, 3, 7, 99, -1, 2.5, "x"])}])})
+    add("video", 3, lambda: {"cmd": "layer.videoLayers." + r.choice(["newBlankVideoLayer", "insertBlankFrame", "duplicateFrame", "deleteFrame", "restoreFrame", "restoreAllFrames", "showAlteredVideo", "rasterize", "reloadFrame"]), "params": {}})
+    add("video", 1, lambda: {"cmd": "layer.rasterize.video", "params": {}})
+    add("video", 1, lambda: {"cmd": "layer.videoLayers.interpretFootage", "params": r.choice([{}, {"fps": r.choice([15, 0, -2, "x", 59.94])}])})
+    add("video", 2, lambda: {"cmd": r.choice(["layer.videoLayers.newVideoLayerFromFile", "layer.videoLayers.replaceFootage", "file.import.videoFramesToLayers"]), "params": dict(r.choice([{}, {"path": r.choice(vpaths)}]), **({"fps": r.choice([12, 0, "x"])} if r.random() < 0.3 else {}))})
+    add("video", 1, lambda: {"cmd": "file.export.renderVideo", "params": r.choice([{}, {"dir": V + "vrender", "format": r.choice(["png", "gif", "GIF", "bmp", "tga", "zz"])}, {"dir": 3}, {"dir": "/nonexistent-ro/\0x"}])})
     if not pool:
         return {"cmd": "session.inspect"}
     tot = sum(w for w, _ in pool)
@@ -641,10 +651,33 @@ def path_block(r):
     steps.append({"cmd": "path.info", "params": tgt})
     return steps
 
+def video_block(r):
+    """A timeline with a blank video layer painted on a few frames, or footage loaded from files."""
+    V = "/tmp/claude-0/scr/"
+    steps = [{"cmd": "timeline.create", "params": {k: r.choice(v) for k, v in [("duration", [4, 6, 10]), ("fps", [12, 24])] if r.random() < 0.6}}]
+    if r.random() < 0.6:
+        steps.append({"cmd": "layer.videoLayers.newBlankVideoLayer", "params": {}})
+    else:
+        steps.append({"cmd": "layer.videoLayers.newVideoLayerFromFile", "params": {"path": r.choice([V + "vframes", V + "vframes2/a.png", V + "vframes2/b.png"])}})
+    for _ in range(r.randint(2, 6)):
+        k = r.random()
+        if k < 0.35:
+            steps.append({"cmd": "paint.stroke", "params": {"points": [[r.uniform(0, 30), r.uniform(0, 30)], [r.uniform(0, 30), r.uniform(0, 30)]], "size": r.choice([3, 6]), "color": r.choice(["#ff0000", "#00aa00", "#0000ff"])}})
+        elif k < 0.6:
+            steps.append({"cmd": r.choice(["timeline.nextFrame", "timeline.previousFrame"]), "params": {}} if r.random() < 0.6 else {"cmd": "timeline.setFrame", "params": {"frame": r.randint(0, 9)}})
+        else:
+            steps.append({"cmd": "layer.videoLayers." + r.choice(["insertBlankFrame", "duplicateFrame", "deleteFrame", "restoreFrame", "restoreAllFrames", "showAlteredVideo", "interpretFootage", "replaceFootage", "reloadFrame"]), "params": r.choice([{}, {"path": V + "vframes"}, {"fps": 15}])})
+    if r.random() < 0.3:
+        steps.append({"cmd": "file.export.renderVideo", "params": {"dir": V + "vrender", "format": r.choice(["png", "gif"])}})
+    if r.random() < 0.3:
+        steps.append({"cmd": r.choice(["layer.videoLayers.rasterize", "timeline.delete", "edit.undo"]), "params": {}})
+    steps.append({"cmd": "timeline.info", "params": {}})
+    return steps
+
 def main():
     out, count = sys.argv[1], int(sys.argv[2])
     seed = int(sys.argv[3]) if len(sys.argv) > 3 else 1
-    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart", "type", "paint", "presets", "retouch", "small"}
+    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart", "type", "paint", "presets", "retouch", "small", "video"}
     os.makedirs(out, exist_ok=True)
     r = random.Random(seed)
     for i in range(count):
@@ -663,6 +696,8 @@ def main():
             steps.extend(brush_block(r))
         if "vector" in areas and r.random() < 0.5:
             steps.extend(path_block(r))
+        if "video" in areas and r.random() < 0.5:
+            steps.extend(video_block(r))
         for _ in range(r.randint(3, 25)):
             steps.append(new_doc(r) if r.random() < 0.03 else step(r, areas))
         # Inspect at the end so view state is compared too.

@@ -85,6 +85,7 @@ proc baseName(path: string): string =
 proc readLutFile(path: string): Option[seq[byte]] =
   when defined(js): none(seq[byte])
   else:
+    if '\0' in path: return none(seq[byte])
     try:
       let s = readFile(path)
       some(@(s.toOpenArrayByte(0, s.len - 1)))

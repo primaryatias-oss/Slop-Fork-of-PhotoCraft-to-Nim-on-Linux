@@ -311,8 +311,14 @@ method get*(s: ByteSource; path: string; max: int): seq[byte] {.base.} =
 
 method get*(s: ZipSource; path: string; max: int): seq[byte] = s.zip.readByName(path, max)
 
+const NulPathMsg* = "file name contained an unexpected NUL byte"
+  ## Rust's `std::io` error for a path with a NUL byte. Nim's file procs pass paths to C as
+  ## NUL-terminated strings, so such a path would silently name a different (truncated) file:
+  ## every file access on a caller-supplied path checks for it first.
+
 proc readFileBytes*(path: string; max = high(int)): seq[byte] =
   ## The whole file, refusing files over `max` bytes.
+  if '\0' in path: raise fmtError(feIo, path & ": " & NulPathMsg)
   var f: File
   if not open(f, path, fmRead): raise fmtError(feIo, "cannot open " & path)
   defer: f.close()
@@ -351,11 +357,13 @@ proc atomicWrite*(path: string; data: openArray[byte]; progress: proc(f: float32
   const unchanged = "the original file was not changed"
   var target = path
   try:
-    if symlinkExists(path): target = expandSymlink(path)
+    if '\0' notin path and symlinkExists(path): target = expandSymlink(path)
   except OSError: discard
   let (dir0, name, ext) = splitFile(target)
   if name.len == 0 and ext.len == 0: raise fmtError(feIo, path & ": not a file path")
   let dir = (if dir0.len == 0: "." else: dir0)
+  if '\0' in dir: raise fmtError(feIo, "cannot create the folder " & dir & ": " & NulPathMsg)
+  if '\0' in name or '\0' in ext: raise fmtError(feIo, "cannot save " & path & ": " & NulPathMsg & "; " & unchanged)
   try: createDir(dir)
   except OSError as e: raise fmtError(feIo, "cannot create the folder " & dir & ": " & e.msg)
   var tmp = ""
@@ -771,6 +779,7 @@ proc saveDir*(w: PcraftWriter; d: Document; dir: string; opts = SaveOptions()): 
 
 proc savePath*(w: PcraftWriter; d: Document; path: string; opts = SaveOptions()): SaveStats =
   ## A directory (or a path ending in a separator) saves as a bundle folder, anything else as a zip.
+  if '\0' in path: raise fmtError(feIo, path & ": " & NulPathMsg)
   if dirExists(path) or path.endsWith('/') or path.endsWith('\\'):
     w.saveDir(d, path, opts)
   else:
@@ -1160,6 +1169,7 @@ proc loadFromBytes*(bytes: seq[byte]; opts = defaultLoadOptions()): Document =
 
 proc loadPath*(path: string; opts = defaultLoadOptions()): Document =
   ## Loads a `.pcraft` zip file or bundle directory.
+  if '\0' in path: raise fmtError(feIo, path & ": " & NulPathMsg)
   if dirExists(path): load(DirSource(root: path), opts)
   else: loadFromBytes(readFileBytes(path), opts)
 

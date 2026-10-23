@@ -595,23 +595,62 @@ proc decodeTga*(b0: openArray[byte]; limits: Limits): Image =
   img
 
 proc encodeTga*(src: Image; layout: ChannelLayout): seq[byte] =
-  ## Uncompressed true-colour or gray TGA, top-down.
+  ## Run-length encoded true-colour or gray TGA, top-down, as the image crate's `TgaEncoder`
+  ## writes it (no footer).
   let img = src.convert(layout, isU8)
   let ch = layout.channels
   let gray = layout.isGray
-  result = @[0'u8, 0, (if gray: 3'u8 else: 2'u8), 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  if img.width > 65535: raise encodeErr(fmtTga, "Invalid TGA width: " & $img.width)
+  if img.height > 65535: raise encodeErr(fmtTga, "Invalid TGA height: " & $img.height)
+  result = @[0'u8, 0, (if gray: 11'u8 else: 10'u8), 0, 0, 0, 0, 0, 0, 0, 0, 0]
   result.put16(img.width); result.put16(img.height)
   result.add byte(ch * 8)
   result.add byte(0x20 or (if layout.hasAlpha: 8 else: 0))
+  var px = img.data
+  if not gray:
+    for i in 0 ..< img.width * img.height: swap(px[i * ch], px[i * ch + 2])
+  # Packets of up to 128 pixels: a run of one repeated pixel, or raw pixels between runs.
+  const MaxRun = 128
+  var buf: seq[byte]
+  var counter = 0
+  var prev = -1
+  var rle = true
+  proc same(a, b: int): bool =
+    for k in 0 ..< ch:
+      if px[a + k] != px[b + k]: return false
+    true
+  proc rawPacket(o: var seq[byte]; buf: seq[byte]; n: int) =
+    o.add byte(n - 1)
+    o.add buf
+  proc rlePacket(o: var seq[byte]; at, n: int) =
+    o.add byte(0x80 or (n - 1))
+    for k in 0 ..< ch: o.add px[at + k]
   for i in 0 ..< img.width * img.height:
-    let o = i * ch
-    if gray:
-      for k in 0 ..< ch: result.add img.data[o + k]
-    else:
-      result.add [img.data[o + 2], img.data[o + 1], img.data[o]]
-      if ch == 4: result.add img.data[o + 3]
-  result.add [0'u8, 0, 0, 0, 0, 0, 0, 0]
-  result.add "TRUEVISION-XFILE.\0".toBytes
+    let at = i * ch
+    if prev >= 0:
+      if same(at, prev):
+        if not rle and counter > 0:
+          result.rawPacket(buf, counter)
+          counter = 0
+          buf.setLen(0)
+        rle = true
+      elif rle and counter > 0:
+        result.rlePacket(prev, counter)
+        counter = 0
+        rle = false
+        buf.setLen(0)
+    inc counter
+    for k in 0 ..< ch: buf.add px[at + k]
+    if counter == MaxRun:
+      if rle: result.rlePacket(prev, counter)
+      else: result.rawPacket(buf, counter)
+      counter = 0
+      rle = true
+      buf.setLen(0)
+    prev = at
+  if counter > 0:
+    if rle: result.rlePacket(prev, counter)
+    else: result.rawPacket(buf, counter)
 
 # ---------------------------------------------------------------- ICO
 

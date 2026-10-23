@@ -11,6 +11,7 @@ proc readBytesRust*(path: string): seq[byte] =
   when defined(js) or defined(wasm32):
     raise newException(OSError, "no file system")
   else:
+    if '\0' in path: raise newException(OSError, NulPathMsg)
     let fd = posix.open(path.cstring, O_RDONLY or O_CLOEXEC)
     if fd < 0: raise newException(OSError, osErrorText(osLastError()))
     defer: discard posix.close(fd)

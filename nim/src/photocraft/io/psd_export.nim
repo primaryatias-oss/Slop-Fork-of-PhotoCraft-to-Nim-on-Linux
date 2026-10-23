@@ -539,6 +539,7 @@ proc smartSource(ex: var Ex; sm: SmartObject; tmpl: Option[Placed]): SourceResul
       when defined(js) or defined(emscripten):
         SourceResult(err: "the linked file " & path & " can't be read here")
       else:
+        if '\0' in path: return SourceResult(err: "the linked file " & path & " can't be read: " & NulPathMsg)
         var bytes: seq[byte]
         try: bytes = cast[seq[byte]](readFile(path))
         except CatchableError as e:
