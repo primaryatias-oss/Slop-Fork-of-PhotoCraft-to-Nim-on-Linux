@@ -499,6 +499,8 @@ def step(r, areas):
     exrp = lambda: r.choice([FX + "multipart.exr", FX + "half_zip.exr", FX + "gray_zip.exr", FX + "tiled_piz.exr", "/tmp/claude-0/scr/vframes/f0.png", "/nonexistent/a.exr", "", 3])
     add("file", 1, lambda: {"cmd": "file.exrParts", "params": r.choice([{}, {"path": exrp()}])})
     add("file", 1, lambda: {"cmd": "file.openExrParts", "params": dict({"path": exrp()}, **{k: r.choice(v) for k, v in [("part/beauty", [True, False]), ("part/depth", [True]), ("part/part 0", [True, "x"]), ("group/rgba", [True]), ("view", ["left", "both", "x"]), ("precomp", [True])] if r.random() < 0.4})})
+    add("type", 1, lambda: {"cmd": r.choice(["type.createWorkPath", "type.convertToShape", "type.rasterizeTypeLayer", "type.convertToParagraphText", "type.convertToPointText", "type.updateAllTextLayers", "type.replaceAllMissingFonts", "type.saveDefaultTypeStyles", "type.loadDefaultTypeStyles"]), "params": r.choice([{}, {"layer": layer_id(r)}, {"layers": [2, 3]}])})
+    add("type", 1, lambda: {"cmd": r.choice(["type.resolveMissingFonts", "type.pasteLoremIpsum", "type.warpText"]), "params": r.choice([{}, {"map": {"Nope": "Inter"}}, {"map": 3}, {"new": True, "size": r.choice([12, "x"])}, {"at": 99}, {"style": "bulge", "layers": [2]}, {"layer": "x"}])})
     if not pool:
         return {"cmd": "session.inspect"}
     tot = sum(w for w, _ in pool)
@@ -576,9 +578,16 @@ def type_block(r):
             {"cmd": "layer.duplicate"},
             {"cmd": "layer.smartObjects.convertToSmartObject"},
             {"cmd": "edit.transform", "params": {"matrix": [1.5, 0, 0, 1.5, 2, 1]}},
+            {"cmd": "type.antiAlias." + r.choice(["none", "sharp", "crisp", "strong", "smooth", "windowsLcd", "windows"]), "params": {}},
+            {"cmd": "type.orientation." + r.choice(["horizontal", "vertical"]), "params": {}},
+            {"cmd": "type.openType." + r.choice(["standardLigatures", "contextualAlternates", "discretionaryLigatures", "swash", "oldstyle", "stylisticAlternates", "titlingAlternates", "ornaments", "ordinals", "fractions"]), "params": r.choice([{}, {"on": True}, {"on": False}, {"range": [0, 3]}])},
+            {"cmd": r.choice(["type.convertToParagraphText", "type.convertToPointText"]), "params": {}},
+            {"cmd": r.choice(["type.createWorkPath", "type.convertToShape", "type.updateAllTextLayers", "type.saveDefaultTypeStyles", "type.loadDefaultTypeStyles", "type.replaceAllMissingFonts", "type.resolveMissingFonts"]), "params": {}},
+            {"cmd": "type.warpText", "params": {k: r.choice(v) for k, v in [("style", ["arc", "flag", "wave", "none", "twist", "zz"]), ("bend", [30, -80, 150]), ("orientation", ["vertical"]), ("horizontalDistortion", [20]), ("verticalDistortion", [-10])] if r.random() < 0.5}},
+            {"cmd": "type.pasteLoremIpsum", "params": r.choice([{}, {"at": r.randint(0, 5)}, {"new": True}])},
         ]))
     if r.random() < 0.2:
-        b.append({"cmd": r.choice(["type.rasterize", "layer.rasterize.type"])})
+        b.append({"cmd": r.choice(["type.rasterize", "layer.rasterize.type", "type.rasterizeTypeLayer"])})
     return b
 
 def retouch_block(r):
