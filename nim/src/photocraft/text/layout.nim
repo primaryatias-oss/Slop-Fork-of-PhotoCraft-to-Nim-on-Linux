@@ -112,15 +112,23 @@ proc bounds*(l: TextLayout): Option[array[4, float32]] =
   let v = b.get
   some(if l.vertical: [-v[3], v[0], -v[1], v[2]] else: v)
 
+proc totalKey(f: float32): int32 =
+  ## A key ordering floats as Rust's `f32::total_cmp` (NaN after +inf).
+  let x = cast[int32](f)
+  x xor int32(cast[uint32](x shr 31) shr 1)
+
 proc closestLine(l: TextLayout; y: float32): int =
+  ## Rust's `min_by(total_cmp)` over the distance to each line: the first of equal minima, so a
+  ## point infinitely far away still picks a line.
   result = -1
-  var best = Inf.float32
+  var best = 0'i32
   for i, ln in l.lines:
     let d = if y < ln.baseline - ln.ascent: ln.baseline - ln.ascent - y
             elif y > ln.baseline + ln.descent: y - ln.baseline - ln.descent
             else: 0'f32
-    if d < best:
-      best = d
+    let k = totalKey(d)
+    if result < 0 or k < best:
+      best = k
       result = i
 
 proc hitTestXOnLine(l: TextLayout; li: int; x: float32): int =

@@ -290,6 +290,9 @@ def step(r, areas):
     add("type", 2, lambda: {"cmd": r.choice(["type.increaseSize", "type.decreaseSize", "type.increaseSizeMore", "type.decreaseSizeMore"]), "params": r.choice([{}, {"by": r.choice([1, -3, 1e30, "x"])}, {"range": [0, 2]}])})
     add("type", 1, lambda: {"cmd": r.choice(["type.rasterize", "type.info", "layer.rasterize.type"]), "params": r.choice([{}, {"layer": layer_id(r)}])})
     add("tstyles", 4, lambda: style_cmd(r, [1, 2]))
+    add("spell", 2, lambda: spell_cmd(r))
+    add("spell", 1, lambda: insert_cmd(r))
+    add("caret", 2, lambda: caret_cmd(r))
     def pts(r):
         k = r.randint(1, 6)
         out = []
@@ -912,10 +915,83 @@ def tstyles_block(r):
         else: b.append({"cmd": "type.characterStyle.list" if r.random() < 0.5 else "type.paragraphStyle.list", "params": {}})
     return b
 
+def spell_cmd(r):
+    words = ["Teh", "teh", "brwon", "Photocraft", "recieve", "", "the", "Hello", "a b", " Word ", 5, None, "Ünïcode", "don't"]
+    action = r.choice(["list", "list", "check", "change", "change", "changeAll", "changeAll", "addToDictionary", "add", "removeFromDictionary", "suggest", "bogus", None, 3])
+    p = {} if action is None else {"action": action}
+    if r.random() < 0.3: p["ignore"] = r.choice([["teh"], ["TEH", "brwon"], "x", [3]])
+    if r.random() < 0.2: p["suggestions"] = r.choice([0, 1, 3, 2**40, -1, "x"])
+    if r.random() < 0.2: p["allLayers"] = r.choice([False, True, "x"])
+    if action == "change":
+        for k, v in [("layer", [1, 2, 3, 4, "x", None]), ("start", [0, 1, 10, 16, 99]), ("end", [3, 2, 15, 21, 200]), ("replace", ["The", "", "brown", "€", 4]), ("word", ["Teh", "brwon", "x", 3])]:
+            if r.random() < 0.85: p[k] = r.choice(v)
+    elif action in ("changeAll", "addToDictionary", "add", "removeFromDictionary", "suggest"):
+        if r.random() < 0.9: p["word"] = r.choice(words)
+        if action == "changeAll" and r.random() < 0.9: p["replace"] = r.choice(["The", "brown", "", "x\ny", 3])
+    elif r.random() < 0.2:
+        p["layer"] = layer_id(r)
+    return {"cmd": "edit.checkSpelling", "params": p}
+
+def insert_cmd(r):
+    p = {}
+    if r.random() < 0.9: p["text"] = r.choice(["→", "€", "!", "x\r\ny", "", "ab", 3, None, "\n"])
+    if r.random() < 0.3: p["at"] = r.choice([0, 1, 2, 50, -1, "x"])
+    if r.random() < 0.3: p["range"] = r.choice([[0, 2], [2, 0], [1, 99], [5], "x", [None, 1]])
+    if r.random() < 0.2: p["layer"] = layer_id(r)
+    if r.random() < 0.15: p["label"] = r.choice(["Glyph", 3])
+    return {"cmd": "type.insertText", "params": p}
+
+def spell_block(r):
+    """Type layers with misspellings, then spelling actions and glyph insertion."""
+    b = [{"cmd": "type.create", "params": {"text": r.choice(["Teh quick brwon fox, teh end. Photocraft", "recieve the teh", "Hello world", "don't stop", "Teh\nteh brwon"]), "x": 3, "y": 20}}]
+    if r.random() < 0.4:
+        b.append({"cmd": "type.create", "params": {"text": r.choice(["Second teh layer", "brwon"]), "x": 5, "y": 30}})
+    if r.random() < 0.15:
+        b.append({"cmd": "layer.lockLayers", "params": {"all": True}})
+    for _ in range(r.randint(2, 8)):
+        k = r.random()
+        if k < 0.65: b.append(spell_cmd(r))
+        elif k < 0.85: b.append(insert_cmd(r))
+        elif k < 0.95: b.append({"cmd": r.choice(["edit.undo", "edit.redo", "type.info", "prefs.get"])})
+        else: b.append({"cmd": "prefs.set", "params": {"path": "userDictionary", "value": r.choice([["Teh"], [], ["brwon", "Zed"]])}})
+    return b
+
+def caret_cmd(r):
+    c = r.choice(["type.hitTest", "type.caret", "type.navigate", "type.navigate"])
+    p = {}
+    if c == "type.hitTest":
+        if r.random() < 0.6:
+            p["x"], p["y"] = round(r.uniform(2, 40), 2), round(r.uniform(10, 32), 2)
+        else:
+            for k in ("x", "y"):
+                if r.random() < 0.92: p[k] = r.choice([r.uniform(0, 60), r.uniform(0, 60), r.randint(0, 50), -5, 1e300, "x", None])
+    else:
+        if r.random() < 0.92: p["index"] = r.choice([0, 1, 2, 3, 5, 8, 12, 40, 2**40, -1, 1.5, "x"])
+        if c == "type.navigate":
+            if r.random() < 0.92: p["move"] = r.choice(["wordPrev", "wordNext", "linePrev", "lineNext", "lineStart", "lineEnd", "start", "end", "zz", 3])
+            if r.random() < 0.3: p["x"] = r.choice([r.uniform(0, 60), 10, None, "x", 1e308])
+    if r.random() < 0.25: p["layer"] = layer_id(r)
+    return {"cmd": c, "params": p}
+
+def caret_block(r):
+    """Type layers in several shapes, then caret queries."""
+    b = [{"cmd": "type.create", "params": dict({"text": r.choice(["Hello world", "Two\nlines here", "One two three four five six", "", "שלום abc", "a\n\nb", "x"]), "x": r.choice([3, 10.5]), "y": r.choice([20, 30])},
+                                                 **({"box": [2, 3, r.choice([20, 40]), 40]} if r.random() < 0.3 else {}), **({"orientation": "vertical"} if r.random() < 0.15 else {}),
+                                                 **({"size": r.choice([8, 14, 24])} if r.random() < 0.5 else {}))}]
+    if r.random() < 0.3:
+        b.append({"cmd": "type.edit", "params": {"transform": r.choice([[1, 0.3, -0.3, 1, 5, 25], [2, 0, 0, 1.5, 4, 20], [0, 1, -1, 0, 30, 5], [0, 0, 0, 0, 1, 1]])}})
+    if r.random() < 0.2:
+        b.append({"cmd": "type.create", "params": {"text": "Top", "x": 4, "y": 22}})
+    if r.random() < 0.1:
+        b.append({"cmd": "layer.setProps", "params": {"visible": False}})
+    for _ in range(r.randint(2, 8)):
+        b.append(caret_cmd(r) if r.random() < 0.9 else {"cmd": "type.info"})
+    return b
+
 def main():
     out, count = sys.argv[1], int(sys.argv[2])
     seed = int(sys.argv[3]) if len(sys.argv) > 3 else 1
-    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart", "type", "paint", "presets", "retouch", "small", "video", "gfill", "smartsel", "swatch", "prefs", "file", "actions", "tstyles"}
+    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart", "type", "paint", "presets", "retouch", "small", "video", "gfill", "smartsel", "swatch", "prefs", "file", "actions", "tstyles", "spell", "caret"}
     os.makedirs(out, exist_ok=True)
     r = random.Random(seed)
     for i in range(count):
@@ -948,6 +1024,10 @@ def main():
             steps.extend(actions_block(r))
         if "tstyles" in areas and r.random() < 0.6:
             steps.extend(tstyles_block(r))
+        if "spell" in areas and r.random() < 0.5:
+            steps.extend(spell_block(r))
+        if "caret" in areas and r.random() < 0.5:
+            steps.extend(caret_block(r))
         for _ in range(r.randint(3, 25)):
             steps.append(new_doc(r) if r.random() < 0.03 else step(r, areas))
         # Inspect at the end so view state is compared too.

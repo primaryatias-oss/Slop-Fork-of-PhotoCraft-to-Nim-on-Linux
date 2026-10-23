@@ -17,6 +17,7 @@ import t_text
 import t_engine_data
 import t_engine_paths
 import t_type_styles
+import t_type_spell_caret
 import t_text_psd
 import t_text_extra
 import t_algo_blur
