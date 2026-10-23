@@ -150,9 +150,18 @@ when isMainModule:
   let oracle = args[0]
   let tmp = getTempDir() / "enginecheck"
   var same, diff = 0
+  # Scripts that write files (Save a Copy, Layers to Files…) write them in ENGINECHECK_SCRATCH,
+  # emptied before each build runs a script, so neither sees what the other wrote.
+  let scratch = getEnv("ENGINECHECK_SCRATCH")
+  proc freshScratch() =
+    if scratch.len > 0:
+      removeDir(scratch)
+      createDir(scratch)
   for path in args[1 .. ^1]:
     removeDir(tmp)
+    freshScratch()
     discard execCmdEx(quoteShell(oracle) & " engine.script " & quoteShell(path) & " " & quoteShell(tmp))
+    freshScratch()
     if not fileExists(tmp / "log.json"):
       echo "SKIP ", path, " (the oracle failed)"
       continue

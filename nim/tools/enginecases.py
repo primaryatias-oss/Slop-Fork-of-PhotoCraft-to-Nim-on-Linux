@@ -468,6 +468,25 @@ def step(r, areas):
     add("prefs", 3, lambda: {"cmd": "edit.keyboardShortcuts", "params": {k: r.choice(v) for k, v in [("set", [{"layer.new.layer": r.choice(["F2", "Cmd+J", "", None, "Cmd+", "shift+ctrl+x"])}, {"file.new": "Cmd+O", "edit.undo": "Cmd+O"}, {"nope.cmd": "F3"}, {"tools.temporary.hand": "H"}]), ("reset", [True, ["layer.new.layer", "file.new"], False]), ("removeConflicts", [False]), ("filter", ["swatches", "gradient.fill", "zzz"]), ("allowUnknown", [True]), ("importKys", [kys, "<other/>", "<photoshop-keyboard-shortcuts></photoshop-keyboard-shortcuts>", 3])] if r.random() < 0.4}})
     add("prefs", 2, lambda: {"cmd": "edit.menus", "params": {k: r.choice(v) for k, v in [("hide", [["file.new", "edit.undo"], ["x"], "x"]), ("show", [["file.new"], [3]]), ("color", [{"file.new": "red"}, {"edit.undo": "none"}, {"x": "plaid"}, {"file.new": 3}]), ("reset", [True, "x"])] if r.random() < 0.5}})
     add("prefs", 1, lambda: {"cmd": "edit.toolbar", "params": {k: r.choice(v) for k, v in [("hidden", [["move", "brush"], [], "x"]), ("order", [["brush", "move"], [3, "lasso"]]), ("reset", [True])] if r.random() < 0.5}})
+    FO = "/tmp/claude-0/scr/fout/"
+    VF = "/tmp/claude-0/scr/vframes/"
+    fpath = lambda: r.choice([VF + "f0.png", VF + "f1.png", "/tmp/claude-0/scr/vframes2/a.png", "/tmp/claude-0/scr/vframes2/b.png", "/tmp/claude-0/scr/vframes2/bad.png", FO + "c.psd", FO + "c.png", FO + "c.tga", "/nonexistent/x.png", "", 3])
+    add("file", 1, lambda: {"cmd": r.choice(["file.closeAll", "file.closeOthers"]), "params": r.choice([{}, {"document": r.choice([0, 1, 5, -1, "x"])}])})
+    add("file", 1, lambda: {"cmd": "file.revealInFinder", "params": {"dryRun": True, **({"document": r.choice([0, 1, 9, "x"])} if r.random() < 0.4 else {})}})
+    add("file", 1, lambda: {"cmd": "file.revert", "params": {}})
+    add("file", 2, lambda: {"cmd": "file.saveACopy", "params": dict({"path": r.choice([FO + "c.png", FO + "c.psd", FO + "c.tga", FO + "c.tif", FO + "c.bmp", FO + "c.xyz", "/nonexistent-ro/x.png", ""])}, **{k: r.choice(v) for k, v in [("layers", [False, True]), ("quality", [0, 8, 12, 99]), ("tiffLayers", [True]), ("tgaBits", [24, 32, 16, "x", None])] if r.random() < 0.3})})
+    add("file", 2, lambda: {"cmd": "file.openAs", "params": dict({"path": fpath()}, **({r.choice(["as", "format"]): r.choice(["png", ".psd", "tga", "zz"])} if r.random() < 0.3 else {}))})
+    add("file", 2, lambda: {"cmd": r.choice(["file.placeEmbedded", "file.placeLinked"]), "params": dict({"path": fpath()}, **{k: r.choice(v) for k, v in [("scale", [50, 200, 0, -5]), ("fit", [True, False]), ("smartObject", [False, True]), ("center", [[10, 10], [0.5, "x"], [1]])] if r.random() < 0.35})})
+    add("file", 2, lambda: {"cmd": "file.fileInfo", "params": {k: r.choice(v) for k, v in [("title", ["T", "<b>&", ""]), ("author", ["A; B", "Me"]), ("authorTitle", ["Boss"]), ("description", ["D"]), ("keywords", [["k1", "k2"], "a; b, c", []]), ("copyright", ["(c) me"]), ("copyrightStatus", ["copyrighted", "publicDomain", "unknown", "zz"]), ("copyrightUrl", ["http://x/?a=1&b=2", ""])] if r.random() < 0.3}})
+    add("file", 1, lambda: {"cmd": "file.automate.fitImage", "params": {k: r.choice(v) for k, v in [("width", [20, 50, 200, 0, -3, "x"]), ("height", [10, 40, 300]), ("dontEnlarge", [True]), ("resample", ["nearest", "bilinear", "zz"])] if r.random() < 0.6}})
+    add("file", 1, lambda: {"cmd": "file.automate.conditionalModeChange", "params": {k: r.choice(v) for k, v in [("to", ["gray", "rgb", "cmyk", "lab", "bitmap", ""]), ("from", [["rgb"], ["gray", "cmyk"], "any", "lab", 3])] if r.random() < 0.8}})
+    add("file", 1, lambda: {"cmd": "file.scripts.imageProcessor", "params": {k: r.choice(v) for k, v in [("input", [[VF + "f0.png", VF + "f1.png"], VF, [VF + "f0.png", "/tmp/claude-0/scr/vframes2/f0.jpg", "/nonexistent/a.png"], "/nonexistent", 3]), ("output", [FO + "ip", FO, ""]), ("format", ["png", "tga", "jpg", "zz", "same"]), ("quality", [3]), ("width", [10, 0]), ("height", [8]), ("convertToSrgb", [True]), ("tgaBits", [32, 7])] if r.random() < 0.7}})
+    add("file", 1, lambda: {"cmd": "file.scripts.loadFilesIntoStack", "params": {k: r.choice(v) for k, v in [("paths", [[VF + "f0.png", "/tmp/claude-0/scr/vframes2/a.png"], VF, [], ["/nonexistent/x.png"], "/nonexistent"]), ("createSmartObject", [True])] if r.random() < 0.8}})
+    add("file", 1, lambda: {"cmd": r.choice(["file.scripts.flattenAllLayerEffects", "file.scripts.flattenAllMasks"]), "params": {}})
+    add("file", 1, lambda: {"cmd": "file.export.layersToFiles", "params": {k: r.choice(v) for k, v in [("dir", [FO + "ltf", FO, ""]), ("output", [FO]), ("format", ["png", "tga", ".PSD", "zz"]), ("prefix", ["p/x", "", "Lay*er"]), ("visibleOnly", [False]), ("tgaBits", [24])] if r.random() < 0.7}})
+    add("file", 1, lambda: {"cmd": "file.export.colorLookupTables", "params": {k: r.choice(v) for k, v in [("size", [2, 3, 5, 1, 200, "x", None]), ("scope", ["all", "selected", "zz", 3]), ("layers", [[2, 3], [], [99], "x", [-1]]), ("title", ['My "LUT"']), ("path", [FO + "l.cube"])] if r.random() < 0.5} or {"size": 3}})
+    add("file", 1, lambda: {"cmd": "view.newGuideLayout", "params": {k: r.choice(v) for k, v in [("columns", [0, 2, 5, 2000, -1]), ("rows", [1, 3]), ("width", [5, 0, -2]), ("height", [4]), ("gutter", [2, 0.5]), ("rowGutter", [1]), ("margin", [3, [1, 2, 3, 4], [1, 2], ["x", 1, 1, 1]]), ("centerColumns", [True, "x"]), ("clearExisting", [True]), ("target", ["document", "selectedArtboards", "zz", 3])] if r.random() < 0.5}})
+    add("file", 1, lambda: {"cmd": r.choice(["view.newGuidesFromShape", "view.clearCanvasGuides"]), "params": r.choice([{}, {"layer": layer_id(r)}])})
     if not pool:
         return {"cmd": "session.inspect"}
     tot = sum(w for w, _ in pool)
@@ -765,10 +784,31 @@ def prefs_block(r):
     steps.append({"cmd": "history.list", "params": {}})
     return steps
 
+def file_block(r):
+    """Layers with effects, masks, adjustments and a shape, then the File menu over them."""
+    FO = "/tmp/claude-0/scr/fout/"
+    steps = [{"cmd": "layer.new.layer", "params": {}}, {"cmd": "paint.stroke", "params": {"points": [[3, 3], [20, 15]], "size": 6, "color": "#3366ff"}}]
+    for _ in range(r.randint(1, 3)):
+        steps.append(r.choice([{"cmd": "layer.layerStyle.dropShadow", "params": {}}, {"cmd": "layer.layerMask.revealAll", "params": {}}, {"cmd": "layer.newAdjustmentLayer." + r.choice(["curves", "invert", "hueSaturation", "levels", "brightnessContrast"]), "params": {}}, {"cmd": "shape.create", "params": {"kind": "rect", "rect": [4, 4, 12, 9], "fill": "#ff0000"}}, {"cmd": "select.rect", "params": {"x": 2, "y": 2, "width": 10, "height": 10}}]))
+    for _ in range(r.randint(1, 3)):
+        steps.append(r.choice([
+            {"cmd": "file.saveACopy", "params": {"path": FO + r.choice(["b.png", "b.psd", "b.tga"])}},
+            {"cmd": "file.openAs", "params": {"path": FO + r.choice(["b.png", "b.psd", "b.tga"])}},
+            {"cmd": "file.revert", "params": {}},
+            {"cmd": "file.scripts.flattenAllLayerEffects", "params": {}},
+            {"cmd": "file.scripts.flattenAllMasks", "params": {}},
+            {"cmd": "file.export.colorLookupTables", "params": {"size": r.choice([2, 3, 4]), **({"scope": "selected"} if r.random() < 0.3 else {})}},
+            {"cmd": "file.export.layersToFiles", "params": {"dir": FO + "lb", "format": r.choice(["png", "tga"])}},
+            {"cmd": "file.placeEmbedded", "params": {"path": "/tmp/claude-0/scr/vframes/f2.png", **({"scale": 150} if r.random() < 0.3 else {})}},
+            {"cmd": "view.newGuidesFromShape", "params": {}},
+            {"cmd": "view.newGuideLayout", "params": {"columns": r.randint(1, 4), "gutter": 2, "margin": 2}},
+            {"cmd": "file.fileInfo", "params": {"title": "Hello", "keywords": "a; b"}}]))
+    return steps
+
 def main():
     out, count = sys.argv[1], int(sys.argv[2])
     seed = int(sys.argv[3]) if len(sys.argv) > 3 else 1
-    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart", "type", "paint", "presets", "retouch", "small", "video", "gfill", "smartsel", "swatch", "prefs"}
+    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart", "type", "paint", "presets", "retouch", "small", "video", "gfill", "smartsel", "swatch", "prefs", "file"}
     os.makedirs(out, exist_ok=True)
     r = random.Random(seed)
     for i in range(count):
@@ -795,6 +835,8 @@ def main():
             steps.extend(smartsel_block(r))
         if "prefs" in areas and r.random() < 0.3:
             steps.extend(prefs_block(r))
+        if "file" in areas and r.random() < 0.5:
+            steps.extend(file_block(r))
         for _ in range(r.randint(3, 25)):
             steps.append(new_doc(r) if r.random() < 0.03 else step(r, areas))
         # Inspect at the end so view state is compared too.
