@@ -5,6 +5,7 @@
 
 import std/[sets, strutils, strformat, algorithm, math, unicode, tables, hashes, sequtils]
 import doc/types
+import rfmt
 export types
 
 # ---------------------------------------------------------------- ids
@@ -804,10 +805,13 @@ proc applyAttrs*[T](base: T; attrs: JsonNode): T =
   result = base
   if attrs.isNil or attrs.kind != JObject or attrs.len == 0: return
   let known = toJ(base)
-  for k, v in attrs.fields:
+  var keys: seq[string]
+  for k in attrs.fields.keys: keys.add k
+  keys.sort(cmp[string]) # Rust's maps are sorted: the first unknown key in that order is reported
+  for k in keys:
     if k == "style_sheet": continue
     if not known.hasKey(k) and not (k in ["leading_pt", "postscript_name", "language"]):
-      raise serdeError("unknown style attribute " & escape(k))
+      raise serdeError("unknown style attribute " & debugStr(k))
   var merged = known
   for k, v in attrs.fields:
     if k != "style_sheet": merged[k] = v

@@ -292,11 +292,15 @@ proc fromJ*[T: tuple](n: JsonNode; x: var T) =
     fromJ(n.elems[i], v)
     inc i
 
+proc serdeRequired*(T: typedesc): bool = false
+  ## Whether the Rust struct `T` stands for lacks `#[serde(default)]`, so that in strict mode a
+  ## missing field is an error (`missing field `x``). Types opt in with an overload.
+
 proc objectFromJ*[T: object](n: JsonNode; x: var T) =
   ## The generic struct form (for custom `fromJ` overloads that adjust it).
   ## Like serde's derived `Deserialize`, a JSON array fills the fields in declaration order
   ## (missing trailing fields keep their defaults).
-  mixin fromJ, defaultOf
+  mixin fromJ, defaultOf, serdeRequired
   if serdeStrict and n.kind == JObject:
     # serde_json visits a map's keys in sorted order; errors carry no key path.
     var keys: seq[string]
@@ -311,6 +315,12 @@ proc objectFromJ*[T: object](n: JsonNode; x: var T) =
             when v is object and compiles(defaultOf(typeof(v))):
               if e.kind in {JObject, JArray}: v = defaultOf(typeof(v))
             fromJ(e, v)
+    when serdeRequired(T):
+      for name, v in x.fieldPairs:
+        when not v.hasCustomPragma(skipJson):
+          let key = when v.hasCustomPragma(jsonName): v.getCustomPragmaVal(jsonName) else: fieldKey(T, name)
+          when v isnot Option:
+            if not n.fields.hasKey(key): raise serdeError("missing field `" & key & "`")
     return
   if n.kind notin {JObject, JArray}:
     if serdeStrict: raise invalidType(n, "struct " & $T)

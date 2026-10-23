@@ -750,9 +750,12 @@ proc dispatch(s: var Session; id: string; params: JsonNode; background: bool): S
     # An error another layer raised that the command did not convert (Rust converts each one
     # at its call site, mostly as `Other(e.to_string())`).
     raise other(e.msg)
-  except Defect:
+  except Defect as e:
     # Last-resort guard (AGENTS.md, Never crash): `edit` only commits after its body returns,
-    # so the documents are unchanged.
+    # so the documents are unchanged. `PHOTOCRAFT_DEBUG=1` logs the defect to stderr.
+    if getEnv("PHOTOCRAFT_DEBUG").len > 0:
+      try: stderr.writeLine("photocraft: `" & id & "` failed: " & e.msg & "\n" & e.getStackTrace())
+      except IOError: discard
     raise other("`" & id & "` failed with an internal error (logged); the document is unchanged")
   finally:
     if s.actions.recording.isNone: s.actions.recording = recording

@@ -365,7 +365,10 @@ proc atomicWrite*(path: string; data: openArray[byte]; progress: proc(f: float32
   if '\0' in dir: raise fmtError(feIo, "cannot create the folder " & dir & ": " & NulPathMsg)
   if '\0' in name or '\0' in ext: raise fmtError(feIo, "cannot save " & path & ": " & NulPathMsg & "; " & unchanged)
   try: createDir(dir)
-  except OSError as e: raise fmtError(feIo, "cannot create the folder " & dir & ": " & e.msg)
+  except OSError as e:
+    # Rust's `io::Error` text: "No such file or directory (os error 2)".
+    let why = (if e.errorCode != 0: osErrorMsg(OSErrorCode(e.errorCode)) & " (os error " & $e.errorCode & ")" else: e.msg)
+    raise fmtError(feIo, "cannot create the folder " & dir & ": " & why)
   var tmp = ""
   for _ in 0 ..< 8:
     let candidate = dir / tempName(name & ext)

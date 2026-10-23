@@ -652,3 +652,7 @@ type
 
 const MaxGroupDepth* = 100
   ## Deepest group nesting a document may hold; deeper trees are refused by import and save.
+
+proc serdeRequired*(T: typedesc[FontFeature]): bool = true
+proc serdeRequired*(T: typedesc[FontVariation]): bool = true
+  ## No `#[serde(default)]` in Rust: strict reads need every field.

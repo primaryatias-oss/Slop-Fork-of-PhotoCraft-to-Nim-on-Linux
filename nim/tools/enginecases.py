@@ -289,6 +289,7 @@ def step(r, areas):
     add("type", 3, lambda: {"cmd": "type.setStyle", "params": dict(tstyle(r), **tpara(r), **({"range": r.choice([[0, 3], [2, 1], [5, 50]])} if r.random() < 0.4 else {}), **({"metricsAsShown": True} if r.random() < 0.2 else {}), **({"layers": r.choice([[layer_id(r)], "x", [1.5]])} if r.random() < 0.15 else {}), **({"layer": layer_id(r)} if r.random() < 0.15 else {}))})
     add("type", 2, lambda: {"cmd": r.choice(["type.increaseSize", "type.decreaseSize", "type.increaseSizeMore", "type.decreaseSizeMore"]), "params": r.choice([{}, {"by": r.choice([1, -3, 1e30, "x"])}, {"range": [0, 2]}])})
     add("type", 1, lambda: {"cmd": r.choice(["type.rasterize", "type.info", "layer.rasterize.type"]), "params": r.choice([{}, {"layer": layer_id(r)}])})
+    add("tstyles", 4, lambda: style_cmd(r, [1, 2]))
     def pts(r):
         k = r.randint(1, 6)
         out = []
@@ -851,10 +852,70 @@ def actions_block(r):
     steps.append({"cmd": "actions.get", "params": {"action": 0}})
     return steps
 
+def style_attrs(r):
+    """Style attributes: model fields, panel keys, and some that fail."""
+    pool = [("size_pt", [36, 18.5, "big", None]), ("font_family", ["Inter", "JetBrains Mono", 3]), ("align", ["Center", "center", "Right", "zz"]),
+            ("weight", [700, 70000, 300.5]), ("underline", [True, 1]), ("color", ["#ff0000", {"mode": "Rgb", "c": [1, 0, 0, 0], "alpha": 1}, {}, {"mode": "Rgb", "c": [1, 0], "alpha": 1}, [0, 1, 0]]),
+            ("leading_pt", [None, 30, "auto"]), ("size", [24, 1e30, "x"]), ("tracking", [50, -20]), ("caps", ["AllCaps", "small", "x"]),
+            ("features", [[{"tag": "liga", "value": 0}], [{"tag": "liga"}], {"ss01": 1}]), ("variations", [[{"axis": "wght", "value": 600}], {"wght": 500}]),
+            ("first_line_indent_pt", [12, "x"]), ("spaceBefore", [6]), ("auto_leading", [1.5]), ("direction", ["Rtl", "rtl", "q"]), ("hyphenate", [True]),
+            ("fauxBold", [True]), ("kerning", ["Optical", "optical", 40]), ("style_sheet", [3]), ("bogus", [1]), ("zzz", ["q"]), ("language", ["en", None])]
+    k = r.randint(0, 3)
+    return {name: r.choice(vals) for name, vals in r.sample(pool, k)}
+
+def style_target(r):
+    t = {}
+    if r.random() < 0.3: t["range"] = r.choice([[0, 3], [2, 1], [1, 50], [0, 0], None, "x"])
+    if r.random() < 0.15: t["layer"] = layer_id(r)
+    if r.random() < 0.1: t["layers"] = r.choice([[layer_id(r)], [1, 2, 3], "x"])
+    return t
+
+def style_cmd(r, ids):
+    noun = r.choice(["characterStyle", "paragraphStyle"])
+    kind = r.choice(["new", "new", "new", "duplicate", "delete", "rename", "set", "set", "apply", "apply", "apply", "redefine", "clearOverride", "list"])
+    pid = lambda: r.choice(ids + [0, 0, 1, 2, 99, None, "x", -1, 2**32])
+    p = {}
+    if kind == "new":
+        p = dict(style_target(r), **({"attrs": style_attrs(r)} if r.random() < 0.7 else {}), **({"name": r.choice(["Head", "", "  ", 5])} if r.random() < 0.4 else {}),
+                 **({"apply": r.choice([True, True, False])} if r.random() < 0.5 else {}), **({"fromSelection": r.choice([False, True])} if r.random() < 0.3 else {}))
+        if r.random() < 0.05: p["attrs"] = r.choice(["x", 3, None, []])
+    elif kind in ("duplicate", "delete"):
+        p = {"id": pid()} if r.random() < 0.9 else {}
+    elif kind == "rename":
+        p = dict({"id": pid()}, **({"name": r.choice(["Body", " Title ", "", 7])} if r.random() < 0.9 else {}))
+    elif kind == "set":
+        p = dict({"id": pid()}, **({"attrs": style_attrs(r)} if r.random() < 0.8 else {}), **({"replace": True} if r.random() < 0.2 else {}),
+                 **({"clear": r.choice([["size_pt"], ["align", "underline"], "x", [3]])} if r.random() < 0.2 else {}), **({"name": r.choice(["Renamed", " ", 4])} if r.random() < 0.3 else {}))
+    elif kind == "apply":
+        p = dict(style_target(r), **({"id": pid()} if r.random() < 0.85 else {}), **({"clearOverrides": True} if r.random() < 0.3 else {}))
+    elif kind == "redefine":
+        p = dict(style_target(r), **({"id": pid()} if r.random() < 0.5 else {}))
+    else:
+        p = style_target(r)
+    return {"cmd": f"type.{noun}.{kind}", "params": p}
+
+def tstyles_block(r):
+    """Type layers with character and paragraph styles: create, apply, override, redefine, delete."""
+    b = [{"cmd": "type.create", "params": dict({"text": r.choice(["Hello world", "Two\nlines here", "One\ntwo\nthree", "x", "", "שלום abc"]), "x": 3, "y": 20},
+                                                 **({"size": r.choice([10, 18])} if r.random() < 0.5 else {}))}]
+    if r.random() < 0.4:
+        b.append({"cmd": "type.create", "params": {"text": r.choice(["Second layer", "B\nC"]), "x": 5, "y": 30}})
+    if r.random() < 0.3:
+        b.append(r.choice([{"cmd": "select.allLayers", "params": {}}, {"cmd": "layer.select", "params": {"layer": r.randint(1, 4), "mode": r.choice(["add", "replace"])}}]))
+    ids = [1, 2, 3]
+    for _ in range(r.randint(2, 9)):
+        k = r.random()
+        if k < 0.75: b.append(style_cmd(r, ids))
+        elif k < 0.85: b.append({"cmd": "type.setStyle", "params": dict({r.choice(["size", "underline", "align", "tracking", "fauxItalic"]): r.choice([30, True, "center", 80])}, **({"range": [0, r.randint(1, 5)]} if r.random() < 0.5 else {}))})
+        elif k < 0.9: b.append({"cmd": "type.edit", "params": {"replace": {"start": r.randint(0, 3), "end": r.randint(3, 6), "text": r.choice(["Q", "\nnew", ""])}}})
+        elif k < 0.95: b.append({"cmd": r.choice(["edit.undo", "edit.redo", "layer.duplicate", "type.info"])})
+        else: b.append({"cmd": "type.characterStyle.list" if r.random() < 0.5 else "type.paragraphStyle.list", "params": {}})
+    return b
+
 def main():
     out, count = sys.argv[1], int(sys.argv[2])
     seed = int(sys.argv[3]) if len(sys.argv) > 3 else 1
-    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart", "type", "paint", "presets", "retouch", "small", "video", "gfill", "smartsel", "swatch", "prefs", "file", "actions"}
+    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart", "type", "paint", "presets", "retouch", "small", "video", "gfill", "smartsel", "swatch", "prefs", "file", "actions", "tstyles"}
     os.makedirs(out, exist_ok=True)
     r = random.Random(seed)
     for i in range(count):
@@ -885,6 +946,8 @@ def main():
             steps.extend(file_block(r))
         if "actions" in areas and r.random() < 0.6:
             steps.extend(actions_block(r))
+        if "tstyles" in areas and r.random() < 0.6:
+            steps.extend(tstyles_block(r))
         for _ in range(r.randint(3, 25)):
             steps.append(new_doc(r) if r.random() < 0.03 else step(r, areas))
         # Inspect at the end so view state is compared too.

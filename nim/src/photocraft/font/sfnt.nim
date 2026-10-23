@@ -1151,19 +1151,30 @@ proc glyphBounds*(f: Face; gid: int): Option[array[4, float32]] =
 
 proc fixedMul(a, b: int64): int64 {.inline.} =
   ## 16.16 multiply with FreeType's rounding (font-types `Fixed * Fixed`).
-  let ab = a * b
-  (ab + 0x8000 - (if ab < 0: 1 else: 0)) shr 16
+  let ab = a *% b
+  let r = (ab +% 0x8000 -% (if ab < 0: 1 else: 0)) shr 16
+  int64(cast[int32](uint32(r and 0xFFFF_FFFF'i64))) # `as i32`
 
 proc fixedDiv(a, b: int64): int64 =
+  ## font-types `Fixed / Fixed` on 32-bit operands: the quotient is truncated to 32 bits and the
+  ## sign applied with wrapping, so huge sizes wrap instead of failing.
   let neg = (a < 0) xor (b < 0)
-  let au = abs(a)
-  let bu = abs(b)
-  let q = if bu == 0: 0x7FFFFFFF'i64 else: ((au shl 16) + (bu shr 1)) div bu
-  int64(int32(if neg: -q else: q))
+  let au = uint64(abs(a))
+  let bu = uint64(abs(b))
+  let q = if bu == 0: 0x7FFFFFFF'u32 else: uint32((((au shl 16) + (bu shr 1)) div bu) and 0xFFFF_FFFF'u64)
+  let qi = cast[int32](q)
+  int64(if neg: 0'i32 -% qi else: qi)
+
+proc f32AsI32(v: float32): int32 =
+  ## Rust `v as i32`: truncates toward zero, saturates, NaN → 0.
+  if v != v: 0'i32
+  elif v >= 2147483647'f32: high(int32)
+  elif v <= -2147483648'f32: low(int32)
+  else: int32(v)
 
 proc scaleBits(ppem: float32; upem: int): int64 =
   ## skrifa's 16.16 scale from font units to 26.6 (FreeType's `FT_Set_Pixel_Sizes` arithmetic).
-  fixedDiv(int64(int32(ppem * 64)), int64(upem))
+  fixedDiv(int64(f32AsI32(ppem * 64)), int64(upem))
 
 type ScaledGlyf = object
   xs, ys: seq[int64]          ## 26.6

@@ -38,4 +38,7 @@ proc readFileOr*(path: string): seq[byte] =
 proc writeFileAtomic*(path: string; bytes: openArray[byte]) =
   ## `file_cmds::write_file`: an atomic write, errors as `Other`.
   try: atomicWrite(path, bytes)
+  except FormatError as e:
+    # `atomic_write` fails with a bare `io::Error`: no "I/O: " prefix.
+    raise other(if e.kind == feIo and e.msg.startsWith("I/O: "): e.msg[5 .. ^1] else: e.msg)
   except CatchableError as e: raise other(e.msg)

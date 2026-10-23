@@ -30,6 +30,9 @@ type
     c*: array[4, float32] ## up to 4 colour components (unused ones are 0)
     alpha*: float32
 
+proc serdeRequired*(T: typedesc[Color]): bool = true
+  ## Rust's `Color` has no `#[serde(default)]`: strict reads need every field.
+
 proc ditherNoise*(x, y: int): float32 =
   ## Per-pixel gradient dither noise in `[0, 1)` from a position hash.
   var h = (uint32(cast[uint32](int32(x))) * 0x9E37_79B1'u32) xor (uint32(cast[uint32](int32(y))) * 0x85EB_CA77'u32)

@@ -83,7 +83,7 @@ proc charAt(text: string; bi: int): int =
     i += max(runeLenAt(text, i), 1)
     inc result
 
-proc rangeParam(text: string; p: JsonNode): (int, int) =
+proc rangeParam*(text: string; p: JsonNode): (int, int) =
   ## `range: [start, end]` in characters → byte range (whole text when absent).
   let r = p.pget("range")
   if r.isArray and r.len == 2:
