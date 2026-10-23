@@ -387,6 +387,21 @@ type
     run*: RunProc
     journal*: bool ## record in the session journal (false for queries)
 
+  Action* = object
+    ## One recorded action. `steps` is the `[[id, params], …]` shape `file.automate.batch` and
+    ## droplets accept.
+    name*: string
+    steps*: seq[(string, JsonNode)]
+    disabled*: seq[int] ## indices of steps excluded from playback, sorted (a `BTreeSet`)
+
+  ActionState* = object
+    ## Actions list and the recording / playback flags. Only `list` is persisted.
+    list*: seq[Action]
+    recording*: Option[(int, int)] ## journal length when recording started, and the action index
+    playing*: uint8                ## nesting depth of `actions.play`
+    playbackStack*: seq[string]    ## active action names, for cycle detection
+    rev*: uint64                   ## bumped whenever `list` changes
+
   Session* = object
     docs: seq[DocState]
     activeIdx: Option[int]
@@ -396,6 +411,7 @@ type
     quickMaskOptions*: QuickMaskOptions
     patterns*: PatternLibrary
     prefs*: PrefsStore
+    actions*: ActionState
     presets*: PresetState
     color*: ColorState
     clipboard*: Option[Clip]

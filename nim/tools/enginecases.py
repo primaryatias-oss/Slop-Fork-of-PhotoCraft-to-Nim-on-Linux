@@ -487,6 +487,14 @@ def step(r, areas):
     add("file", 1, lambda: {"cmd": "file.export.colorLookupTables", "params": {k: r.choice(v) for k, v in [("size", [2, 3, 5, 1, 200, "x", None]), ("scope", ["all", "selected", "zz", 3]), ("layers", [[2, 3], [], [99], "x", [-1]]), ("title", ['My "LUT"']), ("path", [FO + "l.cube"])] if r.random() < 0.5} or {"size": 3}})
     add("file", 1, lambda: {"cmd": "view.newGuideLayout", "params": {k: r.choice(v) for k, v in [("columns", [0, 2, 5, 2000, -1]), ("rows", [1, 3]), ("width", [5, 0, -2]), ("height", [4]), ("gutter", [2, 0.5]), ("rowGutter", [1]), ("margin", [3, [1, 2, 3, 4], [1, 2], ["x", 1, 1, 1]]), ("centerColumns", [True, "x"]), ("clearExisting", [True]), ("target", ["document", "selectedArtboards", "zz", 3])] if r.random() < 0.5}})
     add("file", 1, lambda: {"cmd": r.choice(["view.newGuidesFromShape", "view.clearCanvasGuides"]), "params": r.choice([{}, {"layer": layer_id(r)}])})
+    aname = lambda: r.choice(["Action 1", "Action 2", "Mine", "Nope", "", 0, 1, 2, 7, -1, 1.6, None, [1]])
+    add("actions", 2, lambda: {"cmd": "actions.record", "params": r.choice([{}, {"name": r.choice(["Mine", "Other", "", 3, None])}, {"action": aname()}])})
+    add("actions", 2, lambda: {"cmd": r.choice(["actions.stop", "actions.list"]), "params": {}})
+    add("actions", 2, lambda: {"cmd": r.choice(["actions.play", "actions.get"]), "params": dict({"action": aname()}, **({"from": r.choice([0, 1, 2, 9, -1, "x", None, 1.4])} if r.random() < 0.3 else {}))})
+    add("actions", 2, lambda: {"cmd": "actions.move", "params": dict({"action": aname()}, **{k: r.choice(v) for k, v in [("step", [0, 1, 3, -1, "x"]), ("to", [0, 1, 2, 9, -1, "x"])] if r.random() < 0.7})})
+    add("actions", 2, lambda: {"cmd": r.choice(["actions.delete", "actions.toggle"]), "params": dict({"action": aname()}, **{k: r.choice(v) for k, v in [("step", [0, 1, 2, 9, -1, "x", None]), ("enabled", [True, False, "x", None])] if r.random() < 0.5})})
+    add("actions", 1, lambda: {"cmd": "actions.rename", "params": dict({"action": aname()}, **({"name": r.choice(["Renamed", "Mine", "  ", "", 4])} if r.random() < 0.85 else {}))})
+    add("actions", 1, lambda: {"cmd": "file.automate.batch", "params": {k: r.choice(v) for k, v in [("steps", [[["layer.new.layer", {}], ["filter.blur.gaussianBlur", {"radius": 2}]], [{"command": "image.adjustments.invert"}, "edit.undo", ["file.save", {}], ["view.zoomIn", {}]], [["nope.cmd", {}]], [[]], [3], "x", [{"id": 3}], [["actions.play", {"action": "Mine"}]]]), ("action", [[["image.adjustments.invert", {}]]]), ("input", [["/tmp/claude-0/scr/vframes/f0.png", "/tmp/claude-0/scr/vframes/f1.png"], "/tmp/claude-0/scr/vframes", 3]), ("output", ["/tmp/claude-0/scr/fout", ""]), ("format", ["png", "tga", "same"]), ("calledActions", [[{"name": "Mine", "steps": [["image.adjustments.invert", {}]]}], [{"steps": []}], [{"name": 3}], "x", [{"name": "A", "steps": [["x"]]}], [{"name": "A", "disabled": [-1]}], [{"name": "A", "steps": [["a", {}, 1]]}], None]), ("tgaBits", [32, 9])] if r.random() < 0.6}})
     if not pool:
         return {"cmd": "session.inspect"}
     tot = sum(w for w, _ in pool)
@@ -805,10 +813,35 @@ def file_block(r):
             {"cmd": "file.fileInfo", "params": {"title": "Hello", "keywords": "a; b"}}]))
     return steps
 
+def actions_block(r):
+    """Record an action or two (one calling the other), then play, edit and batch them."""
+    st = lambda: r.choice([{"cmd": "layer.new.layer", "params": {}}, {"cmd": "paint.stroke", "params": {"points": [[r.uniform(0, 30), r.uniform(0, 30)], [r.uniform(0, 30), r.uniform(0, 30)]], "size": 4, "color": "#00aa00"}}, {"cmd": "select.rect", "params": {"x": 2, "y": 3, "width": 10, "height": 8}}, {"cmd": "image.adjustments.invert", "params": {}}, {"cmd": "filter.blur.gaussianBlur", "params": {"radius": 1.5}}, {"cmd": "layer.setProps", "params": {"opacity": 0.5}}, {"cmd": "edit.undo", "params": {}}, {"cmd": "image.rotate", "params": {"angle": 90}}, {"cmd": "nope", "params": {}}])
+    steps = [{"cmd": "actions.record", "params": {"name": "Mine"}}]
+    steps += [st() for _ in range(r.randint(1, 4))]
+    steps.append({"cmd": "actions.stop", "params": {}})
+    if r.random() < 0.6:
+        steps.append({"cmd": "actions.record", "params": {"name": "Outer"}})
+        steps += [st() for _ in range(r.randint(0, 2))]
+        steps.append({"cmd": "actions.play", "params": {"action": "Mine"}})
+        steps += [st() for _ in range(r.randint(0, 2))]
+        steps.append({"cmd": "actions.stop", "params": {}})
+    for _ in range(r.randint(2, 6)):
+        k = r.random()
+        if k < 0.35: steps.append({"cmd": "actions.play", "params": {"action": r.choice(["Mine", "Outer", 0, 1]), **({"from": r.choice([1, 2])} if r.random() < 0.2 else {})}})
+        elif k < 0.5: steps.append({"cmd": "actions.toggle", "params": {"action": r.choice(["Mine", "Outer"]), **({"step": r.choice([0, 1, 2])} if r.random() < 0.6 else {}), **({"enabled": r.choice([True, False])} if r.random() < 0.3 else {})}})
+        elif k < 0.6: steps.append({"cmd": "actions.move", "params": {"action": r.choice(["Mine", "Outer"]), **({"step": r.choice([0, 1])} if r.random() < 0.6 else {}), "to": r.choice([0, 1])}})
+        elif k < 0.7: steps.append({"cmd": "actions.delete", "params": {"action": r.choice(["Mine", "Outer"]), **({"step": r.choice([0, 1])} if r.random() < 0.7 else {})}})
+        elif k < 0.8: steps.append({"cmd": "actions.rename", "params": {"action": "Mine", "name": r.choice(["Inner", "Mine"])}})
+        elif k < 0.9: steps.append({"cmd": "actions.record", "params": {"action": r.choice(["Mine", "Outer"])}}); steps.append(st()); steps.append({"cmd": r.choice(["actions.stop", "actions.toggle", "actions.delete"]), "params": {"action": "Mine", "step": 0}})
+        else: steps.append({"cmd": "file.automate.batch", "params": {"steps": [["actions.play", {"action": r.choice(["Mine", "Outer", "Inner"])}]], "input": ["/tmp/claude-0/scr/vframes/f0.png"], "output": "/tmp/claude-0/scr/fout", "format": "png"}})
+    steps.append({"cmd": "actions.list", "params": {}})
+    steps.append({"cmd": "actions.get", "params": {"action": 0}})
+    return steps
+
 def main():
     out, count = sys.argv[1], int(sys.argv[2])
     seed = int(sys.argv[3]) if len(sys.argv) > 3 else 1
-    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart", "type", "paint", "presets", "retouch", "small", "video", "gfill", "smartsel", "swatch", "prefs", "file"}
+    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart", "type", "paint", "presets", "retouch", "small", "video", "gfill", "smartsel", "swatch", "prefs", "file", "actions"}
     os.makedirs(out, exist_ok=True)
     r = random.Random(seed)
     for i in range(count):
@@ -837,6 +870,8 @@ def main():
             steps.extend(prefs_block(r))
         if "file" in areas and r.random() < 0.5:
             steps.extend(file_block(r))
+        if "actions" in areas and r.random() < 0.6:
+            steps.extend(actions_block(r))
         for _ in range(r.randint(3, 25)):
             steps.append(new_doc(r) if r.random() < 0.03 else step(r, areas))
         # Inspect at the end so view state is compared too.

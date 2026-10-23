@@ -10,6 +10,7 @@
 
 import std/[json, options, os, osproc, strutils, unicode, math, algorithm, sets, tables, sequtils, posix]
 import ./core
+import ./actions_cmds
 import ../compose, ../io
 import ../algo/resample as aresample
 import ../algo/exif as aexif
@@ -720,6 +721,57 @@ proc processFiles*(inputs: seq[string]; output, format: string; save: SaveOpts; 
       errors.add %*{"file": path, "error": e.msg}
   %*{"files": files, "errors": errors}
 
+proc parseSteps(v: JsonNode): seq[(string, JsonNode)] =
+  ## One `[id, params]` / `{command, params}` / `{id, params}` step of an action, each.
+  const C = "file.automate.batch"
+  if not v.isArray: raise bad(C, "\"steps\" must be an array")
+  for st in v.elems:
+    if st.kind == JArray and st.len > 0:
+      if st.elems[0].kind != JString: raise bad(C, "step id must be a string")
+      result.add (st.elems[0].str, (if st.len > 1: st.elems[1] else: newJObject()))
+    elif st.kind == JObject:
+      var idv = st.pget("command")
+      if idv.isNil: idv = st.pget("id")
+      if idv.isNil or idv.kind != JString: raise bad(C, "step needs \"command\"")
+      let pp = st.pget("params")
+      result.add (idv.str, (if pp.isNil: newJObject() else: pp))
+    elif st.kind == JString: result.add (st.str, newJObject())
+    else: raise bad(C, "each step is [id, params] or {\"command\", \"params\"}")
+
+proc batch(s: var Session; p: JsonNode): JsonNode =
+  const C = "file.automate.batch"
+  var sv = p.pget("steps")
+  if sv.isNil: sv = p.pget("action")
+  if sv.isNil: raise bad(C, "missing \"steps\"")
+  var steps = parseSteps(sv)
+  # Each result goes to the destination folder, which overrides the action's recorded Save / Save
+  # As steps; recorded view steps don't change the output, so they are skipped.
+  steps.keepItIf(not shellSaveCommand(it[0]) and not shellViewCommand(it[0]))
+  for (id, _) in steps:
+    if findSpec(id).isNil: raise bad(C, "unknown command `" & id & "` in the action")
+  let inputs = batchInputs(p, C)
+  let output = strParamReq(p, "output", C)
+  let format = p.pget("format").asStr.get("same")
+  # Steps that call another action play it from the caller's actions; the playback stack comes
+  # along so an action that batches itself is caught as a recursive call.
+  var list: seq[Action]
+  let ca = p.pget("calledActions")
+  if ca.isNull: list = s.actions.list
+  else:
+    # A droplet brings the actions it calls and runs with those alone.
+    try: list = actionsFromJson(ca)
+    except ValueError as e: raise bad(C, "\"calledActions\": " & e.msg)
+    if list.len > 4096: raise bad(C, "\"calledActions\" holds more than 4096 actions")
+  let actions = ActionState(list: list, playing: s.actions.playing, playbackStack: s.actions.playbackStack)
+  let st = steps
+  processFiles(inputs, output, format, saveOptsFrom(s, p, C), "", proc(scratch: var Session) =
+    scratch.actions = actions
+    for (id, params) in st:
+      let r = scratch.execute(id, params.copy)
+      # A failed step inside a called action makes this file an error, not a saved result.
+      let nf = nestedFailure(id, r)
+      if nf.isSome: raise other(nf.get))
+
 proc imageProcessor(s: var Session; p: JsonNode): JsonNode =
   const C = "file.scripts.imageProcessor"
   let inputs = batchInputs(p, C)
@@ -1255,7 +1307,10 @@ proc fileSpecs*(): seq[CommandSpec] =
         enabledProc(hasDocE(s)), runProc(fitImage(s, p))),
     cmd("file.automate.conditionalModeChange", "Conditional Mode Change…", ["File", "Automate"], "",
         """{"from":["rgb","grayscale","cmyk","lab","indexed","bitmap",…]|"any"="any","to":"rgb|grayscale|cmyk|lab"}""",
-        enabledProc(hasDocE(s)), runProc(conditionalModeChange(s, p)))]
+        enabledProc(hasDocE(s)), runProc(conditionalModeChange(s, p))),
+    cmd("file.automate.batch", "Batch…", ["File", "Automate"], "",
+        """{"steps":[[commandId,params]|{"command":id,"params":{}}…] (a recorded action),"input":folder|[paths],"output":folder,"format":"same|png|jpg|psd|tiff|…"="same","quality":0..12?,"tiffLayers":bool=false,"tgaBits":24|32?,"calledActions":[{"name","steps"}…]? (the actions Play Action steps call; default: the session's)} → {files, errors} (an input whose output name was already written in the run goes to errors)""",
+        enabledProc(nativeE(s)), runProc(batch(s, p)))]
 
 proc fileSpecsTail*(): seq[CommandSpec] =
   ## The specs after `file.automate.batch` (which lands with the Actions panel).

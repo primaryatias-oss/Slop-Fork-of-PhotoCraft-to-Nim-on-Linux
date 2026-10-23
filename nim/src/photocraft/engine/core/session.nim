@@ -734,6 +734,11 @@ proc dispatch(s: var Session; id: string; params: JsonNode; background: bool): S
   s.colorRestrict = s.colorRestriction(id, runParams)
   s.jobs.spawn = background
   let nestedFrom = s.journal.len
+  # A replayable command is recorded as one step, so recording pauses while it runs.
+  var recording = none((int, int))
+  if spec.journal and replayable(id):
+    recording = s.actions.recording
+    s.actions.recording = none((int, int))
   var r: JsonNode
   try:
     r = spec.run(s, runParams)
@@ -750,6 +755,7 @@ proc dispatch(s: var Session; id: string; params: JsonNode; background: bool): S
     # so the documents are unchanged.
     raise other("`" & id & "` failed with an internal error (logged); the document is unchanged")
   finally:
+    if s.actions.recording.isNone: s.actions.recording = recording
     s.jobs.spawn = false
     s.coalesceRequest = none(string)
     s.colorRestrict = none(int)

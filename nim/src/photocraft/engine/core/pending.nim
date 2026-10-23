@@ -24,7 +24,21 @@ proc afterCommandHooks(s: var Session; id: string) =
   if not st.isNil: fixMaskView(st[])
   editMenuAfterCommand(s, id)
   automateAfterCommand(s, id)
-proc replayable(id: string): bool = false
+proc shellSaveCommand*(id: string): bool = id in ["file.save", "file.saveAs"]
+  ## File › Save and Save As, recorded by the desktop shell once the save has a path.
+proc shellViewCommand*(id: string): bool =
+  ## View-only menu commands recorded by the desktop shell.
+  id in ["view.fitOnScreen", "view.actualPixels", "view.zoomIn", "view.zoomOut"]
+proc replayable(id: string): bool =
+  ## Replay commands and named action calls, excluding edits to the action definitions and the
+  ## already-expanded Again wrapper.
+  if id == "actions.play": return true
+  if id.startsWith("actions."): return false
+  if id in ["edit.transform.again", "edit.transform.againCopy", "file.scripts.browse"]: return false
+  if shellViewCommand(id) or shellSaveCommand(id): return true
+  let spec = findSpec(id)
+  not spec.isNil and spec.journal
+proc isReplayable*(id: string): bool = replayable(id)
 proc coalesceJournal(s: var Session; id: string; params: JsonNode): bool = brushCoalesceJournal(s, id, params)
 
 # ---------------------------------------------------------------- document_preset_cmds

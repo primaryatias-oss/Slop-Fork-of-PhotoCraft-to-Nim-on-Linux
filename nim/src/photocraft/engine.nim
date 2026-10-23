@@ -12,13 +12,13 @@ import engine/[selection_cmds, eraser_cmds, retouch_cmds, redeye_cmds, perspecti
                type_mask_cmds, profiles_migrate_cmds, key_cmds, notes_cmds, sampler_cmds, frame_pick_cmds,
                history_cmds, brush_preset_cmds, document_preset_cmds,
                paint_cmds, path_edit_cmds, select_extra_cmds,
-               render_cmds, video_cmds, gradient_fill_cmds, smartselect_cmds, preset_import_cmds, swatch_cmds, prefs_cmds, file_cmds]
+               render_cmds, video_cmds, gradient_fill_cmds, smartselect_cmds, preset_import_cmds, swatch_cmds, prefs_cmds, file_cmds, actions_cmds]
 export core, selection_cmds, eraser_cmds, retouch_cmds, redeye_cmds, perspective_crop_cmds, layer_panel_cmds,
        trap_wia_cmds, magnetic_cmds, fill_layer_cmds, type_mask_cmds,
        profiles_migrate_cmds, key_cmds, notes_cmds, sampler_cmds, frame_pick_cmds,
        history_cmds, brush_preset_cmds, document_preset_cmds, paint_cmds,
        path_edit_cmds, select_extra_cmds, render_cmds,
-       video_cmds, gradient_fill_cmds, smartselect_cmds, preset_import_cmds, swatch_cmds, prefs_cmds, file_cmds
+       video_cmds, gradient_fill_cmds, smartselect_cmds, preset_import_cmds, swatch_cmds, prefs_cmds, file_cmds, actions_cmds
 
 proc build(): seq[CommandSpec] =
   ## `commands::build()`: the base table, then every module's `specs()` in Rust's order. Modules
@@ -106,6 +106,6 @@ proc build(): seq[CommandSpec] =
   result.add fxVisibilitySpecs()
   result.add maskViewSpecs()
   result.add layerMaskPropsSpecs()
-  # actions_cmds
+  result.add actionsSpecs()
 
 installRegistry(build())
