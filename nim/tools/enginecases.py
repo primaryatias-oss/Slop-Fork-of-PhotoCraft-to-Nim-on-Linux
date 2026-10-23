@@ -429,6 +429,12 @@ def step(r, areas):
     add("video", 1, lambda: {"cmd": "layer.videoLayers.interpretFootage", "params": r.choice([{}, {"fps": r.choice([15, 0, -2, "x", 59.94])}])})
     add("video", 2, lambda: {"cmd": r.choice(["layer.videoLayers.newVideoLayerFromFile", "layer.videoLayers.replaceFootage", "file.import.videoFramesToLayers"]), "params": dict(r.choice([{}, {"path": r.choice(vpaths)}]), **({"fps": r.choice([12, 0, "x"])} if r.random() < 0.3 else {}))})
     add("video", 1, lambda: {"cmd": "file.export.renderVideo", "params": r.choice([{}, {"dir": V + "vrender", "format": r.choice(["png", "gif", "GIF", "bmp", "tga", "zz"])}, {"dir": 3}, {"dir": "/nonexistent-ro/\0x"}])})
+    gpt = lambda: r.choice([[r.randint(-5, 40), r.randint(-5, 40)], [r.uniform(0, 30), r.uniform(0, 30)], [1], "x", [1e9, 0], [3, None]])
+    gcol = lambda: r.choice(["#ff0000", "#00ff0080", "##0000ff", "#+f+f+f", "#abc", "foreground", "background", [0.2, 0.4, 0.6], [1, 0, 0, 0.5], [2, -1, 0.5], [1, 2], "zz", 5])
+    add("gfill", 3, lambda: {"cmd": "gradient.fill.create", "params": dict({"from": gpt(), "to": gpt()} if r.random() < 0.9 else {}, **{k: r.choice(v) for k, v in [("style", ["linear", "Radial", "angle", "reflected", "diamond", "zz", 3]), ("gradient", ["Rainbow", "black, white", "Oil Slick", "Nope"]), ("stops", [[[0, "#ff0000"], [1, "#0000ff"]], [[0, "foreground"], [0.5, "#00ff00"], [1, "background"]], [[0, "#ff0000"]], "x"]), ("transparency", [[[0, 100], [1, 0]], [[0.3, 50]], "x", [[0, "a"]]]), ("reverse", [True, "x"]), ("dither", [False]), ("opacity", [50, 150, -5, "x"]), ("mode", ["multiply", "Linear Dodge (Add)", "bad", "", 3])] if r.random() < 0.35})})
+    add("gfill", 3, lambda: {"cmd": "gradient.fill.set", "params": {k: r.choice(v) for k, v in [("layer", [2, 3, 4, 99]), ("from", [gpt()]), ("to", [gpt()]), ("style", ["linear", "radial", "angle", "reflected", "diamond", "zz", None]), ("angle", [0, 45, 270, -190, 721.5, "x"]), ("scale", [5, 50, 100, 200, 0, -3, "x"]), ("offset", [[10, -20], [0, 0], [1e6, 0], [1], "x"]), ("reverse", [True, False, 1]), ("dither", [True, "x"]), ("align", [True, False, None]), ("stops", [[[0, gcol()], [1, gcol()]], [[0.7, "#ff0000"], [0.2, "#00ff00"], [0.5, [0, 0, 1, 0.5]]], [[0, "#fff"]], [[0, "#ffffff"], ["a", "#000000"]], "x"]), ("transparency", [[[0, 100], [0.5, 30], [1, 80]], [], "x"]), ("midpoints", [[0.3], [0.01, 0.99], [0.5, 0.5, 0.5, 0.5], ["x"], 3])] if r.random() < 0.3}})
+    add("gfill", 3, lambda: {"cmd": "gradient.fill.stop", "params": {k: r.choice(v) for k, v in [("layer", [2, 3, 99]), ("action", ["add", "move", "delete", "color", "opacity", "midpoint", "zz", 3]), ("kind", ["color", "opacity", "zz"]), ("index", [0, 1, 2, 5, -1, 1.5, 9223372036854775807]), ("location", [0, 0.25, 0.5, 1, 2, -1, "x"]), ("color", [gcol()]), ("opacity", [0, 50, 100, 300, "x"])] if r.random() < 0.6}})
+    add("gfill", 1, lambda: {"cmd": "gradient.fill.get", "params": r.choice([{}, {"layer": r.choice([2, 3, 99, "x"])}])})
     if not pool:
         return {"cmd": "session.inspect"}
     tot = sum(w for w, _ in pool)
@@ -674,10 +680,27 @@ def video_block(r):
     steps.append({"cmd": "timeline.info", "params": {}})
     return steps
 
+def gfill_block(r):
+    """A live gradient (a Gradient Fill layer) edited through its handles, stops and midpoints."""
+    steps = []
+    if r.random() < 0.4:
+        steps.append({"cmd": "select.rect", "params": {"x": r.randint(0, 10), "y": r.randint(0, 10), "width": r.randint(5, 25), "height": r.randint(5, 25)}})
+    steps.append({"cmd": "gradient.fill.create", "params": dict({"from": [r.uniform(0, 30), r.uniform(0, 30)], "to": [r.uniform(0, 30), r.uniform(0, 30)]}, **{k: r.choice(v) for k, v in [("style", ["linear", "radial", "angle", "reflected", "diamond"]), ("gradient", ["Rainbow", "Black, White"]), ("stops", [[[0, "#ff0000"], [0.4, "#ffff00"], [1, "#0000ff"]]]), ("transparency", [[[0, 100], [1, 20]]]), ("opacity", [60])] if r.random() < 0.4})})
+    for _ in range(r.randint(1, 5)):
+        k = r.random()
+        if k < 0.35:
+            steps.append({"cmd": "gradient.fill.set", "params": {k: r.choice(v) for k, v in [("from", [[r.uniform(-10, 40), r.uniform(-10, 40)]]), ("to", [[r.uniform(-10, 40), r.uniform(-10, 40)]]), ("style", ["linear", "radial", "angle", "reflected", "diamond"]), ("angle", [30, -120]), ("scale", [40, 140, 300]), ("offset", [[5, -5]]), ("align", [True]), ("midpoints", [[0.3], [0.7, 0.2]])] if r.random() < 0.35} or {"to": [r.uniform(0, 30), r.uniform(0, 30)]}})
+        elif k < 0.85:
+            steps.append({"cmd": "gradient.fill.stop", "params": dict({"action": r.choice(["add", "move", "delete", "color", "opacity", "midpoint"]), "index": r.randint(0, 3), "location": round(r.uniform(0, 1), 2)}, **{k: r.choice(v) for k, v in [("kind", ["opacity"]), ("color", ["#336699", [1, 0.5, 0, 0.5]]), ("opacity", [25, 80])] if r.random() < 0.4})})
+        else:
+            steps.append({"cmd": r.choice(["edit.undo", "layer.setProps", "image.mode.cmyk", "image.mode.grayscale"]), "params": {"locks": {"pixels": True}} if r.random() < 0.3 else {}})
+    steps.append({"cmd": "gradient.fill.get", "params": {}})
+    return steps
+
 def main():
     out, count = sys.argv[1], int(sys.argv[2])
     seed = int(sys.argv[3]) if len(sys.argv) > 3 else 1
-    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart", "type", "paint", "presets", "retouch", "small", "video"}
+    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart", "type", "paint", "presets", "retouch", "small", "video", "gfill"}
     os.makedirs(out, exist_ok=True)
     r = random.Random(seed)
     for i in range(count):
@@ -698,6 +721,8 @@ def main():
             steps.extend(path_block(r))
         if "video" in areas and r.random() < 0.5:
             steps.extend(video_block(r))
+        if "gfill" in areas and r.random() < 0.5:
+            steps.extend(gfill_block(r))
         for _ in range(r.randint(3, 25)):
             steps.append(new_doc(r) if r.random() < 0.03 else step(r, areas))
         # Inspect at the end so view state is compared too.
