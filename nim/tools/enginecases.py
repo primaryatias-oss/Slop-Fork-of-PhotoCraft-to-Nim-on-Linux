@@ -495,6 +495,10 @@ def step(r, areas):
     add("actions", 2, lambda: {"cmd": r.choice(["actions.delete", "actions.toggle"]), "params": dict({"action": aname()}, **{k: r.choice(v) for k, v in [("step", [0, 1, 2, 9, -1, "x", None]), ("enabled", [True, False, "x", None])] if r.random() < 0.5})})
     add("actions", 1, lambda: {"cmd": "actions.rename", "params": dict({"action": aname()}, **({"name": r.choice(["Renamed", "Mine", "  ", "", 4])} if r.random() < 0.85 else {}))})
     add("actions", 1, lambda: {"cmd": "file.automate.batch", "params": {k: r.choice(v) for k, v in [("steps", [[["layer.new.layer", {}], ["filter.blur.gaussianBlur", {"radius": 2}]], [{"command": "image.adjustments.invert"}, "edit.undo", ["file.save", {}], ["view.zoomIn", {}]], [["nope.cmd", {}]], [[]], [3], "x", [{"id": 3}], [["actions.play", {"action": "Mine"}]]]), ("action", [[["image.adjustments.invert", {}]]]), ("input", [["/tmp/claude-0/scr/vframes/f0.png", "/tmp/claude-0/scr/vframes/f1.png"], "/tmp/claude-0/scr/vframes", 3]), ("output", ["/tmp/claude-0/scr/fout", ""]), ("format", ["png", "tga", "same"]), ("calledActions", [[{"name": "Mine", "steps": [["image.adjustments.invert", {}]]}], [{"steps": []}], [{"name": 3}], "x", [{"name": "A", "steps": [["x"]]}], [{"name": "A", "disabled": [-1]}], [{"name": "A", "steps": [["a", {}, 1]]}], None]), ("tgaBits", [32, 9])] if r.random() < 0.6}})
+    FX = "/home/user/Slop-Fork-of-PhotoCraft-to-Nim-on-Linux/nim/tests/out/fixtures/"
+    exrp = lambda: r.choice([FX + "multipart.exr", FX + "half_zip.exr", FX + "gray_zip.exr", FX + "tiled_piz.exr", "/tmp/claude-0/scr/vframes/f0.png", "/nonexistent/a.exr", "", 3])
+    add("file", 1, lambda: {"cmd": "file.exrParts", "params": r.choice([{}, {"path": exrp()}])})
+    add("file", 1, lambda: {"cmd": "file.openExrParts", "params": dict({"path": exrp()}, **{k: r.choice(v) for k, v in [("part/beauty", [True, False]), ("part/depth", [True]), ("part/part 0", [True, "x"]), ("group/rgba", [True]), ("view", ["left", "both", "x"]), ("precomp", [True])] if r.random() < 0.4})})
     if not pool:
         return {"cmd": "session.inspect"}
     tot = sum(w for w, _ in pool)

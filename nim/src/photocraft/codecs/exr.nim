@@ -56,7 +56,10 @@ proc colorRank*(p: ExrPart): int =
   if p.channels.len == 1: 1 else: 0
 
 proc readHeaders(b: openArray[byte]): seq[ExrPart] =
-  if b.len < 8 or b[0] != Magic[0] or b[1] != Magic[1] or b[2] != Magic[2] or b[3] != Magic[3]: raise err("not an OpenEXR file")
+  # The exr crate's wording: a short read is "reference to missing bytes".
+  if b.len < 4: raise err("invalid: reference to missing bytes")
+  if b[0] != Magic[0] or b[1] != Magic[1] or b[2] != Magic[2] or b[3] != Magic[3]: raise err("invalid: file identifier missing")
+  if b.len < 8: raise err("invalid: reference to missing bytes")
   let flags = rdU32(b, 4)
   let tiledFlag = (flags and 0x200) != 0
   let multi = (flags and 0x1000) != 0
