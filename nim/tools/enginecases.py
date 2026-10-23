@@ -458,6 +458,16 @@ def step(r, areas):
     add("swatch", 2, lambda: {"cmd": "swatches.export", "params": {k: r.choice(v) for k, v in [("format", ["aco", "ase", "zz"]), ("path", ["/tmp/claude-0/scr/swout/o.aco", "/tmp/claude-0/scr/swout/o.ase", "/tmp/claude-0/scr/swout/o.txt", "/nonexistent-ro/x.aco"]), ("group", [swg()]), ("swatches", [[swn(), swn()], ["Black"], "x", [3]])] if r.random() < 0.4}})
     add("swatch", 1, lambda: {"cmd": "brush.presets.importAbr", "params": dict(r.choice([{"path": PR + r.choice(["a.abr", "one.abr", "a.abr", "one.abr", "bad.abr", "g.grd", "nope.abr"])}, {"data": r.choice(["", "!!", 5])}, {}]), **{k: r.choice(v) for k, v in [("group", ["Mine", "  ", 3]), ("replace", [False]), ("select", [True])] if r.random() < 0.35})})
     add("swatch", 1, lambda: {"cmd": "gradient.presets.importGrd", "params": dict(r.choice([{"path": PR + r.choice(["g.grd", "g.grd", "g.grd", "noise.grd", "bad.grd", "a.abr", "nope.grd"])}, {"data": r.choice(["", "OEJHUg==", 5])}, {}]), **{k: r.choice(v) for k, v in [("group", ["Mine", "Basics", "  ", 3]), ("replace", [False])] if r.random() < 0.35})})
+    ppath = lambda: r.choice(["", "general", "general.beepWhenDone", "general.imageInterpolation", "interface.theme", "interface.favoriteThemes", "interface.language", "interface.canvasCustomColor", "interface.notificationDurationSeconds", "tools.pressureCurve", "fileHandling.autosaveMinutes", "fileHandling.recentFiles", "export.jpegQuality", "performance.historyStates", "performance.renderingMode", "performance.memoryUsageMb", "unitsAndRulers.rulers", "unitsAndRulers.pointSize", "unitsAndRulers.columnWidth", "guidesGridAndSlices.gridlineEvery", "guidesGridAndSlices.guideColor", "type", "type.recentFonts", "shortcuts", "shortcuts.layer.new.layer", "shortcuts.nope.cmd", "menus", "menus.colors", "menus.colors.file.new", "menus.hidden", "toolbar.order", "colorSettings", "colorSettings.workingRgb", "colorSettings.intent", "colorSettings.policyRgb", "colorSettings.blendTextGamma", "colorSettings.nope", "nope", "general.", "general.nope", "scriptEvents", "workspaces", "dialogs", "panelLayout", "userDictionary", 3])
+    pval = lambda: r.choice([True, False, 0, 1, 2, 5, 50, 100, 101, 1.5, -1, 300000, "x", "", "#ff0000", "##00ff00", "#12345", "pixels", "inches", "bicubic", "proMedium", "breezeLight", "auto", "en", "ja-JP", "bad lang!", "srgb", "adobe-rgb", "lab-d50", "perceptual", "preserve", "convert", "Cmd+Shift+N", "ctrl+alt+k", "F7", "cmd++", "Cmd+Shift", None, [], ["pro", "classic"], ["pro", "pro"], ["zz"], [[0, 0], [0.5, 0.7], [1, 1]], [[0, 0]], [[0, 2], [1, 1]], {"beepWhenDone": True}, {"historyStates": 3, "cacheLevels": 9}, {"x": 1}, {"colorPicker": "system", "nope": 1}])
+    add("prefs", 3, lambda: {"cmd": "prefs.get", "params": r.choice([{}, {"path": ppath()}])})
+    add("prefs", 4, lambda: {"cmd": "prefs.set", "params": r.choice([{"path": ppath(), "value": pval()}, {"path": ppath()}, {"values": {ppath() if r.random() < 0.9 else "general.beepWhenDone": pval() for _ in range(r.randint(1, 3))}}, {}, {"path": r.choice(["general", "performance", "", "shortcuts", "menus", "toolbar", "type"]), "value": r.choice([{"beepWhenDone": True, "exportClipboard": False}, {"historyStates": 4}, {"general": {"beepWhenDone": True}}, {"colorSettings": {"intent": "perceptual"}}, {"layer.new.layer": "F9"}, {"hidden": ["file.new"], "colors": {"file.new": "red"}}, {"order": ["move"]}, {"recentFonts": 99}, "x", 3])}])})
+    add("prefs", 2, lambda: {"cmd": "prefs.reset", "params": r.choice([{}, {"path": ppath()}, {"section": r.choice(["general", "performance", "colorSettings"])}, {"path": 3}])})
+    add("prefs", 2, lambda: {"cmd": "edit.preferences." + r.choice(["general", "interface", "workspace", "tools", "historyLog", "fileHandling", "export", "performance", "scratchDisks", "cursors", "transparencyAndGamut", "unitsAndRulers", "guidesGridAndSlices", "plugIns", "type", "enhancedControls", "rawDefaults", "integrations"]), "params": {}})
+    kys = '<?xml version="1.0" encoding="UTF-8"?><photoshop-keyboard-shortcuts version="4" filename="$$$/FileName/Presets/KeyboardCustomization/mine=mine"><command kind="static" name="Levels..." id="1801"><shortcut>Cmd+L</shortcut></command><command kind="static" name="Undo" id="101"><shortcut>Cmd+Z</shortcut><shortcut>F1</shortcut></command><command kind="static" name="Hide Photoshop" id="7001"><shortcut>Cmd+H</shortcut></command><command kind="static" name="Odd" id="1"><shortcut>Cmd+Shift+Ctrl</shortcut></command><command kind="static" name="New Layer..."><shortcut>F2</shortcut></command><command kind="static" name="Gaussian Blur..."><shortcut>Ctrl+Opt+G</shortcut></command><tool name="Move Tool" type="1">V</tool></photoshop-keyboard-shortcuts>'
+    add("prefs", 3, lambda: {"cmd": "edit.keyboardShortcuts", "params": {k: r.choice(v) for k, v in [("set", [{"layer.new.layer": r.choice(["F2", "Cmd+J", "", None, "Cmd+", "shift+ctrl+x"])}, {"file.new": "Cmd+O", "edit.undo": "Cmd+O"}, {"nope.cmd": "F3"}, {"tools.temporary.hand": "H"}]), ("reset", [True, ["layer.new.layer", "file.new"], False]), ("removeConflicts", [False]), ("filter", ["swatches", "gradient.fill", "zzz"]), ("allowUnknown", [True]), ("importKys", [kys, "<other/>", "<photoshop-keyboard-shortcuts></photoshop-keyboard-shortcuts>", 3])] if r.random() < 0.4}})
+    add("prefs", 2, lambda: {"cmd": "edit.menus", "params": {k: r.choice(v) for k, v in [("hide", [["file.new", "edit.undo"], ["x"], "x"]), ("show", [["file.new"], [3]]), ("color", [{"file.new": "red"}, {"edit.undo": "none"}, {"x": "plaid"}, {"file.new": 3}]), ("reset", [True, "x"])] if r.random() < 0.5}})
+    add("prefs", 1, lambda: {"cmd": "edit.toolbar", "params": {k: r.choice(v) for k, v in [("hidden", [["move", "brush"], [], "x"]), ("order", [["brush", "move"], [3, "lasso"]]), ("reset", [True])] if r.random() < 0.5}})
     if not pool:
         return {"cmd": "session.inspect"}
     tot = sum(w for w, _ in pool)
@@ -746,10 +756,19 @@ def smartsel_block(r):
             steps.append({"cmd": "layer.removeBackground", "params": {k: r.choice(v) for k, v in [("sampleAllLayers", [True]), ("refine", [False])] if r.random() < 0.3}})
     return steps
 
+def prefs_block(r):
+    """A small history limit, then strokes and undo/redo against it."""
+    steps = [{"cmd": "prefs.set", "params": {"path": "performance.historyStates", "value": r.choice([1, 2, 3, 5])}}]
+    for _ in range(r.randint(2, 6)):
+        steps.append({"cmd": r.choice(["paint.stroke", "paint.stroke", "edit.undo", "edit.redo", "history.newSnapshot"]), "params": {"points": [[r.uniform(0, 30), r.uniform(0, 30)], [r.uniform(0, 30), r.uniform(0, 30)]], "size": 5, "color": "#ff0000"}})
+    if r.random() < 0.5: steps.append({"cmd": "prefs.set", "params": {"path": "performance.historyStates", "value": 1}})
+    steps.append({"cmd": "history.list", "params": {}})
+    return steps
+
 def main():
     out, count = sys.argv[1], int(sys.argv[2])
     seed = int(sys.argv[3]) if len(sys.argv) > 3 else 1
-    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart", "type", "paint", "presets", "retouch", "small", "video", "gfill", "smartsel", "swatch"}
+    areas = set(sys.argv[4].split(",")) if len(sys.argv) > 4 else {"select", "layer", "fill", "history", "image", "channel", "pattern", "misc", "edit", "extra", "color", "style", "adjust", "filter", "vector", "smart", "type", "paint", "presets", "retouch", "small", "video", "gfill", "smartsel", "swatch", "prefs"}
     os.makedirs(out, exist_ok=True)
     r = random.Random(seed)
     for i in range(count):
@@ -774,6 +793,8 @@ def main():
             steps.extend(gfill_block(r))
         if "smartsel" in areas and r.random() < 0.5:
             steps.extend(smartsel_block(r))
+        if "prefs" in areas and r.random() < 0.3:
+            steps.extend(prefs_block(r))
         for _ in range(r.randint(3, 25)):
             steps.append(new_doc(r) if r.random() < 0.03 else step(r, areas))
         # Inspect at the end so view state is compared too.

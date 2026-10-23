@@ -1,15 +1,6 @@
 ## Units and lengths of the preferences (the `Unit` / `PointSize` part of `prefs.rs`). Part of
 ## the `engine/core` unit: included, not imported.
 
-type
-  Unit* = enum
-    ## Length units for rulers, the Info panel and size dialogs.
-    unPixels = "pixels", unInches = "inches", unCentimeters = "cm", unMillimeters = "mm",
-    unPoints = "points", unPicas = "picas", unPercent = "percent"
-  PointSize* = enum psPostScript = "postScript", psTraditional = "traditional"
-
-proc perInch*(p: PointSize): float64 = (if p == psPostScript: 72.0 else: 72.27)
-
 proc fromPx*(u: Unit; px, dpi0, extent, ppi: float64): float64 =
   ## Document pixels → this unit.
   let dpi = rmax(dpi0, 1e-6)

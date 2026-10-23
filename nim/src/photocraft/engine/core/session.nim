@@ -338,7 +338,8 @@ proc defaultPresetState*(): PresetState
 proc newSession*(): Session =
   Session(tools: newToolState(), quickMaskOptions: QuickMaskOptions(color: AlphaDefaultColor, opacity: 0.5,
           indicates: ciMaskedAreas), patterns: newPatternLibrary(),
-          color: ColorState(settings: defaultColorSettings()), presets: defaultPresetState())
+          color: ColorState(settings: defaultColorSettings()), presets: defaultPresetState(),
+          prefs: prefsStore())
 
 proc documents*(s: Session): lent seq[DocState] = s.docs
 proc activeIndex*(s: Session): Option[int] = s.activeIdx
@@ -418,7 +419,11 @@ proc addDocument*(s: var Session; doc: sink Document; path = none(string)): int 
       if st.doc.id == d.id: clash = true
     if not clash: break
     d.id = freshDocId()
-  s.docs.add newDocState(d, path)
+  var st = newDocState(d, path)
+  let perf = s.prefs.values.performance
+  st.history.maxStates = max(int(perf.historyStates), 1)
+  st.history.maxBytes = int(perf.memoryUsageMb) * (1 shl 20)
+  s.docs.add st
   s.activeIdx = some(s.docs.len - 1)
   s.docs.len - 1
 

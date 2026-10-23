@@ -395,6 +395,7 @@ type
     coalesceRequest*: Option[string]
     quickMaskOptions*: QuickMaskOptions
     patterns*: PatternLibrary
+    prefs*: PrefsStore
     presets*: PresetState
     color*: ColorState
     clipboard*: Option[Clip]
